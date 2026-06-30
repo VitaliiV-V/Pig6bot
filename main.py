@@ -1,4 +1,5 @@
 from config import *
+from settings import *
 from channel import *
 from commands import *
 from telegram import InputTextMessageContent,InlineQueryResultArticle, Update
@@ -23,6 +24,13 @@ async def pig_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.inline_query.answer(results, cache_time=1)
 
+
+app.add_handler(
+    MessageHandler(
+        filters.ChatType.PRIVATE & filters.Document.ALL,
+        receive_config
+    )
+)
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("pig", pig))
 app.add_handler(CommandHandler("svo", svo))
@@ -33,6 +41,7 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("smart", smart))
 app.add_handler(CommandHandler("unban", unban))
 app.add_handler(CommandHandler("reg", register))
+app.add_handler(CommandHandler("config", config))
 app.add_handler(CommandHandler("reject", reject))
 app.add_handler(CommandHandler("add", addtolists))
 app.add_handler(CommandHandler("setfreq", setfreq))
@@ -40,8 +49,8 @@ app.add_handler(CommandHandler("disable", disable))
 app.add_handler(CommandHandler("del", delfromlists))
 app.add_handler(CommandHandler("blockall", blockall))
 app.add_handler(CommandHandler("jdaycode", jdaycode))
-app.add_handler(CommandHandler("setwhitelistsmode", setwhitelistsmode))
 app.add_handler(MessageHandler(filters.ALL, reply_in_channel))
+app.add_handler(CommandHandler("setwhitelistsmode", setwhitelistsmode))
 app.add_handler(ChatMemberHandler(ban_new_members, ChatMemberHandler.CHAT_MEMBER))
 app.add_handler(MessageHandler(filters.UpdateType.EDITED_CHANNEL_POST, reply_in_channel))
 

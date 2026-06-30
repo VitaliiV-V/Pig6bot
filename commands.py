@@ -1,5 +1,6 @@
 from config import *
 from markovchain import *
+from settings import *
 from telegram.ext import ContextTypes
 from telegram import Update
 from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup, Update
@@ -65,7 +66,7 @@ async def smart(update: Update, context: ContextTypes.DEFAULT_TYPE):
         name = str(MAIN_CHANNEL_ID)
         data = load_config()
 
-        data["ban_messages"] = "manualfffff"
+        data["ban_messages"] = "manual"
 
         save_config(data)
 
@@ -492,3 +493,56 @@ async def svo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Данная команда поддерживается только в мессенджере МАКС\n"
     )
     
+async def config(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    if not msg or not msg.from_user or not msg.text:
+        return
+    if "/config" not in msg.text:
+        return
+    user_id = msg.from_user.id
+
+    bot_name = (await context.bot.get_me()).first_name
+    msg = update.message
+    if not msg:
+        return
+
+    if user_id == OWNER_ID:
+        document = update.message.document
+        if document:
+            file = await document.get_file()
+            await file.download_to_drive("config.json")
+            data = load_config()
+        else:
+            await context.bot.send_document(
+                chat_id=msg.chat_id,
+                document=open("config.json", "rb")
+            )
+
+    else:
+
+        await msg.reply_text(
+            f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
+        )
+
+async def receive_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    
+    user_id = msg.from_user.id
+
+    bot_name = (await context.bot.get_me()).first_name
+    msg = update.message
+    if not msg:
+        return
+
+    if user_id == OWNER_ID:
+        document = update.message.document
+        if document:
+            file = await document.get_file()
+            await file.download_to_drive("config.json")
+            data = load_config()
+
+    else:
+
+        await msg.reply_text(
+            f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
+        )

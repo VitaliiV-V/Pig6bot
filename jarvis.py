@@ -4,11 +4,9 @@ from google import genai
 class Jarvis:
     def __init__(self):
         self.client = genai.Client(api_key=GEMINI_API_KEY)
+        self.chat = self.client.chats.create(model="gemini-3.1-flash-lite")
     def query(self, s):
-        response = self.client.models.generate_content(
-            model="gemini-3.1-flash-lite",
-            contents=s
-        )
+        response = response = self.chat.send_message(s)
         return response.text
 
 # j = Jarvis()
