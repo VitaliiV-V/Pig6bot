@@ -1,0 +1,25 @@
+2026-06-30 23:38:03,570 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-06-30 23:38:03,571 INFO supervisord started with pid 1
+2026-06-30 23:38:04,572 INFO spawned: 'bot1' with pid 7
+2026-06-30 23:38:04,573 INFO spawned: 'bot2' with pid 8
+2026-06-30 23:38:04,581 WARN exited: bot2 (exit status 2; not expected)
+2026-06-30 23:38:05,581 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-06-30 23:38:05,582 INFO spawned: 'bot2' with pid 9
+2026-06-30 23:38:06,451 WARN exited: bot2 (exit status 2; not expected)
+2026-06-30 23:38:09,188 INFO spawned: 'bot2' with pid 13
+2026-06-30 23:38:09,213 WARN exited: bot2 (exit status 2; not expected)
+2026-06-30 23:38:12,227 INFO spawned: 'bot2' with pid 14
+2026-06-30 23:38:12,248 WARN exited: bot2 (exit status 2; not expected)
+2026-06-30 23:38:13,254 INFO gave up: bot2 entered FATAL state, too many start retries too quickly
+2026-06-30 23:38:38,964 WARN received SIGTERM indicating exit request
+2026-06-30 23:38:38,966 INFO waiting for bot1 to die
+2026-06-30 23:39:13,081 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-06-30 23:39:13,082 INFO supervisord started with pid 1
+2026-06-30 23:39:14,089 INFO spawned: 'bot1' with pid 6
+2026-06-30 23:39:14,093 INFO spawned: 'bot2' with pid 7
+2026-06-30 23:39:15,096 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-06-30 23:39:15,096 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-06-30 23:39:51,534 WARN received SIGTERM indicating exit request
+2026-06-30 23:39:51,535 INFO waiting for bot1, bot2 to die
+2026-06-30 23:39:51,978 INFO stopped: bot2 (exit status 0)
+2026-06-30 23:39:54,992 INFO waiting for bot1 to die

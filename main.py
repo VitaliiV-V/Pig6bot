@@ -2,7 +2,6 @@ from config import *
 from settings import *
 from channel import *
 from commands import *
-from logs import *
 from telegram import InputTextMessageContent,InlineQueryResultArticle, Update
 from telegram.ext import InlineQueryHandler, ApplicationBuilder, CommandHandler, MessageHandler, filters, ChatMemberHandler
 
@@ -54,5 +53,6 @@ app.add_handler(MessageHandler(filters.ALL, reply_in_channel))
 app.add_handler(CommandHandler("setwhitelistsmode", setwhitelistsmode))
 app.add_handler(ChatMemberHandler(ban_new_members, ChatMemberHandler.CHAT_MEMBER))
 app.add_handler(MessageHandler(filters.UpdateType.EDITED_CHANNEL_POST, reply_in_channel))
+
 
 app.run_polling(allowed_updates=["message", "channel_post", "chat_member", "inline_query"])
