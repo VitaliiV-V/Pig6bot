@@ -5,6 +5,7 @@ load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
 JUDGMENT_DAY_TOKEN = os.getenv("JUDGMENT_DAY_TOKEN")
+LOGS_TOKEN = os.getenv("LOGS_TOKEN")
 
 OWNER_ID = int(os.getenv("OWNER_ID"))
 MAIN_CHANNEL_ID = int(os.getenv("MAIN_CHANNEL_ID"))

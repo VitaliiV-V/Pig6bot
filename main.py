@@ -2,6 +2,7 @@ from config import *
 from settings import *
 from channel import *
 from commands import *
+from logs import *
 from telegram import InputTextMessageContent,InlineQueryResultArticle, Update
 from telegram.ext import InlineQueryHandler, ApplicationBuilder, CommandHandler, MessageHandler, filters, ChatMemberHandler
 
