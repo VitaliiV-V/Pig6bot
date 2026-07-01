@@ -101,7 +101,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     query = query.replace('Jarvis', '')
                     query = query.replace('Джарвис', '')
                     query = query.replace('джарвис', '')
-                    ans = jarvis.query(f"{query} Ответь предложением не длиннее 100 слов. Чем меньше тем лучше")
+                    ans = jarvis.query(f"{query}")
                     await context.bot.send_message(chat_id=chat_id, text=ans, reply_to_message_id=message_id)
 
                 return            
@@ -163,7 +163,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = query.replace('Jarvis', '')
         query = query.replace('Джарвис', '')
         query = query.replace('джарвис', '')
-        ans = jarvis.query(f"{query} Ответь предложением не длиннее 100 слов. Чем меньше тем лучше")
+        ans = jarvis.query(f"{query}")
         await context.bot.send_message(chat_id=chat_id, text=ans, reply_to_message_id=message_id)
 
 

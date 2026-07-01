@@ -546,3 +546,36 @@ async def receive_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(
             f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
         )
+
+async def set_base_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    if not msg or not msg.from_user or not msg.text:
+        return
+
+    user_id = msg.from_user.id
+
+    bot_name = (await context.bot.get_me()).first_name
+
+    if user_id == OWNER_ID:
+
+
+        s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
+
+        try:
+            data = load_config()
+            data["base_prompt"] = s
+            save_config(data)
+
+            await msg.reply_text(
+                f"Базовый промпт обновлён",reply_markup=ReplyKeyboardRemove()
+            )
+        except Exception as e:
+            await msg.reply_text(
+                f"Не удалось установить частоту",reply_markup=ReplyKeyboardRemove()
+            )
+
+    else:
+        await msg.reply_text(
+            f"Внимание! Системой защиты «{bot_name}»  отражена попытка несанкционированного доступа к телеграм каналу", reply_markup=ReplyKeyboardRemove()
+        )
+        
