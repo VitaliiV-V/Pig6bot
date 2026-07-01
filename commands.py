@@ -12,7 +12,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     if not msg:
         return
-
     await msg.reply_text(
         f"Вас приветствует система защиты «{bot_name}».\n"
     )

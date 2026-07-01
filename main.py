@@ -25,12 +25,7 @@ async def pig_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.inline_query.answer(results, cache_time=1)
 
 
-app.add_handler(
-    MessageHandler(
-        filters.ChatType.PRIVATE & filters.Document.ALL,
-        receive_config
-    )
-)
+app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.Document.ALL, receive_config))
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("pig", pig))
 app.add_handler(CommandHandler("svo", svo))
