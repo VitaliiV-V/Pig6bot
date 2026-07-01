@@ -1,6 +1,5 @@
 import uuid
 import asyncio
-from jarvis import *
 from config import *
 from settings import *
 from markovchain import *
@@ -8,7 +7,6 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 g = Generator()
-jarvis = Jarvis()
 
 def check(text, id):
 
