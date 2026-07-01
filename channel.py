@@ -85,7 +85,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 
                 new_uuid = str(uuid.uuid4())
 
-                await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, OWNER_NAME + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
+                await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
 
                 config["uuid"] = new_uuid
                 save_config(config)

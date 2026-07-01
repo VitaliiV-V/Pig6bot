@@ -111,7 +111,7 @@ async def query(update, context):
     else:
         y = None
     text = msg.text.lower()
-    if update.message or "jarvis" in text or "джарвис" in text or (x == y):
+    if (update.message and update.message.from_user.id == OWNER_ID) or "jarvis" in text or "джарвис" in text or (x == y):
         query = text
         query = query.replace('jarvis', '')
         query = query.replace('джарвис', '')

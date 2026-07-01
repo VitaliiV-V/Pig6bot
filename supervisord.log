@@ -656,3 +656,166 @@
 2026-07-01 15:22:15,491 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
 2026-07-01 15:22:15,492 INFO success: bot3 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
 2026-07-01 15:22:15,492 INFO success: bot4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 16:32:41,132 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-07-01 16:32:41,134 INFO supervisord started with pid 1
+2026-07-01 16:32:42,145 INFO spawned: 'bot1' with pid 7
+2026-07-01 16:32:42,148 INFO spawned: 'bot2' with pid 8
+2026-07-01 16:32:42,152 INFO spawned: 'bot3' with pid 9
+2026-07-01 16:32:42,157 INFO spawned: 'bot4' with pid 10
+2026-07-01 16:32:43,164 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 16:32:43,165 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 16:32:43,165 INFO success: bot3 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 16:32:43,165 INFO success: bot4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 16:35:13,241 WARN received SIGTERM indicating exit request
+2026-07-01 16:35:13,243 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 16:35:13,789 INFO stopped: bot4 (exit status 0)
+2026-07-01 16:35:14,360 INFO stopped: bot3 (exit status 0)
+2026-07-01 16:35:14,801 INFO stopped: bot2 (exit status 0)
+2026-07-01 16:35:15,527 INFO stopped: bot1 (exit status 0)
+2026-07-01 16:35:51,612 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-07-01 16:35:51,613 INFO supervisord started with pid 1
+2026-07-01 16:35:52,618 INFO spawned: 'bot1' with pid 7
+2026-07-01 16:35:52,621 INFO spawned: 'bot2' with pid 8
+2026-07-01 16:35:52,623 INFO spawned: 'bot3' with pid 9
+2026-07-01 16:35:52,627 INFO spawned: 'bot4' with pid 10
+2026-07-01 16:35:53,632 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 16:35:53,632 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 16:35:53,633 INFO success: bot3 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 16:35:53,633 INFO success: bot4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 21:59:54,633 WARN received SIGTERM indicating exit request
+2026-07-01 21:59:54,636 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 21:59:56,139 INFO stopped: bot4 (exit status 0)
+2026-07-01 21:59:56,550 INFO stopped: bot3 (exit status 0)
+2026-07-01 21:59:56,961 INFO stopped: bot2 (exit status 0)
+2026-07-01 21:59:57,830 INFO stopped: bot1 (exit status 0)
+2026-07-01 21:59:59,341 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-07-01 21:59:59,342 INFO supervisord started with pid 1
+2026-07-01 22:00:00,352 INFO spawned: 'bot1' with pid 7
+2026-07-01 22:00:00,354 INFO spawned: 'bot2' with pid 8
+2026-07-01 22:00:00,361 INFO spawned: 'bot3' with pid 9
+2026-07-01 22:00:00,369 INFO spawned: 'bot4' with pid 10
+2026-07-01 22:00:01,373 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:00:01,374 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:00:01,374 INFO success: bot3 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:00:01,375 INFO success: bot4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:02:45,208 WARN received SIGTERM indicating exit request
+2026-07-01 22:02:45,210 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 22:02:45,731 INFO stopped: bot4 (exit status 0)
+2026-07-01 22:02:46,193 INFO stopped: bot3 (exit status 0)
+2026-07-01 22:02:46,921 INFO stopped: bot2 (exit status 0)
+2026-07-01 22:02:47,487 INFO stopped: bot1 (exit status 0)
+2026-07-01 22:02:48,929 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-07-01 22:02:48,930 INFO supervisord started with pid 1
+2026-07-01 22:02:49,933 INFO spawned: 'bot1' with pid 7
+2026-07-01 22:02:49,937 INFO spawned: 'bot2' with pid 8
+2026-07-01 22:02:49,938 INFO spawned: 'bot3' with pid 9
+2026-07-01 22:02:49,941 INFO spawned: 'bot4' with pid 10
+2026-07-01 22:02:50,943 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:02:50,944 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:02:50,944 INFO success: bot3 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:02:50,944 INFO success: bot4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:05:08,154 WARN received SIGTERM indicating exit request
+2026-07-01 22:05:08,155 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 22:05:08,658 INFO stopped: bot4 (exit status 0)
+2026-07-01 22:05:09,089 INFO stopped: bot3 (exit status 0)
+2026-07-01 22:05:09,505 INFO stopped: bot2 (exit status 0)
+2026-07-01 22:05:10,089 INFO stopped: bot1 (exit status 0)
+2026-07-01 22:05:11,689 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-07-01 22:05:11,690 INFO supervisord started with pid 1
+2026-07-01 22:05:12,542 INFO spawned: 'bot1' with pid 7
+2026-07-01 22:05:12,545 INFO spawned: 'bot2' with pid 8
+2026-07-01 22:05:12,548 INFO spawned: 'bot3' with pid 9
+2026-07-01 22:05:12,553 INFO spawned: 'bot4' with pid 10
+2026-07-01 22:05:13,561 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:05:13,561 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:05:13,562 INFO success: bot3 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:05:13,562 INFO success: bot4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:06:06,133 WARN received SIGTERM indicating exit request
+2026-07-01 22:06:06,134 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 22:06:09,148 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 22:06:09,707 INFO stopped: bot4 (exit status 0)
+2026-07-01 22:06:10,141 INFO stopped: bot3 (exit status 0)
+2026-07-01 22:06:10,550 INFO stopped: bot2 (exit status 0)
+2026-07-01 22:06:11,117 INFO stopped: bot1 (exit status 0)
+2026-07-01 22:06:12,852 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-07-01 22:06:12,853 INFO supervisord started with pid 1
+2026-07-01 22:06:13,863 INFO spawned: 'bot1' with pid 7
+2026-07-01 22:06:13,866 INFO spawned: 'bot2' with pid 8
+2026-07-01 22:06:13,871 INFO spawned: 'bot3' with pid 9
+2026-07-01 22:06:13,875 INFO spawned: 'bot4' with pid 10
+2026-07-01 22:06:14,879 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:06:14,880 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:06:14,880 INFO success: bot3 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:06:14,880 INFO success: bot4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:08:21,205 WARN received SIGTERM indicating exit request
+2026-07-01 22:08:21,207 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 22:08:25,099 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 22:08:28,119 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 22:10:31,836 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-07-01 22:10:31,837 INFO supervisord started with pid 1
+2026-07-01 22:10:32,845 INFO spawned: 'bot1' with pid 7
+2026-07-01 22:10:32,849 INFO spawned: 'bot2' with pid 8
+2026-07-01 22:10:32,854 INFO spawned: 'bot3' with pid 9
+2026-07-01 22:10:32,858 INFO spawned: 'bot4' with pid 10
+2026-07-01 22:10:33,866 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:10:33,866 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:10:33,867 INFO success: bot3 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 22:10:33,867 INFO success: bot4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:08:59,590 WARN received SIGTERM indicating exit request
+2026-07-01 23:08:59,594 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 23:09:02,907 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 23:09:04,052 INFO stopped: bot4 (exit status 0)
+2026-07-01 23:09:04,556 INFO stopped: bot3 (exit status 0)
+2026-07-01 23:09:04,987 INFO stopped: bot2 (exit status 0)
+2026-07-01 23:09:05,594 INFO stopped: bot1 (exit status 0)
+2026-07-01 23:11:36,765 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-07-01 23:11:36,767 INFO supervisord started with pid 1
+2026-07-01 23:11:37,776 INFO spawned: 'bot1' with pid 7
+2026-07-01 23:11:37,779 INFO spawned: 'bot2' with pid 8
+2026-07-01 23:11:37,784 INFO spawned: 'bot3' with pid 9
+2026-07-01 23:11:37,786 INFO spawned: 'bot4' with pid 10
+2026-07-01 23:11:38,790 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:11:38,790 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:11:38,790 INFO success: bot3 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:11:38,790 INFO success: bot4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:13:18,378 WARN received SIGTERM indicating exit request
+2026-07-01 23:13:18,380 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 23:13:18,939 INFO stopped: bot4 (exit status 0)
+2026-07-01 23:13:19,311 INFO stopped: bot3 (exit status 0)
+2026-07-01 23:13:19,998 INFO stopped: bot2 (exit status 0)
+2026-07-01 23:13:20,537 INFO stopped: bot1 (exit status 0)
+2026-07-01 23:13:21,972 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-07-01 23:13:21,973 INFO supervisord started with pid 1
+2026-07-01 23:13:22,860 INFO spawned: 'bot1' with pid 7
+2026-07-01 23:13:22,863 INFO spawned: 'bot2' with pid 8
+2026-07-01 23:13:22,865 INFO spawned: 'bot3' with pid 9
+2026-07-01 23:13:22,868 INFO spawned: 'bot4' with pid 10
+2026-07-01 23:13:23,874 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:13:23,874 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:13:23,874 INFO success: bot3 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:13:23,874 INFO success: bot4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:19:03,283 WARN received SIGTERM indicating exit request
+2026-07-01 23:19:03,284 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 23:19:03,829 INFO stopped: bot4 (exit status 0)
+2026-07-01 23:19:04,303 INFO stopped: bot3 (exit status 0)
+2026-07-01 23:19:06,314 INFO waiting for bot1, bot2 to die
+2026-07-01 23:19:07,850 INFO stopped: bot2 (exit status 0)
+2026-07-01 23:19:08,545 INFO stopped: bot1 (exit status 0)
+2026-07-01 23:19:10,295 CRIT Supervisor is running as root.  Privileges were not dropped because no user is specified in the config file.  If you intend to run as root, you can set user=root in the config file to avoid this message.
+2026-07-01 23:19:10,296 INFO supervisord started with pid 1
+2026-07-01 23:19:11,305 INFO spawned: 'bot1' with pid 6
+2026-07-01 23:19:11,308 INFO spawned: 'bot2' with pid 7
+2026-07-01 23:19:11,309 INFO spawned: 'bot3' with pid 8
+2026-07-01 23:19:11,312 INFO spawned: 'bot4' with pid 9
+2026-07-01 23:19:12,323 INFO success: bot1 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:19:12,324 INFO success: bot2 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:19:12,324 INFO success: bot3 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:19:12,324 INFO success: bot4 entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-07-01 23:21:00,636 WARN received SIGTERM indicating exit request
+2026-07-01 23:21:00,637 INFO waiting for bot1, bot2, bot3, bot4 to die
+2026-07-01 23:21:01,125 INFO stopped: bot4 (exit status 0)
+2026-07-01 23:21:04,024 INFO waiting for bot1, bot2, bot3 to die
+2026-07-01 23:21:04,541 INFO stopped: bot3 (exit status 0)
+2026-07-01 23:21:07,563 INFO waiting for bot1, bot2 to die
+2026-07-01 23:21:08,001 INFO stopped: bot2 (exit status 0)
+2026-07-01 23:21:08,632 INFO stopped: bot1 (exit status 0)
