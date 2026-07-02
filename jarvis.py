@@ -8,7 +8,10 @@ class Jarvis:
         self.chat = self.client.chats.create(model="gemini-3.1-flash-lite")
         self.config = load_config()
         response = self.chat.send_message(f"Привет! {self.config['base_prompt']}")
-        print(response.text)
+    def restart(self):
+        self.chat = self.client.chats.create(model="gemini-3.1-flash-lite")
+        self.config = load_config()
+        response = self.chat.send_message(f"Привет! {self.config['base_prompt']}")
     def query(self, s):
         self.config = load_config()
         response = self.chat.send_message(f"{s} Не забывай {self.config['base_prompt']}")

@@ -1,4 +1,5 @@
 import uuid
+import tools
 import asyncio
 from config import *
 from settings import *
@@ -71,22 +72,16 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 return
             else:
                 if "/ban" in message_text:
-        
-                    if msg.reply_to_message.author_signature not in config["banned_users"]:
-                        config["banned_users"].append(msg.reply_to_message.author_signature)
-
-                    save_config(config)
+                    tools.ban(msg.reply_to_message.author_signature)
                 if "/unban" in message_text:
-        
-                    if msg.reply_to_message.author_signature in config["banned_users"]:
-                        config["banned_users"].remove(msg.reply_to_message.author_signature)
+                    tools.unban(msg.reply_to_message.author_signature)
 
-                    save_config(config)
                 
                 new_uuid = str(uuid.uuid4())
 
                 await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
 
+                config = load_config()
                 config["uuid"] = new_uuid
                 save_config(config)
 

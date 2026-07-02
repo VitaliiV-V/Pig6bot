@@ -1,8 +1,9 @@
+import tools
 from config import *
-from markovchain import *
 from settings import *
-from telegram.ext import ContextTypes
+from markovchain import *
 from telegram import Update
+from telegram.ext import ContextTypes
 from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup, Update
 
 g = Generator()
@@ -127,15 +128,10 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if user_id == OWNER_ID:
 
-
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
         try:
-            
-            data = load_config()
-            if s not in data["banned_users"]:
-                data["banned_users"].append(s)
-            save_config(data)
+            tools.ban(s)
 
             await msg.reply_text(
                 f"{s} зaблокирован"
@@ -165,9 +161,7 @@ async def unban(update: Update, context: ContextTypes.DEFAULT_TYPE):
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
         try:
-            data = load_config()    
-            data["banned_users"].remove(s)
-            save_config(data)
+            tools.unban(s)
             await msg.reply_text(
                 f"{s} разблокирован"
             )
@@ -561,10 +555,7 @@ async def set_base_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE):
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
         try:
-            data = load_config()
-            data["base_prompt"] = s
-            save_config(data)
-
+            tools.setbaseprompt(s)
             await msg.reply_text(
                 f"Базовый промпт обновлён",reply_markup=ReplyKeyboardRemove()
             )
