@@ -276,10 +276,13 @@ async def query(update, context):
                 query = msg.text.lower()
                 query = query.replace('jarvis', '')
                 query = query.replace('джарвис', '')
-                if isMaster:
-                    query = f"Это сообщение от {config['owner_name']}: " + query
+                if update.message:
+                    query = f"Это сообщение от {msg.from_user.first_name}: " + query
                 else:
-                    query = f"Это сообщение от {msg.author_signature}: " + query
+                    if isMaster:
+                        query = f"Это сообщение от {config['owner_name']}: " + query
+                    else:
+                        query = f"Это сообщение от {msg.author_signature}: " + query
 
                 ans = jarvis.query(f"{query}")
                 if "rejected" not in ans:
