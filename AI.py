@@ -82,7 +82,7 @@ async def query(update, context):
             return
         
     
-    if config["white_lists_mode"] != "off" and (update.channel_post or update.edited_channel_post) and not isMaster:
+    if config["anon_enable"] == 0 and config["white_lists_mode"] != "off" and (update.channel_post or update.edited_channel_post) and not isMaster:
         ok = False
         if config["white_lists_mode"] == "admins" or config["white_lists_mode"] == "admins_only":
             admins = await context.bot.get_chat_administrators(chat_id)
@@ -113,7 +113,11 @@ async def query(update, context):
     text = msg.text.lower()
     text2 = msg.text
     if "jarvis" in text or "джарвис" in text or "привет дилдо" in text or (x == y) or (msg.reply_to_message.from_user.id == context.bot.id):
-        if msg.from_user.id != MAIN_CHANNEL_ID:
+        xx = True
+        if msg.from_user:
+            if msg.from_user.id == 777000:
+                xx = False
+        if xx:
             ok = True
             if isMaster:
                 ok = False
