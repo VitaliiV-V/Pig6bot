@@ -112,7 +112,7 @@ async def query(update, context):
         y = None
     text = msg.text.lower()
     text2 = msg.text
-    if "jarvis" in text or "джарвис" in text or "привет дилдо" in text or (x == y) or (msg.reply_to_message.user.id == context.bot.id):
+    if "jarvis" in text or "джарвис" in text or "привет дилдо" in text or (x == y) or (msg.reply_to_message.from_user.id == context.bot.id):
         if msg.from_user.id != MAIN_CHANNEL_ID:
             ok = True
             if isMaster:
