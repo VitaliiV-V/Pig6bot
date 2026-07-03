@@ -112,7 +112,7 @@ async def query(update, context):
         y = None
     text = msg.text.lower()
     text2 = msg.text
-    if (update.message and update.message.from_user.id == OWNER_ID) or "jarvis" in text or "джарвис" in text or "привет дилдо" in text or (x == y):
+    if "jarvis" in text or "джарвис" in text or "привет дилдо" in text or (x == y):
         ok = True
         if isMaster:
             ok = False
@@ -140,7 +140,7 @@ async def query(update, context):
                     tools.setbaseprompt(new_prompt)
                     jarvis.restart()
                     await msg.reply_text(
-                        f"Базовый промпт установлен: {new_prompt}"
+                        f"Базовый промпт установлен."
                     )
                 elif text[1] == 'покажи' and text[2] == 'базовый' and text[3] == 'промпт':
                     config = load_config()
@@ -148,10 +148,10 @@ async def query(update, context):
                     await msg.reply_text(
                         f"Текущий базовый промпт: {base_prompt}"
                     )
-                elif text[1] == 'перезапусти' or text[1] == 'рестарт':
+                elif text[1] == 'перезагрузка' or text[1] == 'рестарт':
                     jarvis.restart()
                     await msg.reply_text(
-                        f"Jarvis перезапущен"
+                        f"Джарвис перезагружен."
                     )
                 elif text[1] == 'включи' and text[2] == 'логи':
                     config = load_config()
@@ -165,42 +165,42 @@ async def query(update, context):
                     config["logs_mode"] = "off"
                     save_config(config)
                     await msg.reply_text(
-                        f"Логи выключены"
+                        f"Логи выключены."
                     )
-                elif text[1] == 'банить' and text[2] == 'все' and text[3] == 'сообщения':
+                elif text[1] == 'банить' and text[2] == 'все':
                     config = load_config()
                     config["ban_messages"] = "all"
                     save_config(config)
                     await msg.reply_text(
-                        f"Все сообщения будут удаляться"
+                        f"Все сообщения будут удаляться."
                     )
-                elif text[1] == 'банить' and text[2] == 'только' and text[3] == 'по' and text[4] == 'фильтру':
+                elif text[1] == 'банить' and text[2] == 'по' and text[3] == 'фильтру':
                     config = load_config()
                     config["ban_messages"] = "manual"
                     save_config(config)
                     await msg.reply_text(
-                        f"Сообщения будут удаляться по фильтру"
+                        f"Сообщения будут удаляться по фильтру."
                     )
-                elif text[1] == 'не' and text[2] == 'банить' and text[3] == 'сообщения':
+                elif text[1] == 'не' and text[2] == 'банить':
                     config = load_config()
-                    config["ban_messages"] = "none"
+                    config["ban_messages"] = "off"
                     save_config(config)
                     await msg.reply_text(
-                        f"Сообщения не будут удаляться"
+                        f"Сообщения не будут удаляться."
                     )
                 elif text[1] == 'включи' and text[2] == 'анонимные' and text[3] == 'сообщения':
                     config = load_config()
                     config["anon_enable"] = 1
                     save_config(config)
                     await msg.reply_text(
-                        f"Анонимные сообщения включены"
+                        f"Анонимные сообщения включены."
                     )
                 elif (text[1] == 'выключи' or text[1] == 'отключи') and text[2] == 'анонимные' and text[3] == 'сообщения':
                     config = load_config()
                     config["anon_enable"] = 0
                     save_config(config)
                     await msg.reply_text(
-                        f"Анонимные сообщения выключены"
+                        f"Анонимные сообщения выключены."
                     )
                 elif text[1] == 'судный' and text[2] == 'день':
                     config = load_config()
@@ -208,20 +208,20 @@ async def query(update, context):
                         config["mode"] = "Judgment Day" 
                         save_config(config)
                         await msg.reply_text(
-                            f"Судный день настал"
+                            f"Судный день настал."
                         )
                     else:
                         config["mode"] = "normal" 
                         save_config(config)
                         await msg.reply_text(
-                            f"Судный день отменён"
+                            f"Судный день отменён."
                         )
                 elif text[1] == 'добавь' and text[2] == 'в' and text[3] == 'белый' and text[4] == 'список':
                     config = load_config()
                     config["white_list"].append(text2[5])
                     save_config(config)
                     await msg.reply_text(
-                        f"{text2[5]} добавлен(-a) в белый список"
+                        f"{text2[5]} добавлен(-a) в белый список."
                     )
                 elif text[1] == 'убери' and text[2] == 'из' and text[3] == 'белого' and text[4] == 'списка':
                     config = load_config()
@@ -229,25 +229,39 @@ async def query(update, context):
                         config["white_list"].remove(text2[5])
                         save_config(config)
                         await msg.reply_text(
-                            f"{text2[5]} убран(-a) из белого списка"
+                            f"{text2[5]} убран(-a) из белого списка."
                         )
                     else:
                         await msg.reply_text(
-                            f"{text2[5]} не найден(-a) в белом списке"
+                            f"{text2[5]} не найден(-a) в белом списке."
                         )
                 elif text[1] == 'выключи' and text[2] == 'белый' and text[3] == 'список':
                     config = load_config()
                     config["white_lists_mode"] = "off"
                     save_config(config)
                     await msg.reply_text(   
-                        f"Белый список выключён"
+                        f"Белый список выключён."
                     )
                 elif text[1] == 'включи' and text[2] == 'белый' and text[3] == 'список':
                     config = load_config()
                     config["white_lists_mode"] = "admins"
                     save_config(config)
                     await msg.reply_text(
-                        f"Белый список включён для админов и ручного добавления"
+                        f"Белый список включён."
+                    )
+                elif text[1] == 'работай' and text[2] == 'только' and text[3] == 'в' and text[3] == 'чате':
+                    config = load_config()
+                    config["AI mode"] = "messages"
+                    save_config(config)
+                    await msg.reply_text(
+                        f"Настройки изменены."
+                    )
+                elif text[1] == 'работай' and text[2] == 'везде':
+                    config = load_config()
+                    config["AI mode"] = "all"
+                    save_config(config)
+                    await msg.reply_text(
+                        f"Настройки изменены."
                     )
                 else:
                     ok = True
@@ -258,12 +272,14 @@ async def query(update, context):
             query = query.replace('jarvis', '')
             query = query.replace('джарвис', '')
             if isMaster:
-                query = f"Это сообщение от {config['owner_name']} " + query
+                query = f"Это сообщение от {config['owner_name']}: " + query
             else:
-                query = f"Это сообщение от {msg.author_signature} " + query
+                query = f"Это сообщение от {msg.author_signature}: " + query
 
             ans = jarvis.query(f"{query}")
-            await context.bot.send_message(chat_id = chat_id, text = ans, reply_to_message_id = message_id)
+            if "rejected" not in ans:
+                if config["AI mode"] == "all" or (config["AI mode"] == "messages" and update.message):
+                    await context.bot.send_message(chat_id = chat_id, text = ans, reply_to_message_id = message_id)
 
 
 
