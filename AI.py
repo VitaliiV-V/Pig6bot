@@ -3,6 +3,7 @@ import tools
 from config import *
 from jarvis import *
 from settings import *
+from time import sleep
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHandler
@@ -273,9 +274,10 @@ async def query(update, context):
                 else:
                     ok = True
             if ok:
+                sleep(3)
                 query = msg.text.lower()
-                query = query.replace('jarvis', '')
-                query = query.replace('джарвис', '')
+                # query = query.replace('jarvis', '')
+                # query = query.replace('джарвис', '')
                 if update.message:
                     query = f"Это сообщение от {msg.from_user.first_name}: " + query
                 else:
