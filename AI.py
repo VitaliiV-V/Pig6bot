@@ -254,6 +254,13 @@ async def query(update, context):
                         await msg.reply_text(
                             f"Белый список включён."
                         )
+                    elif text[1] == 'включи' and text[2] == 'ручной' and text[3] == 'список':
+                        config = load_config()
+                        config["white_lists_mode"] = "manual"
+                        save_config(config)
+                        await msg.reply_text(
+                            f"Ручной белый список включён."
+                        )
                     elif text[1] == 'работай' and text[2] == 'только' and text[3] == 'в' and text[4] == 'чате':
                         config = load_config()
                         config["AI mode"] = "messages"

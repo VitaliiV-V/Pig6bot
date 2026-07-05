@@ -110,7 +110,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if config["white_lists_mode"] != "off":
         ok = False
-        if config["white_lists_mode"] == "admins" or config["white_lists_mode"] == "admins_only":
+        if config["white_lists_mode"] == "admins":
             admins = await context.bot.get_chat_administrators(chat_id)
             for u in admins:
                 admin = ''
