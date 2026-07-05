@@ -77,7 +77,7 @@ async def query(update, context):
 
 
         
-    if not msg.author_signature:
+    if not msg.author_signature and not update.message:
         if config["anon_enable"] == 0:
             return
         
