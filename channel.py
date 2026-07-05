@@ -34,7 +34,7 @@ def check(text, id):
 async def train_background(text):
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, g.train, text)
-    
+
 async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.channel_post or update.edited_channel_post
     if not msg:
@@ -43,21 +43,21 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_id = msg.message_id
     message_text = msg.text or ""
 
-    
+
     if chat_id != MAIN_CHANNEL_ID:
         return
-    
+
     config = load_config()
-    
-    if message_text == "/pig":        
+
+    if message_text == "/pig":
         await context.bot.send_message(chat_id=chat_id, text=g.gen(6,10), reply_to_message_id=message_id)
-    elif message_text == "/svo":        
+    elif message_text == "/svo":
         await context.bot.send_message(chat_id=chat_id, text="Данная команда поддерживается только в мессенджере МАКС", reply_to_message_id=message_id)
-    else:        
+    else:
         if msg.via_bot == None:
             asyncio.create_task(train_background(message_text))
-        
-        
+
+
     if msg.author_signature:
         txt = msg.author_signature
         ok = 0
@@ -76,7 +76,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if "/unban" in message_text:
                     tools.unban(msg.reply_to_message.author_signature)
 
-                
+
                 new_uuid = str(uuid.uuid4())
 
                 await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
@@ -85,7 +85,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 config["uuid"] = new_uuid
                 save_config(config)
 
-                return            
+                return
 
     if msg.author_signature in config["banned_users"]:
         await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
@@ -100,14 +100,13 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
 
-        
+
     if not msg.author_signature:
         if config["anon_enable"] == 0:
             await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
 
-        await context.bot.send_message(chat_id=chat_id, text=ans, reply_to_message_id=message_id)
         return
-    
+
 
     if config["white_lists_mode"] != "off":
         ok = False
@@ -132,7 +131,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not ok:
             await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
             return
-        
+
     if random.randint(1,config["freq"]) == config["freq"]:
         await context.bot.send_message(chat_id=chat_id, text=g.gen(6,10), reply_to_message_id=message_id)
 
@@ -148,4 +147,4 @@ async def ban_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.ban_chat_member(
             chat_id=result.chat.id,
             user_id=user_id
-        )   
+        )
