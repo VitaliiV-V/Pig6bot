@@ -598,13 +598,14 @@ async def protect(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "uuid" : new_uuid,
                 "channel_id" : int(id)
             })
-
+            config["white_list"].remove(s[(len(id) + 1):])
+            
             save_config(config)
 
             await msg.reply_text(
                 f"Успешно", reply_markup=ReplyKeyboardRemove()
             )
-            
+
             await context.bot.set_chat_title(id , s[(len(id) + 1):] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
 
             await context.bot.send_message(chat_id=id, text = "Канал под защитой")
