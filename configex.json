@@ -1,0 +1,25 @@
+{
+    "ban_messages": "all",
+    "owner_name": "",
+    "white_lists_mode": "manual",
+    "anon_enable": 1,
+    "uuid": "",
+    "freq": 1000000,
+    "mode": "normal",
+    "AI mode": "messages",
+    "Judgment Day Code": "",
+    "base_prompt": "",
+    "banned": [
+    ],
+    "banned_users": [
+    ],
+    "owner_names": [
+    ],
+    "white_list": [
+    ],
+    "logs_mode": "on",
+    "logs": [
+    ],
+    "protected_users": [
+    ]
+}
