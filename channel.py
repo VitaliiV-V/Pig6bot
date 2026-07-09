@@ -178,7 +178,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
             return
 
-    if not protected:
+    if 0:
         prefix = "⚠️ Unsafe message\n\n"
 
         entities = msg.entities or []

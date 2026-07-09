@@ -598,8 +598,9 @@ async def protect(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "uuid" : new_uuid,
                 "channel_id" : int(id)
             })
-            config["white_list"].remove(s[(len(id) + 1):])
-            
+            if s[(len(id) + 1):] in config["white_list"]:
+                config["white_list"].remove(s[(len(id) + 1):])
+
             save_config(config)
 
             await msg.reply_text(
