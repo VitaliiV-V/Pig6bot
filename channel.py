@@ -4,8 +4,8 @@ import asyncio
 from config import *
 from settings import *
 from markovchain import *
-from telegram import Update
 from telegram.ext import ContextTypes
+from telegram import Update, ReplyKeyboardMarkup
 
 g = Generator()
 
@@ -44,10 +44,41 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = msg.text or ""
 
 
-    if chat_id != MAIN_CHANNEL_ID:
-        return
-
     config = load_config()
+
+    if chat_id != MAIN_CHANNEL_ID:
+        if "protect" in msg.text.lower():
+            for i in config["protected_users"]:
+                if i["channel_id"] == msg.chat_id:
+                    await context.bot.send_message(chat_id=chat_id, text="Канал уже под защитой!")
+                    return
+            
+            admins = await context.bot.get_chat_administrators(chat_id)
+            
+            print(len(admins))
+            if len(admins) == 2:
+                info = ""
+                for admin in admins:
+                    if not admin.user.is_bot:
+                        info = f"@{admin.user.username}\n"
+                text = (f"Новый запрос на защиту канала:\n"
+                        f"Владелец: {info}"
+                        f"Канал: {msg.chat.title}")
+
+                keyboard = ReplyKeyboardMarkup(
+                    [[f"/protect {msg.chat_id} {msg.chat.title}", "/reject"]],
+                    resize_keyboard=True
+                )
+
+                await context.bot.send_message(
+                    chat_id=OWNER_ID,
+                    text = text,
+                    reply_markup=keyboard
+                )
+            else:
+                await context.bot.send_message(chat_id=chat_id, text="Регистрация недоступна.\nДля подключения защиты в канале должен быть только один администратор и бот.")
+        
+        return
 
     if message_text == "/pig":
         await context.bot.send_message(chat_id=chat_id, text=g.gen(6,10), reply_to_message_id=message_id)
@@ -86,6 +117,22 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 save_config(config)
 
                 return
+    
+    protected = False
+
+    for i in config["protected_users"]:
+        if i["name"] in msg.author_signature:
+            if i["uuid"] not in msg.author_signature:
+                await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+                return
+            else:
+                protected = True
+                new_uuid = str(uuid.uuid4())
+
+                await context.bot.set_chat_title(i["channel_id"], i["name"] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
+
+                i["uuid"] = new_uuid
+                save_config(config)
 
     if msg.author_signature in config["banned_users"]:
         await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
@@ -104,11 +151,10 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not msg.author_signature:
         if config["anon_enable"] == 0:
             await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+            return
 
-        return
 
-
-    if config["white_lists_mode"] != "off":
+    if msg.author_signature and config["white_lists_mode"] != "off" and not protected:
         ok = False
         if config["white_lists_mode"] == "admins":
             admins = await context.bot.get_chat_administrators(chat_id)
@@ -132,6 +178,20 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
             return
 
+    if not protected:
+        prefix = "⚠️ Unsafe message\n\n"
+
+        entities = msg.entities or []
+        for entity in entities:
+            entity.offset += len(prefix)
+
+        await context.bot.edit_message_text(
+            chat_id=msg.chat_id,
+            message_id=msg.message_id,
+            text=prefix + msg.text,
+            entities=entities
+        )
+    
     if random.randint(1,config["freq"]) == config["freq"]:
         await context.bot.send_message(chat_id=chat_id, text=g.gen(6,10), reply_to_message_id=message_id)
 

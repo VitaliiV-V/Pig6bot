@@ -80,30 +80,39 @@ async def query(update, context):
     if not msg.author_signature and not update.message:
         if config["anon_enable"] == 0:
             return
-        
+
+    protected = False
+
+    for i in config["protected_users"]:
+        if i["name"] in msg.author_signature:
+            if i["uuid"] not in msg.author_signature:
+                return
+            else:
+                protected = True
     
     if config["anon_enable"] == 0 and config["white_lists_mode"] != "off" and (update.channel_post or update.edited_channel_post) and not isMaster:
-        ok = False
-        if config["white_lists_mode"] == "admins" or config["white_lists_mode"] == "admins_only":
-            admins = await context.bot.get_chat_administrators(chat_id)
-            for u in admins:
-                admin = ''
-                if u.user.first_name:
-                    admin += u.user.first_name
-                if u.user.first_name and u.user.last_name:
-                    admin += " "
-                if u.user.last_name:
-                    admin += u.user.last_name
+        if not protected:
+            ok = False
+            if config["white_lists_mode"] == "admins" or config["white_lists_mode"] == "admins_only":
+                admins = await context.bot.get_chat_administrators(chat_id)
+                for u in admins:
+                    admin = ''
+                    if u.user.first_name:
+                        admin += u.user.first_name
+                    if u.user.first_name and u.user.last_name:
+                        admin += " "
+                    if u.user.last_name:
+                        admin += u.user.last_name
 
-                if admin == msg.author_signature:
-                    ok = True
-        if config["white_lists_mode"] == "admins" or config["white_lists_mode"] == "manual":
-            for u in config["white_list"]:
-                if u == msg.author_signature:
-                    ok = True
+                    if admin == msg.author_signature:
+                        ok = True
+            if config["white_lists_mode"] == "admins" or config["white_lists_mode"] == "manual":
+                for u in config["white_list"]:
+                    if u == msg.author_signature:
+                        ok = True
 
-        if not ok:
-            return
+            if not ok:
+                return
         
     x =  context.bot.first_name
     if msg.reply_to_message:
@@ -279,6 +288,8 @@ async def query(update, context):
                         ok = True
                 else:
                     ok = True
+                    
+            ok = False
             if ok:
                 sleep(3)
                 query = msg.text.lower()

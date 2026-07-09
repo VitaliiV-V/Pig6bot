@@ -1,3 +1,4 @@
+import uuid
 import tools
 from config import *
 from settings import *
@@ -31,11 +32,11 @@ async def blockall(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if user_id == OWNER_ID:
         name = str(MAIN_CHANNEL_ID)
-        data = load_config()
+        config = load_config()
 
-        data["ban_messages"] = "all"
+        config["ban_messages"] = "all"
 
-        save_config(data)
+        save_config(config)
 
         await context.bot.send_message(chat_id=name,
                                        text=f"⚠️ Уведомление от системы защиты «{bot_name}»:\n"
@@ -64,11 +65,11 @@ async def smart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user_id == OWNER_ID:
 
         name = str(MAIN_CHANNEL_ID)
-        data = load_config()
+        config = load_config()
 
-        data["ban_messages"] = "manual"
+        config["ban_messages"] = "manual"
 
-        save_config(data)
+        save_config(config)
 
         await context.bot.send_message(chat_id=name,
                                        text=f"⚠️ Уведомление от системы защиты «{bot_name}»:\n"
@@ -97,11 +98,11 @@ async def disable(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user_id == OWNER_ID:
 
         name = str(MAIN_CHANNEL_ID)
-        data = load_config()
+        config = load_config()
 
-        data["ban_messages"] = "off"
+        config["ban_messages"] = "off"
 
-        save_config(data)
+        save_config(config)
 
         await context.bot.send_message(chat_id=name,
                                        text=f"⚠️ Уведомление от системы защиты «{bot_name}»:\n"
@@ -190,9 +191,9 @@ async def setwhitelistsmode(update: Update, context: ContextTypes.DEFAULT_TYPE):
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
         if s == "admins" or s == "admins_only" or s == "manual" or s == "off":
             try:
-                data = load_config()
-                data["white_lists_mode"] = s
-                save_config(data)
+                config = load_config()
+                config["white_lists_mode"] = s
+                save_config(config)
                 await msg.reply_text(
                     f"Успешно"
                 )
@@ -225,11 +226,11 @@ async def addtolists(update: Update, context: ContextTypes.DEFAULT_TYPE):
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
         try:
-            data = load_config()
-            if s not in data["white_list"]:
-                data["white_list"].append(s)
+            config = load_config()
+            if s not in config["white_list"]:
+                config["white_list"].append(s)
 
-            save_config(data)
+            save_config(config)
 
             await msg.reply_text(
                 f"{s} в белом списке",reply_markup=ReplyKeyboardRemove()
@@ -259,10 +260,10 @@ async def delfromlists(update: Update, context: ContextTypes.DEFAULT_TYPE):
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
         try:
-            data = load_config()
-            data["white_list"].remove(s)
+            config = load_config()
+            config["white_list"].remove(s)
 
-            save_config(data)
+            save_config(config)
 
             await msg.reply_text(
                 f"{s} больше не в белом списке"
@@ -337,9 +338,9 @@ async def setfreq(update: Update, context: ContextTypes.DEFAULT_TYPE):
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
         try:
-            data = load_config()
-            data["freq"] = int(s)
-            save_config(data)
+            config = load_config()
+            config["freq"] = int(s)
+            save_config(config)
 
             await msg.reply_text(
                 f"Установлена частота: {s}",reply_markup=ReplyKeyboardRemove()
@@ -415,9 +416,9 @@ async def jday(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if user_id == OWNER_ID:
         name = str(MAIN_CHANNEL_ID)
-        data = load_config()
+        config = load_config()
         status = "активен"
-        if data["mode"] == "normal":           
+        if config["mode"] == "normal":           
             await context.bot.send_message(
                 chat_id=name,
                 text=f"Системное уведомление «{bot_name}»:\n"
@@ -426,21 +427,21 @@ async def jday(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "Доступ пользователей аннулирован.\n"
                 "Попытки обхода бесполезны.\n"
                 "Канал изолирован и находится под полным контролем.\n"
-                f"Код подтверждения: {data['Judgment Day Code']}"
+                f"Код подтверждения: {config['Judgment Day Code']}"
             )
-            data["mode"] = "Judgment Day"
+            config["mode"] = "Judgment Day"
             
         else:            
             await context.bot.send_message(
                 chat_id=name,
                 text=f"Системное уведомление «{bot_name}»:\n"
                 "Протокол «Judgment Day» остановлен.\n"                
-                f"Код подтверждения: {data['Judgment Day Code']}"
+                f"Код подтверждения: {config['Judgment Day Code']}"
             )
-            data["mode"] = "normal"
+            config["mode"] = "normal"
             status = "остановлен"
             
-        save_config(data)
+        save_config(config)
         await msg.reply_text(
             f"Протокол судного дня {status}"
         )
@@ -464,10 +465,10 @@ async def jdaycode(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if user_id == OWNER_ID:
-        data = load_config()
+        config = load_config()
 
         await msg.reply_text(
-            f"<code>Код подтвердения: {data['Judgment Day Code']}</code>",
+            f"<code>Код подтвердения: {config['Judgment Day Code']}</code>",
             parse_mode="HTML"
         )
 
@@ -504,7 +505,7 @@ async def config(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if document:
             file = await document.get_file()
             await file.download_to_drive("config.json")
-            data = load_config()
+            config = load_config()
         else:
             await context.bot.send_document(
                 chat_id=msg.chat_id,
@@ -532,7 +533,7 @@ async def receive_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if document:
             file = await document.get_file()
             await file.download_to_drive("config.json")
-            data = load_config()
+            config = load_config()
 
     else:
 
@@ -569,3 +570,51 @@ async def set_base_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Внимание! Системой защиты «{bot_name}»  отражена попытка несанкционированного доступа к телеграм каналу", reply_markup=ReplyKeyboardRemove()
         )
         
+
+async def protect(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    if not msg or not msg.from_user or not msg.text:
+        return
+
+    user_id = msg.from_user.id
+
+    bot_name = (await context.bot.get_me()).first_name
+
+    if user_id == OWNER_ID:
+
+
+        s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
+        id = ""
+        for i in s:
+            if i == ' ':
+                break
+            id += i
+
+        try:
+            config = load_config()
+            new_uuid = str(uuid.uuid4())
+            config["protected_users"].append({
+                "name" : s[(len(id) + 1):],
+                "uuid" : new_uuid,
+                "channel_id" : int(id)
+            })
+
+            save_config(config)
+
+            await msg.reply_text(
+                f"Успешно", reply_markup=ReplyKeyboardRemove()
+            )
+            
+            await context.bot.set_chat_title(id , s[(len(id) + 1):] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
+
+            await context.bot.send_message(chat_id=id, text = "Канал под защитой")
+
+        except Exception as e:
+            await msg.reply_text(
+                f"Ошибка",reply_markup=ReplyKeyboardRemove()
+            )
+
+    else:
+        await msg.reply_text(
+            f"Внимание! Системой защиты «{bot_name}»  отражена попытка несанкционированного доступа к телеграм каналу", reply_markup=ReplyKeyboardRemove()
+        )
