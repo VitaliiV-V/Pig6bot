@@ -63,7 +63,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         info = f"@{admin.user.username}\n"
                 text = (f"Новый запрос на защиту канала:\n"
                         f"Владелец: {info}"
-                        f"Канал: {msg.chat.title}"
+                        f"Канал: {msg.chat.title}\n"
                         f"id: {msg.chat_id}")
 
                 keyboard = ReplyKeyboardMarkup(
