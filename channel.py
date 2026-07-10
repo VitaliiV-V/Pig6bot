@@ -120,20 +120,20 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 return
     
     protected = False
+    if msg.author_signature:
+        for i in config["protected_users"]:
+            if i["name"] in msg.author_signature:
+                if i["uuid"] not in msg.author_signature:
+                    await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+                    return
+                else:
+                    protected = True
+                    new_uuid = str(uuid.uuid4())
 
-    for i in config["protected_users"]:
-        if i["name"] in msg.author_signature:
-            if i["uuid"] not in msg.author_signature:
-                await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-                return
-            else:
-                protected = True
-                new_uuid = str(uuid.uuid4())
+                    await context.bot.set_chat_title(i["channel_id"], i["name"] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
 
-                await context.bot.set_chat_title(i["channel_id"], i["name"] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
-
-                i["uuid"] = new_uuid
-                save_config(config)
+                    i["uuid"] = new_uuid
+                    save_config(config)
 
     if msg.author_signature in config["banned_users"]:
         await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
