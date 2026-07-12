@@ -302,7 +302,7 @@ async def query(update, context):
                     query = f"This message written by {msg.from_user.first_name}: " + query
                 else:
                     if isMaster:
-                        query = f"This message written by main admin of the channel {config['owner_name']}: " + query
+                        query = f"ы {config['owner_name']}: " + query
                     else:
                         query = f"This message written by {msg.author_signature}: " + query
 
