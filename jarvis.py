@@ -1,7 +1,7 @@
 from settings import *
 from config import *
 from google import genai
-
+from google.genai import types
 
 
 class Jarvis:
