@@ -1,4 +1,5 @@
 import uuid
+import time
 import tools
 import asyncio
 from config import *
@@ -58,6 +59,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_id = msg.message_id
     message_text = msg.text or ""
 
+    bot_name = (await context.bot.get_me()).first_name
 
     config = load_config()
 
@@ -110,13 +112,78 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 if "/ban" in message_text:
                     tools.ban(msg.reply_to_message.author_signature)
-                if "/unban" in message_text:
+                elif "/unban" in message_text:
                     tools.unban(msg.reply_to_message.author_signature)
-                if "/bangif" in message_text:
+                elif "/bangif" in message_text:
                     config = load_config()
                     config["bad_gifs"].append(msg.reply_to_message.animation.file_id)
                     save_config(config)
-
+                elif "EXCOMMUNICADO" in message_text:
+                    config = load_config()
+                    config["mode"] = "Judgment Day"
+                    save_config(config)
+                    await context.bot.send_message(
+                        chat_id=chat_id,
+                        text=f"Системное уведомление «{bot_name}»:\n"
+                        "Активирован протокол «Judgment Day».\n"
+                        "Все сообщения в канале и чате будут уничтожены.\n"
+                        "Доступ пользователей аннулирован.\n"
+                        "Попытки обхода бесполезны.\n"
+                        "Канал изолирован и находится под полным контролем.\n"
+                        f"Код подтверждения: {config['Judgment Day Code']}"
+                    )
+                    name = ""
+                    for i in config["protected_users"]:
+                        if i["name"] in msg.reply_to_message.author_signature:
+                            name = i["name"]
+                    for i in range(5,0,-1):
+                        config = load_config()
+                        await context.bot.send_message(
+                            chat_id=chat_id,
+                            text=(f"{name} EXCOMMUNICADO {i}\n"
+                                f"Код подтверждения: {config['Judgment Day Code']}"
+                            )
+                        )
+                        await asyncio.sleep(1)
+                    for i in config["protected_users"]:
+                        if i["name"] in msg.reply_to_message.author_signature:
+                                
+                                config = load_config()
+                                await context.bot.set_chat_title(i["channel_id"], "EXCOMMUNICADO")
+                                await context.bot.set_chat_description(
+                                    i["channel_id"],
+                                    "EXCOMMUNICADO\n\nProtection revoked by Pig-6."
+                                )
+                                i["name"] = ""
+                                i["uuid"] = "EXCOMMUNICADO"
+                                save_config(config)
+                                await context.bot.send_message(
+                                    chat_id=chat_id,
+                                    text = (
+                                        f"{name} EXCOMMUNICADO в силе\n\n"
+                                        "Решением системы безопасности Свинья-6 защита вашего канала отозвана.\n\n"
+                                        "UUID-подпись аннулирована.\n"
+                                        "Канал исключён из списка доверенных.\n\n"
+                                        "Вы лишаетесь всех прав и привилегий.\n"
+                                        "Отныне вы — изгой.\n\n"
+                                        "Доступ к сервисам Свиньи-6 прекращён.\n\n"
+                                        "Вердикт окончательный."
+                                         f"Код подтверждения: {config['Judgment Day Code']}"
+                                    ),
+                                    reply_to_message_id=msg.reply_to_message.message_id
+                                )
+                    
+                    save_config(config)
+                    config = load_config()
+                    config["mode"] = "normal"
+                    save_config(config)
+                    await context.bot.send_message(
+                        chat_id=chat_id,
+                        text=f"Системное уведомление «{bot_name}»:\n"
+                        "Протокол «Judgment Day» остановлен.\n"                
+                        f"Код подтверждения: {config['Judgment Day Code']}"
+                    )
+                    
                 new_uuid = str(uuid.uuid4())
 
                 await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
