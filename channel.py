@@ -4,14 +4,15 @@ import asyncio
 from config import *
 from settings import *
 from markovchain import *
+from datetime import datetime
 from telegram.ext import ContextTypes
 from telegram import Update, ReplyKeyboardMarkup
 
 g = Generator()
 
-def check(text, id):
+def check(text):
 
-    with open("dict.json", "r", encoding="utf-8") as f:
+    with open("dict.json", "r", encoding = "utf-8") as f:
         data = json.load(f)
 
     text = text.lower()
@@ -35,10 +36,24 @@ async def train_background(text):
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, g.train, text)
 
+class Message:
+    def __init__(self, author_username: str, text: str, message_id: int):
+        self.author_username = author_username
+        self.text = text
+        self.message_id = message_id
+        self.created_at = datetime.now()
+
+    def age(self) -> float:
+        return (datetime.now() - self.created_at).total_seconds()
+
+messages = []
+
 async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.channel_post or update.edited_channel_post
+
     if not msg:
         return
+    
     chat_id = msg.chat_id
     message_id = msg.message_id
     message_text = msg.text or ""
@@ -47,48 +62,38 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     config = load_config()
 
     if chat_id != MAIN_CHANNEL_ID:
-        if "protect" in msg.text.lower():
+        if "protect" in (msg.text or "").lower():
             for i in config["protected_users"]:
                 if i["channel_id"] == msg.chat_id:
-                    await context.bot.send_message(chat_id=chat_id, text="Канал уже под защитой!")
+                    await context.bot.send_message(chat_id = chat_id, text = "Канал уже под защитой!")
                     return
             
             admins = await context.bot.get_chat_administrators(chat_id)
             
-            print(len(admins))
             if len(admins) == 2:
                 info = ""
                 for admin in admins:
                     if not admin.user.is_bot:
                         info = f"@{admin.user.username}\n"
-                text = (f"Новый запрос на защиту канала:\n"
-                        f"Владелец: {info}"
-                        f"Канал: {msg.chat.title}\n"
-                        f"id: {msg.chat_id}")
 
-                keyboard = ReplyKeyboardMarkup(
-                    [[f"/protect {msg.chat_id} {msg.chat.title}", "/reject"]],
-                    resize_keyboard=True
-                )
+                text = (f"Новый запрос на защиту канала:\nВладелец: {info}Канал: {msg.chat.title}\nid: {msg.chat_id}")
 
-                await context.bot.send_message(
-                    chat_id=OWNER_ID,
-                    text = text,
-                    reply_markup=keyboard
-                )
+                keyboard = ReplyKeyboardMarkup([[f"/protect {msg.chat_id} {msg.chat.title}", "/reject"]], resize_keyboard = True)
+
+                await context.bot.send_message(chat_id = OWNER_ID, text = text, reply_markup = keyboard)
+
             else:
-                await context.bot.send_message(chat_id=chat_id, text="Регистрация недоступна.\nДля подключения защиты в канале должен быть только один администратор и бот.")
+                await context.bot.send_message(chat_id = chat_id, text = "Регистрация недоступна.\nДля подключения защиты в канале должен быть только один администратор и бот.")
         
         return
 
     if message_text == "/pig":
-        await context.bot.send_message(chat_id=chat_id, text=g.gen(6,10), reply_to_message_id=message_id)
+        await context.bot.send_message(chat_id = chat_id, text = g.gen(6,10), reply_to_message_id = message_id)
     elif message_text == "/svo":
-        await context.bot.send_message(chat_id=chat_id, text="Данная команда поддерживается только в мессенджере МАКС", reply_to_message_id=message_id)
+        await context.bot.send_message(chat_id = chat_id, text = "Данная команда поддерживается только в мессенджере МАКС", reply_to_message_id = message_id)
     else:
         if msg.via_bot == None:
             asyncio.create_task(train_background(message_text))
-
 
     if msg.author_signature:
         txt = msg.author_signature
@@ -100,18 +105,21 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if ok:
             if config["uuid"] not in msg.author_signature:
-                await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+                await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
                 return
             else:
                 if "/ban" in message_text:
                     tools.ban(msg.reply_to_message.author_signature)
                 if "/unban" in message_text:
                     tools.unban(msg.reply_to_message.author_signature)
-
+                if "/bangif" in message_text:
+                    config = load_config()
+                    config["bad_gifs"].append(msg.reply_to_message.animation.file_id)
+                    save_config(config)
 
                 new_uuid = str(uuid.uuid4())
 
-                await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
+                # await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
 
                 config = load_config()
                 config["uuid"] = new_uuid
@@ -124,7 +132,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for i in config["protected_users"]:
             if i["name"] in msg.author_signature:
                 if i["uuid"] not in msg.author_signature:
-                    await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+                    await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
                     return
                 else:
                     protected = True
@@ -135,23 +143,29 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     i["uuid"] = new_uuid
                     save_config(config)
 
+    if msg.animation and msg.animation.file_id in config["bad_gifs"]:
+        await context.bot.delete_message(
+            chat_id=chat_id,
+            message_id=message_id
+        )
+        return
+
     if msg.author_signature in config["banned_users"]:
-        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
         return
 
     if config["ban_messages"] == "all":
-        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
         return
-    elif config["ban_messages"] == "manual":
-        if check(message_text, chat_id):
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+    elif config["ban_messages"] == "manual" and check(message_text):
+            await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
             return
 
 
 
     if not msg.author_signature:
         if config["anon_enable"] == 0:
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+            await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
             return
 
 
@@ -167,34 +181,26 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     admin += " "
                 if u.user.last_name:
                     admin += u.user.last_name
-                print(admin)
+
                 if admin == msg.author_signature:
                     ok = True
+
         if config["white_lists_mode"] == "admins" or config["white_lists_mode"] == "manual":
             for u in config["white_list"]:
                 if u == msg.author_signature:
                     ok = True
 
         if not ok:
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+            await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
             return
-
-    if 0:
-        prefix = "⚠️ Unsafe message\n\n"
-
-        entities = msg.entities or []
-        for entity in entities:
-            entity.offset += len(prefix)
-
-        await context.bot.edit_message_text(
-            chat_id=msg.chat_id,
-            message_id=msg.message_id,
-            text=prefix + msg.text,
-            entities=entities
-        )
     
-    if random.randint(1,config["freq"]) == config["freq"]:
-        await context.bot.send_message(chat_id=chat_id, text=g.gen(6,10), reply_to_message_id=message_id)
+    if len(messages) >= 10 and messages[-10].age() < 5:
+        await tools.blockall(context=context, msg=None, x=0)
+        for i in range(-min(40, len(messages)-1), 0):
+            if i >= -11 or messages[i].message_text == messages[-1].message_text:
+                await context.bot.delete_message(chat_id = chat_id, message_id = messages[i].message_id)
+
+    messages.append(Message(msg.author_signature, message_text, message_id))
 
 
 
@@ -206,6 +212,6 @@ async def ban_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if result.chat.id == PERSONAL_CHANNEL_ID and result.new_chat_member.status == "member":
         user_id = result.new_chat_member.user.id
         await context.bot.ban_chat_member(
-            chat_id=result.chat.id,
-            user_id=user_id
+            chat_id = result.chat.id,
+            user_id = user_id
         )

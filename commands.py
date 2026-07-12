@@ -31,22 +31,7 @@ async def blockall(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if user_id == OWNER_ID:
-        name = str(MAIN_CHANNEL_ID)
-        config = load_config()
-
-        config["ban_messages"] = "all"
-
-        save_config(config)
-
-        await context.bot.send_message(chat_id=name,
-                                       text=f"⚠️ Уведомление от системы защиты «{bot_name}»:\n"
-                                            "Активирован режим тотальной зачистки.\n"
-                                            "Любая активность будет немедленно удалена.\n"
-                                            "Канал под полным контролем.")
-        await msg.reply_text(
-            f"Система защиты «{bot_name}» активирована"
-        )
-
+        await tools.blockall(context=context, msg=msg)
     else:
 
         await msg.reply_text(
