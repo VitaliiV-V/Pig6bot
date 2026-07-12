@@ -173,6 +173,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                     reply_to_message_id=msg.reply_to_message.message_id
                                 )
                     
+                    await asyncio.sleep(1)
                     config = load_config()
                     config["mode"] = "normal"
                     save_config(config)
