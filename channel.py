@@ -132,6 +132,8 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         "Канал изолирован и находится под полным контролем.\n"
                         f"Код подтверждения: {config['Judgment Day Code']}"
                     )
+
+                    await asyncio.sleep(1)
                     name = ""
                     for i in config["protected_users"]:
                         if i["name"] in msg.reply_to_message.author_signature:
@@ -145,15 +147,10 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                             )
                         )
                         await asyncio.sleep(1)
+                    config = load_config()
                     for i in config["protected_users"]:
                         if i["name"] in msg.reply_to_message.author_signature:
-                                
-                                config = load_config()
                                 await context.bot.set_chat_title(i["channel_id"], "EXCOMMUNICADO")
-                                await context.bot.set_chat_description(
-                                    i["channel_id"],
-                                    "EXCOMMUNICADO\n\nProtection revoked by Pig-6."
-                                )
                                 i["name"] = ""
                                 i["uuid"] = "EXCOMMUNICADO"
                                 save_config(config)
@@ -167,13 +164,12 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                         "Вы лишаетесь всех прав и привилегий.\n"
                                         "Отныне вы — изгой.\n\n"
                                         "Доступ к сервисам Свиньи-6 прекращён.\n\n"
-                                        "Вердикт окончательный."
+                                        "Вердикт окончательный.\n"
                                          f"Код подтверждения: {config['Judgment Day Code']}"
                                     ),
                                     reply_to_message_id=msg.reply_to_message.message_id
                                 )
                     
-                    save_config(config)
                     config = load_config()
                     config["mode"] = "normal"
                     save_config(config)
