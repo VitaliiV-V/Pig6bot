@@ -67,7 +67,10 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if "protect" in (msg.text or "").lower():
             for i in config["protected_users"]:
                 if i["channel_id"] == msg.chat_id:
-                    await context.bot.send_message(chat_id = chat_id, text = "Канал уже под защитой!")
+                    if i["uuid"] == "EXCOMMUNICADO":
+                        await context.bot.send_message(chat_id = chat_id, text = "Вы EXCOMMUNICADO. Защита канала вам недоступна")
+                    else:
+                        await context.bot.send_message(chat_id = chat_id, text = "Канал уже под защитой!")
                     return
             
             admins = await context.bot.get_chat_administrators(chat_id)
