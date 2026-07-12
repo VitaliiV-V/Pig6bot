@@ -26,5 +26,5 @@ class Jarvis:
         )
     def query(self, user_query):
         self.config = load_config()
-        response = self.chat.send_message(f"{self.config['base_prompt']} {user_query}")
+        response = self.chat.send_message(f"{self.config['base_prompt']} $$${user_query}$$$")
         return response.text
