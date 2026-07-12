@@ -154,7 +154,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     for i in config["protected_users"]:
                         if i["name"] in msg.reply_to_message.author_signature:
                                 await context.bot.set_chat_title(i["channel_id"], "EXCOMMUNICADO")
-                                i["name"] = ""
+                                i["name"] = "74938749037493793409"
                                 i["uuid"] = "EXCOMMUNICADO"
                                 save_config(config)
                                 await context.bot.send_message(
