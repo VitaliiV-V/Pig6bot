@@ -132,7 +132,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         "Все сообщения в канале и чате будут уничтожены.\n"
                         "Доступ пользователей аннулирован.\n"
                         "Попытки обхода бесполезны.\n"
-                        "Канал изолирован и находится под полным контролем.\n"
+                        "Канал изолирован и находится под полным контролем.\n\n"
                         f"Код подтверждения: {config['Judgment Day Code']}"
                     )
 
@@ -145,7 +145,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         config = load_config()
                         await context.bot.send_message(
                             chat_id=chat_id,
-                            text=(f"{name} EXCOMMUNICADO {i}\n"
+                            text=(f"{name} EXCOMMUNICADO {i}\n\n"
                                 f"Код подтверждения: {config['Judgment Day Code']}"
                             )
                         )
@@ -167,7 +167,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                         "Вы лишаетесь всех прав и привилегий.\n"
                                         "Отныне вы — изгой.\n\n"
                                         "Доступ к сервисам Свиньи-6 прекращён.\n\n"
-                                        "Вердикт окончательный.\n"
+                                        "Вердикт окончательный.\n\n"
                                          f"Код подтверждения: {config['Judgment Day Code']}"
                                     ),
                                     reply_to_message_id=msg.reply_to_message.message_id
@@ -180,7 +180,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     await context.bot.send_message(
                         chat_id=chat_id,
                         text=f"Системное уведомление «{bot_name}»:\n"
-                        "Протокол «Judgment Day» остановлен.\n"                
+                        "Протокол «Judgment Day» остановлен.\n\n"                
                         f"Код подтверждения: {config['Judgment Day Code']}"
                     )
                     
