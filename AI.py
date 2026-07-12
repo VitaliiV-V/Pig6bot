@@ -14,7 +14,7 @@ app = ApplicationBuilder().token(AI_TOKEN).build()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
-        
+
     await msg.reply_text(
         "Привет! Я Свинья-6 AI!"
     )
@@ -51,7 +51,7 @@ async def query(update, context):
     message_text = msg.text or ""
 
     isMaster = False
-    
+
     if msg.author_signature:
         txt = msg.author_signature
         ok = 0
@@ -64,7 +64,7 @@ async def query(update, context):
             if config["uuid"] not in msg.author_signature:
                 return
             isMaster = True
-                  
+
 
     if not isMaster and msg.author_signature in config["banned_users"]:
         return
@@ -76,20 +76,20 @@ async def query(update, context):
             return
 
 
-        
+
     if not msg.author_signature and not update.message:
         if config["anon_enable"] == 0:
             return
 
     protected = False
+    if msg.author_signature:
+        for i in config["protected_users"]:
+            if i["name"] in msg.author_signature:
+                if i["uuid"] not in msg.author_signature:
+                    return
+                else:
+                    protected = True
 
-    for i in config["protected_users"]:
-        if i["name"] in msg.author_signature:
-            if i["uuid"] not in msg.author_signature:
-                return
-            else:
-                protected = True
-    
     if config["anon_enable"] == 0 and config["white_lists_mode"] != "off" and (update.channel_post or update.edited_channel_post) and not isMaster:
         if not protected:
             ok = False
@@ -113,7 +113,7 @@ async def query(update, context):
 
             if not ok:
                 return
-        
+
     x =  context.bot.first_name
     if msg.reply_to_message:
         y = msg.reply_to_message.author_signature
@@ -218,14 +218,14 @@ async def query(update, context):
                         )
                     elif text[1] == 'судный' and text[2] == 'день':
                         config = load_config()
-                        if(config["mode"] == "normal"): 
-                            config["mode"] = "Judgment Day" 
+                        if(config["mode"] == "normal"):
+                            config["mode"] = "Judgment Day"
                             save_config(config)
                             await msg.reply_text(
                                 f"Судный день настал."
                             )
                         else:
-                            config["mode"] = "normal" 
+                            config["mode"] = "normal"
                             save_config(config)
                             await msg.reply_text(
                                 f"Судный день отменён."
@@ -253,7 +253,7 @@ async def query(update, context):
                         config = load_config()
                         config["white_lists_mode"] = "off"
                         save_config(config)
-                        await msg.reply_text(   
+                        await msg.reply_text(
                             f"Белый список выключён."
                         )
                     elif text[1] == 'включи' and text[2] == 'белый' and text[3] == 'список':
@@ -288,20 +288,23 @@ async def query(update, context):
                         ok = True
                 else:
                     ok = True
-                    
-            ok = False
+            if update.message and msg.chat_id != -1004485198701 and chat_id != 5149477852:
+                ok = False
+            if update.message and msg.from_user.id == chat_id != 5149477852:
+                isMaster = True
+                
             if ok:
                 sleep(3)
                 query = msg.text.lower()
                 # query = query.replace('jarvis', '')
                 # query = query.replace('джарвис', '')
                 if update.message:
-                    query = f"Это сообщение от {msg.from_user.first_name}: " + query
+                    query = f"This message written by {msg.from_user.first_name}: " + query
                 else:
                     if isMaster:
-                        query = f"Это сообщение от {config['owner_name']}: " + query
+                        query = f"This message written by main admin of the channel {config['owner_name']}: " + query
                     else:
-                        query = f"Это сообщение от {msg.author_signature}: " + query
+                        query = f"This message written by {msg.author_signature}: " + query
 
                 ans = jarvis.query(f"{query}")
                 if "rejected" not in ans:
@@ -310,7 +313,7 @@ async def query(update, context):
 
 
 
-app.add_handler(CommandHandler("start", start))    
+app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.ALL, query))
 
 app.run_polling(allowed_updates=["message", "channel_post", "chat_member"])
