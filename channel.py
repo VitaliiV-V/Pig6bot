@@ -48,6 +48,7 @@ class Message:
         return (datetime.now() - self.created_at).total_seconds()
 
 messages = []
+last_time = datetime.now()
 
 async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.channel_post or update.edited_channel_post
@@ -110,7 +111,8 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if ok:
             if config["uuid"] not in msg.author_signature:
-                await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
+                if (datetime.now() - last_time).total_seconds() > 0.5:
+                    await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
                 return
             else:
                 if "/ban" in message_text:
@@ -191,7 +193,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 config = load_config()
                 config["uuid"] = new_uuid
                 save_config(config)
-
+                last_time = datetime.now()
                 return
     
     protected = False
