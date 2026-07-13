@@ -2,6 +2,7 @@ import uuid
 import time
 import tools
 import asyncio
+from message_source import MessageSourceTracker
 from config import *
 from settings import *
 from markovchain import *
@@ -48,6 +49,7 @@ class Message:
         return (datetime.now() - self.created_at).total_seconds()
 
 messages = []
+message_source_tracker = MessageSourceTracker()
 
 async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.channel_post or update.edited_channel_post
@@ -192,6 +194,8 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 config["uuid"] = new_uuid
                 save_config(config)
 
+                message_source_tracker.remember_authorized_media_group(msg)
+
                 return
     
     protected = False
@@ -230,10 +234,9 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-    if not msg.author_signature:
-        if config["anon_enable"] == 0:
-            await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
-            return
+    if config["anon_enable"] == 0 and message_source_tracker.is_anonymous(msg):
+        await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
+        return
 
 
     if msg.author_signature and config["white_lists_mode"] != "off" and not protected:
@@ -260,6 +263,8 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not ok:
             await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
             return
+
+    message_source_tracker.remember_authorized_media_group(msg)
     
     if len(messages) >= 10 and messages[-10].age() < 5:
         await tools.blockall(context=context, msg=None, x=0)
