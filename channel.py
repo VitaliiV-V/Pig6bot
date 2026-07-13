@@ -201,7 +201,9 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for i in config["protected_users"]:
             if i["name"] in msg.author_signature:
                 if i["uuid"] not in msg.author_signature:
-                    await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
+
+                    if (datetime.now() - last_time).total_seconds() > 0.5:
+                        await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
                     return
                 else:
                     protected = True
@@ -211,6 +213,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
                     i["uuid"] = new_uuid
                     save_config(config)
+                    last_time = datetime.now()
 
     if msg.animation and msg.animation.file_id in config["bad_gifs"]:
         await context.bot.delete_message(
