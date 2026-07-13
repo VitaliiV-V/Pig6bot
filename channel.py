@@ -51,6 +51,7 @@ messages = []
 last_time = datetime.now()
 
 async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global last_time, messages
     msg = update.channel_post or update.edited_channel_post
 
     if not msg:
@@ -201,7 +202,6 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for i in config["protected_users"]:
             if i["name"] in msg.author_signature:
                 if i["uuid"] not in msg.author_signature:
-
                     if (datetime.now() - last_time).total_seconds() > 0.5:
                         await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
                     return
