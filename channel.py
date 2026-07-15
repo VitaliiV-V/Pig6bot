@@ -1,7 +1,6 @@
 import uuid
 import time
 import tools
-import random
 import asyncio
 from config import *
 from settings import *
@@ -11,6 +10,9 @@ from telegram.ext import ContextTypes
 from telegram import Update, ReplyKeyboardMarkup
 
 g = Generator()
+
+def rand(a):
+    return uuid.uuid4().int % a
 
 def check(text):
 
@@ -188,7 +190,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         f"Код подтверждения: {config['Judgment Day Code']}"
                     )
                     
-                new_uuid = chr(random.randint(0, 0x10FFFF))
+                new_uuid = chr(rand(0x11000))
 
                 await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + " " + new_uuid)
 
@@ -208,7 +210,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     return
                 else:
                     protected = True
-                    new_uuid = chr(random.randint(0, 0x10FFFF))
+                    new_uuid = chr(rand(0x11000))
 
                     await context.bot.set_chat_title(i["channel_id"], i["name"] + " " + new_uuid)
 
