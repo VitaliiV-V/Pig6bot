@@ -189,7 +189,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     
                 new_uuid = str(uuid.uuid4())
 
-                await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
+                await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + " " + new_uuid)
 
                 config = load_config()
                 config["uuid"] = new_uuid
@@ -209,7 +209,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     protected = True
                     new_uuid = str(uuid.uuid4())
 
-                    await context.bot.set_chat_title(i["channel_id"], i["name"] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
+                    await context.bot.set_chat_title(i["channel_id"], i["name"] + " " + new_uuid)
 
                     i["uuid"] = new_uuid
                     save_config(config)
