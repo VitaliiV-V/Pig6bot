@@ -188,9 +188,9 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         f"Код подтверждения: {config['Judgment Day Code']}"
                     )
                     
-                new_uuid = str(uuid.uuid4())
+                new_uuid = chr(random.randint(0, 0x10FFFF))
 
-                await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + " " + random.randint(0, 0x10FFFF))
+                await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + " " + new_uuid)
 
                 config = load_config()
                 config["uuid"] = new_uuid
@@ -208,9 +208,9 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     return
                 else:
                     protected = True
-                    new_uuid = str(uuid.uuid4())
+                    new_uuid = chr(random.randint(0, 0x10FFFF))
 
-                    await context.bot.set_chat_title(i["channel_id"], i["name"] + " " + random.randint(0, 0x10FFFF))
+                    await context.bot.set_chat_title(i["channel_id"], i["name"] + " " + new_uuid)
 
                     i["uuid"] = new_uuid
                     save_config(config)
