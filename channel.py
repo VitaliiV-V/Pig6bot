@@ -13,7 +13,7 @@ g = Generator()
 
 
 def rand():
-    return chr(0xAC00 + (uuid.uuid4().int % (0xD7AF - 0xAC00 + 1)))
+    return chr(0xAC00 + (uuid.uuid4().int % (0xD7A3 - 0xAC00 + 1)))
 
 def check(text):
 
