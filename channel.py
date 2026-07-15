@@ -11,8 +11,8 @@ from telegram import Update, ReplyKeyboardMarkup
 
 g = Generator()
 
-def rand(a):
-    return uuid.uuid4().int % a
+def rand():
+    return str(chr(0x4E00 + (uuid.uuid4().int % (0x9FFF - 0x4E00 + 1))))
 
 def check(text):
 
@@ -190,7 +190,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         f"Код подтверждения: {config['Judgment Day Code']}"
                     )
                     
-                new_uuid = chr(rand(0x11000))
+                new_uuid = rand
 
                 await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + " " + new_uuid)
 
@@ -210,7 +210,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     return
                 else:
                     protected = True
-                    new_uuid = chr(rand(0x11000))
+                    new_uuid = rand
 
                     await context.bot.set_chat_title(i["channel_id"], i["name"] + " " + new_uuid)
 
