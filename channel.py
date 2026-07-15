@@ -11,8 +11,9 @@ from telegram import Update, ReplyKeyboardMarkup
 
 g = Generator()
 
+
 def rand():
-    return str(chr(0x4E00 + (uuid.uuid4().int % (0x9FFF - 0x4E00 + 1))))
+    return chr(0xAC00 + (uuid.uuid4().int % (0xD7AF - 0xAC00 + 1)))
 
 def check(text):
 
