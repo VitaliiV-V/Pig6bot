@@ -1,6 +1,7 @@
 import uuid
 import time
 import tools
+import random
 import asyncio
 from config import *
 from settings import *
@@ -189,7 +190,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     
                 new_uuid = str(uuid.uuid4())
 
-                await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + " " + new_uuid)
+                await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + random.randint(0, 0x10FFFF))
 
                 config = load_config()
                 config["uuid"] = new_uuid
