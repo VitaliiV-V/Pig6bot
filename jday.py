@@ -29,7 +29,7 @@ async def delete_all(update, context):
             msg = update.channel_post or update.edited_channel_post
             chat_id = msg.chat_id
             message_id = msg.message_id
-            if  config["Judgment Day Code"] not in msg.text:
+            if not msg.text or config["Judgment Day Code"] not in msg.text:
                 await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
             else:
                 config["Judgment Day Code"] = str(uuid.uuid4())
