@@ -556,6 +556,10 @@ async def set_base_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         
 
+
+def rand():
+    return chr(0xAC00 + (uuid.uuid4().int % (0xD7A3 - 0xAC00 + 1)))
+
 async def protect(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     if not msg or not msg.from_user or not msg.text:
@@ -577,7 +581,7 @@ async def protect(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         try:
             config = load_config()
-            new_uuid = str(uuid.uuid4())
+            new_uuid = rand() + str(uuid.uuid4())
             config["protected_users"].append({
                 "name" : s[(len(id) + 1):],
                 "uuid" : new_uuid,
