@@ -2,10 +2,11 @@ import uuid
 import tools
 from config import *
 from settings import *
+from pathlib import Path
 from markovchain import *
 from telegram import Update
 from telegram.ext import ContextTypes
-from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup, Update
+from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup, Update, InlineKeyboardButton, InlineKeyboardMarkup
 
 g = Generator()
 
@@ -69,6 +70,60 @@ async def smart(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(
             f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу 🍌хаммаааааааам🍌"
         )
+
+
+
+requests = {}
+
+async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    if not msg or not msg.from_user or not msg.text:
+        return
+
+    if not msg.reply_to_message:
+        await msg.reply_text("Пожалуйста, ответьте командой /download на GIF")
+        return
+    
+    gif = msg.reply_to_message.animation
+    
+    if not gif:
+        await msg.reply_text("Это не GIF")
+        return
+
+    request_id = len(requests) + 1
+
+    requests[request_id] = {
+        "user_id": msg.from_user.id,
+        "file_id": gif.file_id,
+        "username": msg.from_user.username,
+        "status": "pending"
+    }
+
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                "✅ Принять",
+                callback_data=f"approve:{request_id}"
+            ),
+            InlineKeyboardButton(
+                "❌ Отклонить",
+                callback_data=f"reject:{request_id}"
+            )
+        ]
+    ])
+
+    await context.bot.send_message(
+        chat_id=ADMIN_ID,
+        text=(
+            f"Новый запрос GIF\n"
+            f"От: @{msg.from_user.username}\n"
+            f"ID: {msg.from_user.id}"
+        ),
+        reply_markup=keyboard
+    )
+
+    await msg.reply_text("Запрос отправлен админу")
+
 
 async def disable(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
