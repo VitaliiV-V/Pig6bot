@@ -102,28 +102,68 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = InlineKeyboardMarkup([
         [
             InlineKeyboardButton(
-                "✅ Принять",
+                "✅ Accept",
                 callback_data=f"approve:{request_id}"
             ),
             InlineKeyboardButton(
-                "❌ Отклонить",
+                "❌ Reject",
                 callback_data=f"reject:{request_id}"
             )
         ]
     ])
 
-    await context.bot.send_message(
-        chat_id=ADMIN_ID,
+    await msg.reply_text(
         text=(
-            f"Новый запрос GIF\n"
-            f"От: @{msg.from_user.username}\n"
-            f"ID: {msg.from_user.id}"
+            f"{OWNER_USERNAME}"
         ),
         reply_markup=keyboard
     )
 
-    await msg.reply_text("Запрос отправлен админу")
+async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
 
+    bot_name = (await context.bot.get_me()).first_name
+
+    if query.from_user.id != OWNER_ID:
+        await query.answer(f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу")
+        return
+
+    await query.answer()
+
+    action, request_id = query.data.split(":")
+    request_id = int(request_id)
+
+    req = requests.get(request_id)
+
+
+
+    if action == "approve":
+
+        await context.bot.send_animation(
+            chat_id=req["user_id"],
+            animation=req["file_id"],
+            caption="Ваш GIF"
+        )
+
+        req["status"] = "approved"
+
+        await query.edit_message_text(
+            "✅ GIF отправлен пользователю"
+        )
+
+
+    elif action == "reject":
+
+        req["status"] = "rejected"
+
+        await context.bot.send_message(
+            chat_id=req["user_id"],
+            text="❌ Ваш запрос отклонён"
+        )
+
+        await query.edit_message_text(
+            "❌ Запрос отклонён"
+        )
 
 async def disable(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message

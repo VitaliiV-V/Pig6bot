@@ -3,7 +3,7 @@ from settings import *
 from channel import *
 from commands import *
 from telegram import InputTextMessageContent,InlineQueryResultArticle, Update
-from telegram.ext import InlineQueryHandler, ApplicationBuilder, CommandHandler, MessageHandler, filters, ChatMemberHandler
+from telegram.ext import InlineQueryHandler, ApplicationBuilder, CommandHandler, MessageHandler, filters, ChatMemberHandler, CallbackQueryHandler
 
 app = ApplicationBuilder().token(TOKEN).build()   
 
@@ -38,6 +38,7 @@ app.add_handler(CommandHandler("unban", unban))
 app.add_handler(CommandHandler("reg", register))
 app.add_handler(CommandHandler("config", config))
 app.add_handler(CommandHandler("reject", reject))
+app.add_handler(CommandHandler("download", download))
 app.add_handler(CommandHandler("add", addtolists))
 app.add_handler(CommandHandler("setfreq", setfreq))
 app.add_handler(CommandHandler("protect", protect))
@@ -45,7 +46,7 @@ app.add_handler(CommandHandler("disable", disable))
 app.add_handler(CommandHandler("del", delfromlists))
 app.add_handler(CommandHandler("blockall", blockall))
 app.add_handler(CommandHandler("jdaycode", jdaycode))
-app.add_handler(CommandHandler("penis", download))
+app.add_handler(CallbackQueryHandler(admin_decision))
 app.add_handler(CommandHandler("setbaseprompt", set_base_prompt))
 app.add_handler(MessageHandler(filters.ALL, reply_in_channel))
 app.add_handler(CommandHandler("setwhitelistsmode", setwhitelistsmode))
@@ -53,4 +54,4 @@ app.add_handler(ChatMemberHandler(ban_new_members, ChatMemberHandler.CHAT_MEMBER
 app.add_handler(MessageHandler(filters.UpdateType.EDITED_CHANNEL_POST, reply_in_channel))
 
 
-app.run_polling(allowed_updates=["message", "channel_post", "chat_member", "inline_query"])
+app.run_polling(allowed_updates=["message", "channel_post", "chat_member", "inline_query", "callback_query"])
