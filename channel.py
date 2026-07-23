@@ -54,6 +54,17 @@ class Message:
 messages = []
 last_time = datetime.now()
 
+superlist = []
+
+for code in range(0xFE00, 0xFE10):
+    superlist.append(chr(code))
+
+for code in [0x180B, 0x180C, 0x180D, 0x180F]:
+    superlist.append(chr(code))
+
+for code in range(0xE0100, 0xE01F0):
+    superlist.append(chr(code))
+
 async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global last_time, messages
     msg = update.channel_post or update.edited_channel_post
@@ -97,7 +108,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_message(chat_id = chat_id, text = "Регистрация недоступна.\nДля подключения защиты в канале должен быть только один администратор и бот.")
         
         return
-
+    
     if message_text == "/pig":
         await context.bot.send_message(chat_id = chat_id, text = g.gen(6,10), reply_to_message_id = message_id)
     elif message_text == "/svo":
@@ -106,6 +117,27 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if msg.via_bot == None:
             asyncio.create_task(train_background(message_text))
 
+    superuser = False
+    if msg.author_signature:
+        for i in config["super_users"]:
+            if i["name"] in msg.author_signature:
+                if i["uuid"] not in msg.author_signature:
+                    if (datetime.now() - last_time).total_seconds() > 0.5:
+                        await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
+                    return
+                else:
+                    protected = True
+                    new_uuid = superlist[random.randint(0,len(superlist))-1] + superlist[random.randint(0,len(superlist))-1] + superlist[random.randint(0,len(superlist))-1] + superlist[random.randint(0,len(superlist))-1] + superlist[random.randint(0,len(superlist))-1]
+                    await context.bot.set_chat_title(i["channel_id"], i["name"] + new_uuid)
+
+                    i["uuid"] = new_uuid
+                    save_config(config)
+                    last_time = datetime.now()
+                    superuser = True
+
+    if superuser:
+        return
+    
     if msg.author_signature:
         txt = msg.author_signature
         ok = 0
@@ -218,7 +250,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     i["uuid"] = new_uuid
                     save_config(config)
                     last_time = datetime.now()
-
+    
     if msg.animation and msg.animation.file_id in config["bad_gifs"]:
         await context.bot.delete_message(
             chat_id=chat_id,
