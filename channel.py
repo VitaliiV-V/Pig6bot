@@ -1,6 +1,7 @@
 import uuid
 import time
-import tools
+import tools      
+import secrets
 import asyncio
 from config import *
 from settings import *
@@ -127,7 +128,8 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     return
                 else:
                     protected = True
-                    new_uuid = superlist[random.randint(0,len(superlist))-1] + superlist[random.randint(0,len(superlist))-1] + superlist[random.randint(0,len(superlist))-1] + superlist[random.randint(0,len(superlist))-1] + superlist[random.randint(0,len(superlist))-1]
+
+                    new_uuid = "".join(secrets.choice(superlist) for _ in range(5))                    
                     await context.bot.set_chat_title(i["channel_id"], i["name"] + new_uuid)
 
                     i["uuid"] = new_uuid
@@ -222,10 +224,10 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         "Протокол «Judgment Day» остановлен.\n\n"                
                         f"Код подтверждения: {config['Judgment Day Code']}"
                     )
-                    
-                new_uuid = rand() + str(uuid.uuid4())
 
-                await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + " " + new_uuid)
+                new_uuid = "".join(secrets.choice(superlist) for _ in range(5))
+                
+                await context.bot.set_chat_title(PERSONAL_CHANNEL_ID, config["owner_name"] + new_uuid)
 
                 config = load_config()
                 config["uuid"] = new_uuid
