@@ -1,8 +1,16 @@
 # Telegram Channel Protection Bot
 
-A Telegram bot designed to protect and moderate channels. It provides message filtering, user banning, whitelist management, logging functionality, AI moderation, and advanced channel security.
+A Telegram bot designed to protect and moderate Telegram channels.
+
+It provides message filtering, user banning, whitelist management, logging functionality, AI moderation, advanced channel security and intelligent protection systems.
+
+Official website:
+
+https://pig6bot.sos.al
+
 
 # Features
+
 - Automatic message filtering and deletion
 - User banning and unbanning (via commands and reply)
 - Multiple moderation modes:
@@ -10,20 +18,28 @@ A Telegram bot designed to protect and moderate channels. It provides message fi
     - admins — only admins allowed
     - admins_only — strict admin-only mode
     - manual — whitelist-based control
+
 - Whitelist system for allowed users
 - Anonymous message blocking
 - Message forwarding to a log channel
 - Owner-only administrative commands
-- UUID-based protection mechanism for ownership validation
-- Markov text generator
+- UUID-based administrator verification
+- Unicode-enhanced protection signatures
+- Invisible security identifiers
 - AI moderation system
-- Real-time message analysis and moderation assistance
+- Real-time message analysis
+- Intelligent response system
+- Markov text generator
 - Unified configuration system
 - Live configuration editing through Telegram
 - Distributed logging system
 - Personality mode support
 - Docker infrastructure
 - Service-based architecture
+- Content protection system
+- Protected file handling
+- Secure GIF processing
+- Extreme Protection mode
 
 
 # Pig-6
@@ -34,11 +50,22 @@ This is not just an update.
 
 It is a new architecture.
 
-Svynya-5 was completely redesigned and transformed into a new generation protection system with improved stability, scalability, and intelligence.
+Svynya-5 was completely redesigned and transformed into a new generation protection system with improved stability, scalability and intelligence.
 
 The external behavior remains familiar.
 
 Internally, the system has been rebuilt.
+
+
+# Designed to protect
+
+Pig-6 was created with one main principle:
+
+Security should work quietly.
+
+The system focuses on reliability, verification and intelligent protection without unnecessary complexity.
+
+Created by Hammam Inc.
 
 
 # Architecture
@@ -47,23 +74,65 @@ Pig-6 uses a service-based architecture.
 
 The system is divided into specialized services:
 
-- Pig-6
-    - Main protection and moderation system
 
-- Pig-6 AI
-    - AI moderation
-    - Message analysis
-    - Intelligent responses
-    - Context processing
+## Pig-6 Core
 
-- Pig-6 Logs
-    - Distributed logging system
-    - Event tracking
-    - Independent log processing
+Main protection and moderation system.
 
-- Pig-6 Judgment Day
-    - Decision-making system
-    - Advanced protection control
+Responsible for:
+
+- message security
+- channel control
+- administrator verification
+- protection logic
+
+
+## Pig-6 AI
+
+Artificial intelligence subsystem.
+
+Features:
+
+- AI moderation
+- message analysis
+- context processing
+- intelligent responses
+- decision assistance
+
+
+## Pig-6 Logs
+
+Distributed logging system.
+
+Features:
+
+- event tracking
+- independent log processing
+- security history
+- moderation records
+
+
+## Pig-6 Judgment Day
+
+Advanced decision system.
+
+Responsible for:
+
+- complex protection decisions
+- advanced control mechanisms
+- security evaluation
+
+
+## Pig6Guard
+
+Official protection module.
+
+Provides:
+
+- Telegram channel protection
+- administrator verification
+- security control
+- advanced protection modes
 
 
 # AI Moderation
@@ -73,10 +142,10 @@ Pig-6 includes an AI moderation system.
 Features:
 
 - Real-time message analysis
-- AI-powered moderation assistance
-- Smart responses
 - Context-aware decisions
 - Automated content evaluation
+- Smart responses
+- Moderation assistance
 
 
 # Unified Configuration System
@@ -128,35 +197,84 @@ Benefits:
 
 # UUID Protection System
 
-Pig-6 includes a UUID-based message verification system.
+Pig-6 includes a UUID-based administrator verification system.
 
-Administrators can protect their messages using a unique identifier signature.
+Administrators can protect their messages using unique security signatures.
 
-After registration, the system can verify whether messages really belong to trusted administrators.
+The system verifies whether messages actually belong to trusted administrators.
+
+Protection uses:
+
+- UUID identifiers
+- Unicode-based invisible signatures
+- Additional validation layers
+
 
 If protection is not enabled, administrator messages may receive:
 
 ⚠️ Unsafe message
+
 
 This is not a restriction.
 
 It is a way to quickly understand whether a message source can be trusted.
 
 
-# How to enable UUID protection
+# Extreme Protection
 
-1. Create a new channel.
-2. Add Pig-6 to the channel.
-3. Make sure the channel contains only:
-    - one administrator
-    - the bot
-4. Send:
+Extreme Protection is the highest security level available in Pig-6.
 
-protect
+This mode is available only to:
 
-5. Wait for confirmation.
+- system owners
+- trusted superusers
 
-After successful registration, the channel will be added to the trusted sources list.
+
+Features:
+
+- Advanced Unicode-based identification
+- Invisible security signatures
+- Additional anti-spoofing protection
+- Maximum control mode
+- Extended verification rules
+
+
+Extreme Protection is designed for situations where standard protection is not enough.
+
+Maximum protection.
+
+Minimum visibility.
+
+
+# Content Protection System
+
+Pig-6 includes additional protection for user-uploaded content.
+
+Features:
+
+- Secure file processing
+- Content tracking
+- Controlled access
+- Administrative approval system
+- File removal capability
+
+
+The system helps prevent unwanted content from being distributed through protected channels.
+
+
+# Protected GIF System
+
+Pig-6 supports secure GIF handling.
+
+Features:
+
+- Protected GIF downloads
+- Controlled access
+- Administrator confirmation
+- Secure processing flow
+
+
+Files can be reviewed before becoming available.
 
 
 # Whitelist System
@@ -169,6 +287,7 @@ Available modes:
 - admins
 - admins_only
 - manual
+
 
 The whitelist system has been improved in Pig-6.
 
@@ -190,50 +309,56 @@ Changes:
 
 The bot includes a Markov-chain-based generator trained on parsed2.json.
 
+
 ## How it works
 
 - Uses n-gram model (n=1 and n=2 chains)
-- Trained on stored admin messages
+- Trained on stored administrator messages
 - Generates probabilistic text based on context
 - Applies temperature-based variation control
+
+
+# Source Code Security
+
+The Pig-6 source code is no longer publicly available.
+
+The project has moved to a closed-source model.
+
+This decision was made to improve security, protect internal mechanisms and prevent misuse of the system.
 
 
 # Commands
 
 ## Admin commands
 
-### Enable full blocking mode
-
 /blockall
 
+Enable full blocking mode.
 
-### Enable smart moderation mode
 
 /smart
 
+Enable smart moderation mode.
 
-### Disable protection system
 
 /disable
 
+Disable protection system.
 
-### Ban user
 
 /ban <username>
 
-or reply to a message in channel:
+Ban user.
 
-/ban
-
-
-### Unban user
 
 /unban <username>
 
+Unban user.
 
-### Set whitelist mode
 
 /setwhitelistsmode <mode>
+
+Set whitelist mode.
 
 
 Available modes:
@@ -244,26 +369,26 @@ Available modes:
 - manual
 
 
-### Add to whitelist
-
 /add <name>
 
+Add user to whitelist.
 
-### Remove from whitelist
 
 /del <name>
 
+Remove user from whitelist.
 
-### Reject request
 
 /reject
+
+Reject request.
 
 
 # User commands
 
-### Register channel request
-
 /reg <channel_name>
+
+Register channel request.
 
 
 # Requirements
@@ -295,6 +420,7 @@ python main.py
 
 # Updates
 
+
 ## Pig-6 Evolution
 
 New generation features:
@@ -306,11 +432,18 @@ New generation features:
 - Personality system
 - Docker infrastructure
 - Service-based architecture
+- Unicode protection
+- Extreme Protection
+- Content Protection
+- Pig6Guard module
 
 
 ## Security Improvements
 
 - Stricter whitelist behavior
 - Improved anonymous message handling
-- UUID-based administrator verification
+- UUID administrator verification
+- Unicode security signatures
 - Better protection against message spoofing
+- Advanced content control
+- Improved administrator security
