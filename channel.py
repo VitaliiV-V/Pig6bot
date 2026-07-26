@@ -57,12 +57,6 @@ last_time = datetime.now()
 
 superlist = []
 
-for code in range(0xFE00, 0xFE10):
-    superlist.append(chr(code))
-
-for code in [0x180B, 0x180C, 0x180D, 0x180F]:
-    superlist.append(chr(code))
-
 for code in range(0xE0100, 0xE01F0):
     superlist.append(chr(code))
 
