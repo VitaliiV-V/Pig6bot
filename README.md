@@ -439,11 +439,12 @@ New generation features:
 
 
 ## Security Improvements
-
+ 
 - Stricter whitelist behavior
 - Improved anonymous message handling
 - UUID administrator verification
 - Unicode security signatures
 - Better protection against message spoofing
 - Advanced content control
-- Improved administrator security
+- Improved administrator security 
+ 
