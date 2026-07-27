@@ -103,7 +103,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 protect_data = {
                     "name": msg.chat.title,
                     "channel_id": msg.chat.id,
-                    "type": "xuid",
+                    "type": "xuuid",
                     "uuid": "".join(secrets.choice(superlist) for _ in range(5)),
                     "owner": info
                 }
