@@ -9,6 +9,7 @@ from markovchain import *
 from datetime import datetime
 from telegram.ext import ContextTypes
 from telegram import Update, ReplyKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 g = Generator()
 
@@ -76,6 +77,11 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     config = load_config()
 
     if chat_id != MAIN_CHANNEL_ID:
+        if msg.new_chat_title:
+            await context.bot.delete_message(
+                chat_id=msg.chat.id,
+                message_id=msg.message_id
+            )
         if "protect" in (msg.text or "").lower():
             for i in config["protected_users"]:
                 if i["channel_id"] == msg.chat_id:
@@ -91,11 +97,36 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 info = ""
                 for admin in admins:
                     if not admin.user.is_bot:
-                        info = f"@{admin.user.username}\n"
+                        info = f"@{admin.user.username}"
 
-                text = (f"Новый запрос на защиту канала:\nВладелец: {info}Канал: {msg.chat.title}\nid: {msg.chat_id}")
+                text = (f"Новый запрос на защиту канала:\nВладелец: {info}\nКанал: {msg.chat.title}")
+                protect_data = {
+                    "name": msg.chat.title,
+                    "channel_id": msg.chat.id,
+                    "type": "unicode",
+                    "uuid": "".join(secrets.choice(superlist) for _ in range(5)),
+                    "owner": info
+                }
 
-                keyboard = ReplyKeyboardMarkup([[f"/protect {msg.chat_id} {msg.chat.title}", "/reject"]], resize_keyboard = True)
+                file_id = secrets.token_hex(8)
+
+                filename = f".protect_{file_id}.json"
+
+                with open(filename, "w", encoding="utf-8") as f:
+                    json.dump(protect_data, f, ensure_ascii=False, indent=4)
+
+                keyboard = InlineKeyboardMarkup([
+                    [
+                        InlineKeyboardButton(
+                            "🛡 Protect",
+                            callback_data=f"protectc^{filename}"
+                        ),
+                        InlineKeyboardButton(
+                            "❌ Reject",
+                            callback_data=f"rejectc^{filename}"
+                        )
+                    ]
+                ])
 
                 await context.bot.send_message(chat_id = OWNER_ID, text = text, reply_markup = keyboard)
 
@@ -116,7 +147,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if msg.author_signature:
         for i in config["super_users"]:
             if i["name"] in msg.author_signature:
-                if i["uuid"] not in msg.author_signature:
+                if i["name"] + i["uuid"] != msg.author_signature:
                     if (datetime.now() - last_time).total_seconds() > 0.5:
                         await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
                     return
@@ -136,14 +167,8 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if msg.author_signature:
         txt = msg.author_signature
-        ok = 0
-        if config["owner_names"]:
-            for i in config["owner_names"]:
-                if i in txt:
-                    ok = 1
-
-        if ok:
-            if config["uuid"] not in msg.author_signature:
+        if config["owner_name"] in txt:
+            if msg.author_signature != config["owner_name"] + config["uuid"]:
                 if (datetime.now() - last_time).total_seconds() > 0.5:
                     await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
                 return
@@ -233,15 +258,22 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if msg.author_signature:
         for i in config["protected_users"]:
             if i["name"] in msg.author_signature:
-                if i["uuid"] not in msg.author_signature:
+                if i["name"] + i["uuid"] != msg.author_signature:
                     if (datetime.now() - last_time).total_seconds() > 0.5:
                         await context.bot.delete_message(chat_id = chat_id, message_id = message_id)
                     return
                 else:
                     protected = True
-                    new_uuid = rand() + str(uuid.uuid4())
+                    if "type" not in i:
+                        i["type"] = "unicode"
+                    if i["type"] == "uuid":
+                        new_uuid = " " + str(uuid.uuid4())
+                    elif i["type"] == "xuuid":
+                        new_uuid = " " + rand() + str(uuid.uuid4())
+                    else:
+                        new_uuid = "".join(secrets.choice(superlist) for _ in range(5))                        
 
-                    await context.bot.set_chat_title(i["channel_id"], i["name"] + " " + new_uuid)
+                    await context.bot.set_chat_title(i["channel_id"], i["name"] + new_uuid)
 
                     i["uuid"] = new_uuid
                     save_config(config)

@@ -81,33 +81,51 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if not msg.reply_to_message:
-        await msg.reply_text("Пожалуйста, ответьте командой /download на GIF")
+        await msg.reply_text("Пожалуйста, ответьте командой /download на медиафайл")
         return
-    
+
     gif = msg.reply_to_message.animation
-    
-    if not gif:
-        await msg.reply_text("Это не GIF")
+    img = msg.reply_to_message.photo
+    video = msg.reply_to_message.video
+
+    if not gif and not img and not video:
+        await msg.reply_text("Это не медиафайл")
         return
 
     request_id = len(requests) + 1
-
-    requests[request_id] = {
-        "user_id": msg.from_user.id,
-        "file_id": gif.file_id,
-        "username": msg.from_user.username,
-        "status": "pending"
-    }
-
+    if gif:
+        requests[request_id] = {
+            "user_id": msg.from_user.id,
+            "file_id": gif.file_id,
+            "username": msg.from_user.username,
+            "status": "pending",
+            "type" : "gif"
+        }
+    elif img:
+        requests[request_id] = {
+            "user_id": msg.from_user.id,
+            "file_id": img[-1],
+            "username": msg.from_user.username,
+            "status": "pending",
+            "type" : "img"
+        }
+    elif video:
+        requests[request_id] = {
+                "user_id": msg.from_user.id,
+                "file_id": video,
+                "username": msg.from_user.username,
+                "status": "pending",
+                "type" : "video"
+            }
     keyboard = InlineKeyboardMarkup([
         [
             InlineKeyboardButton(
                 "✅ Accept",
-                callback_data=f"approve:{request_id}"
+                callback_data=f"approve^{request_id}"
             ),
             InlineKeyboardButton(
                 "❌ Reject",
-                callback_data=f"reject:{request_id}"
+                callback_data=f"reject^{request_id}"
             )
         ]
     ])
@@ -130,30 +148,49 @@ async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await query.answer()
 
-    action, request_id = query.data.split(":")
-    request_id = int(request_id)
-
-    req = requests.get(request_id)
+    action, data = query.data.split("^")
 
 
 
     if action == "approve":
+        request_id = int(data)
 
-        await context.bot.send_animation(
-            chat_id=req["user_id"],
-            animation=req["file_id"],
-            caption="Ваш GIF"
-        )
-
+        req = requests.get(request_id)
+        if req["type"] == "gif":
+            await context.bot.send_animation(
+                chat_id=req["user_id"],
+                animation=req["file_id"],
+                caption="Ваш GIF"
+            )
+            await query.edit_message_text(
+                "✅ GIF отправлен пользователю"
+            )
+        elif req["type"] == "img":
+            await context.bot.send_photo(
+                chat_id=req["user_id"],
+                photo=req["file_id"],
+                caption="Ваше изображение"
+            )
+            await query.edit_message_text(
+                "✅ Изображение отправлено пользователю"
+            )
+        elif req["type"] == "video":
+            await context.bot.send_video(
+                chat_id=req["user_id"],
+                video=req["file_id"],
+                caption="Ваша видеозапись"
+            )
+            await query.edit_message_text(
+                "✅ Видеозапись отправлена пользователю"
+            )
         req["status"] = "approved"
-
-        await query.edit_message_text(
-            "✅ GIF отправлен пользователю"
-        )
 
 
     elif action == "reject":
 
+        request_id = int(data)
+
+        req = requests.get(request_id)
         req["status"] = "rejected"
 
         await context.bot.send_message(
@@ -164,6 +201,37 @@ async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(
             "❌ Запрос отклонён"
         )
+
+    elif action == "protectc":
+        try:
+            config = load_config()
+            with open(data, "r", encoding="utf-8") as f:
+                data2 = json.load(f)
+            os.remove(data)
+            config["protected_users"].append(data2)
+            save_config(config)
+            await context.bot.set_chat_title(data2["channel_id"] ,data2["name"] + data2["uuid"])
+            await context.bot.send_message(chat_id=data2["channel_id"], text = "Канал под защитой")
+            await query.edit_message_text(
+                "✅ Канал защищён"
+            )
+        except Exception as e:
+            await query.edit_message_text(
+                "❌ Ошибка"
+            )
+    elif action == "rejectc":
+        try:
+            with open(data, "r", encoding="utf-8") as f:
+                data2 = json.load(f)
+            os.remove(data)
+            await context.bot.send_message(chat_id=data2["channel_id"], text = "Ваш запрос отклонён")
+            await query.edit_message_text(
+                "✅ Отклонено"
+            )
+        except Exception as e:
+            await query.edit_message_text(
+                "❌ Ошибка"
+            )
 
 async def disable(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
@@ -434,25 +502,25 @@ async def setfreq(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(
             f"Внимание! Системой защиты «{bot_name}»  отражена попытка несанкционированного доступа к телеграм каналу", reply_markup=ReplyKeyboardRemove()
         )
-        
+
 async def pig(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     if not msg:
         return
-    
+
     user_id = msg.from_user.id
-    
+
     ans = g.gen(6,10)
     text = f"{msg.from_user.first_name} @{msg.from_user.username} решил поиграть с ботом и получил ответ: <pre>{ans}</pre>\n"
-    
+
     if user_id != OWNER_ID:
         await context.bot.send_message(chat_id=OWNER_ID, text = text, parse_mode="HTML")
-    
+
     await msg.reply_text(
         ans
     )
-    
-    
+
+
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     if not msg or not msg.from_user or not msg.text:
@@ -468,10 +536,10 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user_id == OWNER_ID:
         name = str(MAIN_CHANNEL_ID)
 
-        s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""  
-    
+        s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
+
         await context.bot.send_message(chat_id=name, text=s)
-        
+
         await msg.reply_text(
             f"Пост отправлен ✅"
         )
@@ -481,7 +549,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(
             f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
         )
-        
+
 async def jday(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     if not msg or not msg.from_user or not msg.text:
@@ -498,7 +566,7 @@ async def jday(update: Update, context: ContextTypes.DEFAULT_TYPE):
         name = str(MAIN_CHANNEL_ID)
         config = load_config()
         status = "активен"
-        if config["mode"] == "normal":           
+        if config["mode"] == "normal":
             await context.bot.send_message(
                 chat_id=name,
                 text=f"Системное уведомление «{bot_name}»:\n"
@@ -510,17 +578,17 @@ async def jday(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"Код подтверждения: {config['Judgment Day Code']}"
             )
             config["mode"] = "Judgment Day"
-            
-        else:            
+
+        else:
             await context.bot.send_message(
                 chat_id=name,
                 text=f"Системное уведомление «{bot_name}»:\n"
-                "Протокол «Judgment Day» остановлен.\n"                
+                "Протокол «Judgment Day» остановлен.\n"
                 f"Код подтверждения: {config['Judgment Day Code']}"
             )
             config["mode"] = "normal"
             status = "остановлен"
-            
+
         save_config(config)
         await msg.reply_text(
             f"Протокол судного дня {status}"
@@ -531,7 +599,7 @@ async def jday(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(
             f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
         )
-        
+
 async def jdaycode(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     if not msg or not msg.from_user or not msg.text:
@@ -557,7 +625,7 @@ async def jdaycode(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(
             f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
         )
-        
+
 async def svo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     if not msg:
@@ -566,7 +634,7 @@ async def svo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.reply_text(
         f"Данная команда поддерживается только в мессенджере МАКС\n"
     )
-    
+
 async def config(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     if not msg or not msg.from_user or not msg.text:
@@ -600,7 +668,7 @@ async def config(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def receive_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
-    
+
     user_id = msg.from_user.id
 
     bot_name = (await context.bot.get_me()).first_name
@@ -643,61 +711,6 @@ async def set_base_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             await msg.reply_text(
                 f"Не удалось установить частоту",reply_markup=ReplyKeyboardRemove()
-            )
-
-    else:
-        await msg.reply_text(
-            f"Внимание! Системой защиты «{bot_name}»  отражена попытка несанкционированного доступа к телеграм каналу", reply_markup=ReplyKeyboardRemove()
-        )
-        
-
-
-def rand():
-    return chr(0xAC00 + (uuid.uuid4().int % (0xD7A3 - 0xAC00 + 1)))
-
-async def protect(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-    if not msg or not msg.from_user or not msg.text:
-        return
-
-    user_id = msg.from_user.id
-
-    bot_name = (await context.bot.get_me()).first_name
-
-    if user_id == OWNER_ID:
-
-
-        s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
-        id = ""
-        for i in s:
-            if i == ' ':
-                break
-            id += i
-
-        try:
-            config = load_config()
-            new_uuid = rand() + str(uuid.uuid4())
-            config["protected_users"].append({
-                "name" : s[(len(id) + 1):],
-                "uuid" : new_uuid,
-                "channel_id" : int(id)
-            })
-            if s[(len(id) + 1):] in config["white_list"]:
-                config["white_list"].remove(s[(len(id) + 1):])
-
-            save_config(config)
-
-            await msg.reply_text(
-                f"Успешно", reply_markup=ReplyKeyboardRemove()
-            )
-
-            await context.bot.set_chat_title(id , s[(len(id) + 1):] + "ㅤㅤㅤㅤㅤㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ ㅤ " + new_uuid)
-
-            await context.bot.send_message(chat_id=id, text = "Канал под защитой")
-
-        except Exception as e:
-            await msg.reply_text(
-                f"Ошибка",reply_markup=ReplyKeyboardRemove()
             )
 
     else:
