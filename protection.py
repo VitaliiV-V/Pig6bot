@@ -236,6 +236,7 @@ async def check_owner(
             save_config(config)
             last_time = datetime.now()
             return True
+
     return False
 
 

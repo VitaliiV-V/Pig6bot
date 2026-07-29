@@ -4,7 +4,7 @@ from config import *
 from settings import *
 from pathlib import Path
 from markovchain import *
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from telegram import (
     ReplyKeyboardRemove,
@@ -76,6 +76,39 @@ async def smart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await msg.reply_text(
             f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу 🍌хаммаааааааам🍌"
+        )
+
+
+async def disable(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    if not msg or not msg.from_user or not msg.text:
+        return
+
+    user_id = msg.from_user.id
+
+    bot_name = (await context.bot.get_me()).first_name
+
+    if user_id == OWNER_ID:
+
+        name = str(MAIN_CHANNEL_ID)
+        config = load_config()
+
+        config["ban_messages"] = "off"
+
+        save_config(config)
+
+        await context.bot.send_message(
+            chat_id=name,
+            text=f"⚠️ Уведомление от системы защиты «{bot_name}»:\n"
+            "Система деактивирована.\n"
+            "Контроль временно снят.",
+        )
+
+        await msg.reply_text(f"Система защиты «{bot_name}» деактивирована")
+
+    else:
+        await msg.reply_text(
+            f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
         )
 
 
@@ -231,39 +264,6 @@ async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 text="❌ Ошибка",
                 reply_to_message_id=query.message.message_id,
             )
-
-
-async def disable(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-    if not msg or not msg.from_user or not msg.text:
-        return
-
-    user_id = msg.from_user.id
-
-    bot_name = (await context.bot.get_me()).first_name
-
-    if user_id == OWNER_ID:
-
-        name = str(MAIN_CHANNEL_ID)
-        config = load_config()
-
-        config["ban_messages"] = "off"
-
-        save_config(config)
-
-        await context.bot.send_message(
-            chat_id=name,
-            text=f"⚠️ Уведомление от системы защиты «{bot_name}»:\n"
-            "Система деактивирована.\n"
-            "Контроль временно снят.",
-        )
-
-        await msg.reply_text(f"Система защиты «{bot_name}» деактивирована")
-
-    else:
-        await msg.reply_text(
-            f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
-        )
 
 
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -628,14 +628,11 @@ async def config(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if document:
             file = await document.get_file()
             await file.download_to_drive("config.json")
-            config = load_config()
         else:
             await context.bot.send_document(
                 chat_id=msg.chat_id, document=open("config.json", "rb")
             )
-
     else:
-
         await msg.reply_text(
             f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
         )
@@ -656,10 +653,8 @@ async def receive_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if document:
             file = await document.get_file()
             await file.download_to_drive("config.json")
-            config = load_config()
 
     else:
-
         await msg.reply_text(
             f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
         )
@@ -687,6 +682,37 @@ async def set_base_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await msg.reply_text(
                 f"Не удалось установить частоту", reply_markup=ReplyKeyboardRemove()
             )
+
+    else:
+        await msg.reply_text(
+            f"Внимание! Системой защиты «{bot_name}»  отражена попытка несанкционированного доступа к телеграм каналу",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+
+
+async def anon_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    if not msg or not msg.from_user or not msg.text:
+        return
+
+    user_id = msg.from_user.id
+
+    bot_name = (await context.bot.get_me()).first_name
+
+    if user_id == OWNER_ID:
+
+        s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
+
+        try:
+            config = load_config()
+            if s != "0" and s != "1":
+                raise "шлюха"
+
+            config["anon_enable"] = int(s)
+            save_config(config)
+            await msg.reply_text(f"Успешно")
+        except Exception as e:
+            await msg.reply_text(f"Ошибка", reply_markup=ReplyKeyboardRemove())
 
     else:
         await msg.reply_text(

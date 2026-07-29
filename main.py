@@ -2,10 +2,19 @@ from config import *
 from settings import *
 from channel import *
 from commands import *
-from telegram import InputTextMessageContent,InlineQueryResultArticle, Update
-from telegram.ext import InlineQueryHandler, ApplicationBuilder, CommandHandler, MessageHandler, filters, ChatMemberHandler, CallbackQueryHandler
+from telegram import InputTextMessageContent, InlineQueryResultArticle, Update
+from telegram.ext import (
+    InlineQueryHandler,
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    ChatMemberHandler,
+    CallbackQueryHandler,
+)
 
-app = ApplicationBuilder().token(TOKEN).build()   
+app = ApplicationBuilder().token(TOKEN).build()
+
 
 async def pig_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.inline_query.query.lower()
@@ -16,16 +25,16 @@ async def pig_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
             id=str(uuid.uuid4()),
             title="Pig",
             description="Markov chain generated message",
-            input_message_content=InputTextMessageContent(
-                f"{g.gen(6,10)}"
-            ),
+            input_message_content=InputTextMessageContent(f"{g.gen(6,10)}"),
         )
     )
 
     await update.inline_query.answer(results, cache_time=1)
 
 
-app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.Document.ALL, receive_config))
+app.add_handler(
+    MessageHandler(filters.ChatType.PRIVATE & filters.Document.ALL, receive_config)
+)
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("pig", pig))
 app.add_handler(CommandHandler("svo", svo))
@@ -44,12 +53,23 @@ app.add_handler(CommandHandler("disable", disable))
 app.add_handler(CommandHandler("del", delfromlists))
 app.add_handler(CommandHandler("blockall", blockall))
 app.add_handler(CommandHandler("jdaycode", jdaycode))
+app.add_handler(CommandHandler("anon_messages", anon_messages))
 app.add_handler(CallbackQueryHandler(admin_decision))
 app.add_handler(CommandHandler("setbaseprompt", set_base_prompt))
 app.add_handler(MessageHandler(filters.ALL, reply_in_channel))
 app.add_handler(CommandHandler("setwhitelistsmode", setwhitelistsmode))
 app.add_handler(ChatMemberHandler(ban_new_members, ChatMemberHandler.CHAT_MEMBER))
-app.add_handler(MessageHandler(filters.UpdateType.EDITED_CHANNEL_POST, reply_in_channel))
+app.add_handler(
+    MessageHandler(filters.UpdateType.EDITED_CHANNEL_POST, reply_in_channel)
+)
 
 
-app.run_polling(allowed_updates=["message", "channel_post", "chat_member", "inline_query", "callback_query"])
+app.run_polling(
+    allowed_updates=[
+        "message",
+        "channel_post",
+        "chat_member",
+        "inline_query",
+        "callback_query",
+    ]
+)

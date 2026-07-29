@@ -6,3 +6,4 @@ venv/
 .idea/
 config.json
 dataset.json
+supervisord.log

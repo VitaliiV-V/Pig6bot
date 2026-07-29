@@ -1,23 +1,14 @@
-import uuid
-import time
-import tools
-import secrets
 import asyncio
 from config import *
+from censor import *
 from settings import *
 from markovchain import *
 from datetime import datetime
 from telegram.ext import ContextTypes
-from telegram import Update, ReplyKeyboardMarkup
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from protection import *
 
 g = Generator()
-
-
-async def train_background(text):
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(None, g.train, text)
 
 
 last_time = datetime.now()
@@ -26,6 +17,11 @@ superlist = []
 
 for code in range(0xE0100, 0xE01F0):
     superlist.append(chr(code))
+
+
+async def train_background(text):
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(None, g.train, text)
 
 
 async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -39,13 +35,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_id = msg.message_id
     message_text = msg.text or ""
 
-    bot_name = (await context.bot.get_me()).first_name
-
     config = load_config()
-
-    if chat_id != MAIN_CHANNEL_ID:
-        await protect_query(context=context, msg=msg, config=config)
-        return
 
     if message_text == "/pig":
         await context.bot.send_message(
@@ -61,21 +51,27 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if msg.via_bot == None:
             asyncio.create_task(train_background(message_text))
 
+    if chat_id != MAIN_CHANNEL_ID:
+        await protect_query(context=context, msg=msg, config=config)
+        return
+
     if await check_super_user(context=context, msg=msg, config=config):
         return
 
     if await check_owner(context=context, msg=msg, config=config):
         return
 
+    await check_message(context=context, msg=msg, config=config)
+
 
 async def ban_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    result = update.chat_member
-    if not result:
+    member = update.chat_member
+    if not member:
         return
 
     if (
-        result.chat.id == PERSONAL_CHANNEL_ID
-        and result.new_chat_member.status == "member"
+        member.chat.id == PERSONAL_CHANNEL_ID
+        and member.new_chat_member.status == "member"
     ):
-        user_id = result.new_chat_member.user.id
-        await context.bot.ban_chat_member(chat_id=result.chat.id, user_id=user_id)
+        user_id = member.new_chat_member.user.id
+        await context.bot.ban_chat_member(chat_id=member.chat.id, user_id=user_id)
