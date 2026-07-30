@@ -1,3 +1,4 @@
+import re
 import uuid
 import tools
 import asyncio
@@ -8,6 +9,7 @@ from markovchain import *
 from datetime import datetime
 from telegram.ext import ContextTypes
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from pig6economy import *
 
 superlist = []
 
@@ -30,7 +32,7 @@ async def protect_query(
             await context.bot.delete_message(
                 chat_id=msg.chat.id, message_id=msg.message_id
             )
-        if "protect" in (msg.text or "").lower():
+        if "protect" == (msg.text or "").lower():
             for i in config["protected_users"]:
                 if i["channel_id"] == msg.chat_id:
                     if i["uuid"] == "EXCOMMUNICADO":
@@ -51,6 +53,7 @@ async def protect_query(
                 for admin in admins:
                     if not admin.user.is_bot:
                         info = f"@{admin.user.username}"
+                        info2 = f"{admin.user.id}"
 
                 text = f"Новый запрос на защиту канала:\nВладелец: {info}\nКанал: {msg.chat.title}"
                 protect_data = {
@@ -59,6 +62,7 @@ async def protect_query(
                     "type": "xuuid",
                     "uuid": "".join(secrets.choice(superlist) for _ in range(5)),
                     "owner": info,
+                    "id": info2,
                 }
 
                 file_id = secrets.token_hex(8)
@@ -90,7 +94,62 @@ async def protect_query(
                     chat_id=chat_id,
                     text="Регистрация недоступна.\nДля подключения защиты в канале должен быть только один администратор и бот.",
                 )
+        if "unprotect" == (msg.text or "").lower():
+            try:
+                config["protected_users"] = [
+                    user
+                    for user in config["protected_users"]
+                    if user["channel_id"] != msg.chat.id
+                ]
+                save_config(config)
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="Защита отключена",
+                )
+            except Exception as e:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="Ошибка. Возможно Ваш канал не защищён",
+                )
+        if "uuid" == (msg.text or "").lower():
+            try:
+                for i in config["protected_users"]:
+                    if i["channel_id"] == msg.chat.id:
+                        i["type"] = "xuuid"
+                        new_uuid = " " + rand() + str(uuid.uuid4())
+                        await context.bot.set_chat_title(
+                            i["channel_id"], i["name"] + new_uuid
+                        )
 
+                save_config(config)
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="Тип защиты изменен",
+                )
+            except Exception as e:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="Ошибка. Возможно Ваш канал не защищён",
+                )
+        if "unicode" == (msg.text or "").lower():
+            try:
+                for i in config["protected_users"]:
+                    if i["channel_id"] == msg.chat.id:
+                        i["type"] = "unicode"
+                        new_uuid = "".join(secrets.choice(superlist) for _ in range(5))
+                        await context.bot.set_chat_title(
+                            i["channel_id"], i["name"] + new_uuid
+                        )
+                save_config(config)
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="Тип защиты изменен",
+                )
+            except Exception as e:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="Ошибка. Возможно Ваш канал не защищён",
+                )
         return
 
 
@@ -159,6 +218,16 @@ async def check_owner(
                 config = load_config()
                 config["bad_gifs"].append(msg.reply_to_message.animation.file_id)
                 save_config(config)
+            elif re.fullmatch(r"/give \d+", message_text):
+                amount = int(message_text.replace("/give ", ""))
+                author = get_author(msg.reply_to_message.message_id)
+                if author != -1:
+                    economy = Pig6Economy()
+                    economy.create_transaction(0, author, amount, "gift")
+                    economy.close()
+                    await msg.reply_text(
+                        f"{msg.reply_to_message.author_signature} выдано {amount} P6T "
+                    )
             elif "EXCOMMUNICADO" in message_text:
                 config = load_config()
                 config["mode"] = "Judgment Day"
@@ -278,3 +347,23 @@ async def check_protection(
                     last_time = datetime.now()
                     return True
     return False
+
+
+def get_author_id(signathure):
+    config = load_config()
+    if signathure == config["owner_name"] + config["uuid"]:
+        return OWNER_ID
+    for i in config["protected_users"]:
+        if signathure == i["name"] + i["uuid"]:
+            return int(i["id"])
+    for i in config["super_users"]:
+        if signathure == i["name"] + i["uuid"]:
+            return int(i["id"])
+    return -1
+
+
+def get_author(message_id):
+    with open("log.json", "r") as f:
+        data = json.load(f)
+
+    return data.get(str(message_id))

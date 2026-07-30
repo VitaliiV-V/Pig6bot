@@ -7,6 +7,7 @@ from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHan
 
 app = ApplicationBuilder().token(JUDGMENT_DAY_TOKEN).build()
 
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
@@ -14,17 +15,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = "остановлен"
     if config["mode"] == "Judgment Day":
         status = "активирован"
-        
-    await msg.reply_text(
-        f"Протокол судного дня {status}"
-    )
+
+    await msg.reply_text(f"Протокол судного дня {status}")
+
 
 async def delete_all(update, context):
     config = load_config()
     if config["mode"] == "Judgment Day":
         try:
-            if  config["Judgment Day Code"] not in update.message.text:
-                await update.message.delete()            
+            if config["Judgment Day Code"] not in update.message.text:
+                await update.message.delete()
         except:
             msg = update.channel_post or update.edited_channel_post
             chat_id = msg.chat_id
@@ -36,7 +36,7 @@ async def delete_all(update, context):
                 save_config(config)
 
 
-app.add_handler(CommandHandler("start", start))    
+app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.ALL, delete_all))
 
 app.run_polling(allowed_updates=["message", "channel_post", "chat_member"])

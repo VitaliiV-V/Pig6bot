@@ -80,8 +80,17 @@ async def check_message(
 
     if not msg.author_signature:
         if config["anon_enable"] == 0:
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-            return
+            ok = True
+            for i in config["anon_codes"]:
+                if i in message_text:
+                    ok = False
+                    config["anon_codes"] = [
+                        code for code in config["anon_codes"] if code != i
+                    ]
+                    save_config(config)
+            if ok:
+                await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+                return
 
     if (
         msg.author_signature
