@@ -817,16 +817,24 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = msg.text.split()
 
     if len(args) != 3:
-        await msg.reply_text("❌ Формат:\n/send @username количество")
-        return
+        if not msg.reply_to_message:
+            await msg.reply_text("❌ Формат:\n/pay @username количество")
+            return
+        else:
+            target_username = f"@{msg.reply_to_message.from_user.username}"
+            try:
+                amount = int(args[1])
+            except ValueError:
+                await msg.reply_text("❌ Количество должно быть числом.")
+                return
+    else:
+        target_username = args[1]
 
-    target_username = args[1].replace("@", "")
-
-    try:
-        amount = int(args[2])
-    except ValueError:
-        await msg.reply_text("❌ Количество должно быть числом.")
-        return
+        try:
+            amount = int(args[2])
+        except ValueError:
+            await msg.reply_text("❌ Количество должно быть числом.")
+            return
 
     config = load_config()
 
@@ -836,9 +844,9 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
     users = config.get("protected_users", []) + config.get("super_users", [])
 
     for user in users:
-        if user["owner"].replace("@", "") == target_username:
+        if user["owner"] == target_username:
             receiver_id = int(user["id"])
-            receiver_name = user["name"]
+            receiver_name = user["owner"]
             break
 
     if receiver_id is None:
@@ -889,3 +897,94 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     except Exception:
         pass
+
+
+async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    if not msg or not msg.from_user or not msg.text:
+        return
+
+    user_id = msg.from_user.id
+
+    bot_name = (await context.bot.get_me()).first_name
+
+    if user_id == OWNER_ID:
+
+        args = msg.text.split()
+
+        if len(args) != 3:
+            if not msg.reply_to_message:
+                await msg.reply_text("❌ Формат:\n/give @username количество")
+                return
+            else:
+                target_username = f"@{msg.reply_to_message.from_user.username}"
+                try:
+                    amount = int(args[1])
+                except ValueError:
+                    await msg.reply_text("❌ Количество должно быть числом.")
+                    return
+        else:
+            target_username = args[1]
+
+            try:
+                amount = int(args[2])
+            except ValueError:
+                await msg.reply_text("❌ Количество должно быть числом.")
+                return
+
+        config = load_config()
+
+        receiver_id = None
+        receiver_name = None
+
+        users = config.get("protected_users", []) + config.get("super_users", [])
+
+        for user in users:
+            if user["owner"] == target_username:
+                receiver_id = int(user["id"])
+                receiver_name = user["owner"]
+                break
+
+        if receiver_id is None:
+            await msg.reply_text("❌ Пользователь не найден.")
+            return
+
+        economy = Pig6Economy()
+
+        if not economy.user_exists(receiver_id):
+            economy.add_user(receiver_id, 0)
+
+        success = economy.create_transaction(0, receiver_id, amount, "user transfer")
+
+        economy.close()
+
+        if not success:
+            await msg.reply_text("❌ Не удалось выполнить перевод.")
+            return
+
+        await msg.reply_text(
+            text=(
+                "✅ <b>Подарок выдан</b>\n\n"
+                f"👤 Получатель: <b>{receiver_name}</b>\n"
+                f"💰 Сумма: <b>{amount} P6T</b>"
+            ),
+            parse_mode="HTML",
+        )
+
+        try:
+            await context.bot.send_message(
+                chat_id=receiver_id,
+                text=(
+                    "💳 <b>Новое поступление</b>\n\n"
+                    f"💰 Вам отправлено: <b>{amount} P6T</b>\n"
+                    f"👤 От пользователя: SYSTEM"
+                ),
+                parse_mode="HTML",
+            )
+        except Exception:
+            pass
+    else:
+        await msg.reply_text(
+            f"Внимание! Системой защиты «{bot_name}»  отражена попытка несанкционированного доступа к телеграм каналу",
+            reply_markup=ReplyKeyboardRemove(),
+        )

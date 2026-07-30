@@ -62,7 +62,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="Данная команда поддерживается только в мессенджере МАКС",
             reply_to_message_id=message_id,
         )
-    elif re.fullmatch(r"/bet \d+", message_text):
+    elif False and re.fullmatch(r"/bet \d+", message_text):
         bet = int(message_text.replace("/bet ", ""))
         id = get_author_id(msg.author_signature)
         if id == -1:
@@ -85,7 +85,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ),
                 parse_mode="HTML",
             )
-    elif message_text == "/accept":
+    elif False and message_text == "/accept":
         id = get_author_id(msg.author_signature)
         if id == -1:
             await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
