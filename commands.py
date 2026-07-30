@@ -757,7 +757,7 @@ async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"Списано: <b>{config['cost']} P6T</b>\n\n"
                 f"Остаток на счёте: <b>{economy.get_balance(user_id) - config['cost']} P6T</b>\n\n"
                 "Ваш одноразовый код:\n"
-                f"<code>⠀{code}</code>\n\n"
+                f"◆<code>⠀{code}⠀</code>◆\n\n"
                 "Вставьте его в сообщение, которое хотите отправить анонимно.\n\n"
                 "После использования код станет недействительным.\n\n"
                 "⚠️ Если сообщение будет отклонено системой модерации Свиньи-6, "
