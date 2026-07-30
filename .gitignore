@@ -8,3 +8,4 @@ config.json
 dataset.json
 supervisord.log
 supervisord.pid
+pig6economy.db
