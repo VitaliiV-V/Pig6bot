@@ -40,17 +40,18 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     config = load_config()
     file = "log.json"
+    try:
+        if os.path.exists(file):
+            with open(file, "r") as f:
+                data = json.load(f)
+        else:
+            data = {}
+        data[str(message_id)] = get_author_id(msg.author_signature)
+        with open(file, "w") as f:
+            json.dump(data, f, indent=4)
 
-    if os.path.exists(file):
-        with open(file, "r") as f:
-            data = json.load(f)
-    else:
-        data = {}
-
-    data[str(message_id)] = get_author_id(msg.author_signature)
-
-    with open(file, "w") as f:
-        json.dump(data, f, indent=4)
+    except Exception as e:
+        pass
 
     if message_text == "/pig":
         await context.bot.send_message(
