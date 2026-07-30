@@ -112,8 +112,7 @@ class Pig6Economy:
         if self.get_balance(sender_id) < amount:
             return False
 
-        if not self.user_exists(receiver_id):
-            return False
+        self.add_user(receiver_id, 100)
 
         try:
             self.cursor.execute(
