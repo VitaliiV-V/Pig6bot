@@ -149,6 +149,8 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     sender_id = msg.from_user.id
 
+    if amount < 0:
+        await msg.reply_text("🖕 Иди нахуй")
     if economy.get_balance(sender_id) < amount:
         await msg.reply_text("❌ Недостаточно средств.")
 
