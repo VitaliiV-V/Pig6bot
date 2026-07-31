@@ -2,6 +2,7 @@ import uuid
 import tools
 import secrets
 from config import *
+from economy import *
 from settings import *
 from pathlib import Path
 from markovchain import *
@@ -173,22 +174,21 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.reply_text(text=(f"{OWNER_USERNAME}"), reply_markup=keyboard)
 
 
-async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
 
     bot_name = (await context.bot.get_me()).first_name
-
-    if query.from_user.id != OWNER_ID:
-        await query.answer(
-            f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
-        )
-        return
 
     await query.answer()
 
     action, data = query.data.split("^")
 
     if action == "approve":
+        if query.from_user.id != OWNER_ID:
+            await query.answer(
+                f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
+            )
+            return
         request_id = int(data)
 
         req = requests.get(request_id)
@@ -210,7 +210,11 @@ async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
         req["status"] = "approved"
 
     elif action == "reject":
-
+        if query.from_user.id != OWNER_ID:
+            await query.answer(
+                f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
+            )
+            return
         request_id = int(data)
 
         req = requests.get(request_id)
@@ -223,6 +227,11 @@ async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("❌ Запрос отклонён")
 
     elif action == "protectc":
+        if query.from_user.id != OWNER_ID:
+            await query.answer(
+                f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
+            )
+            return
         try:
             config = load_config()
             with open(data, "r", encoding="utf-8") as f:
@@ -248,6 +257,11 @@ async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_to_message_id=query.message.message_id,
             )
     elif action == "rejectc":
+        if query.from_user.id != OWNER_ID:
+            await query.answer(
+                f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
+            )
+            return
         try:
             with open(data, "r", encoding="utf-8") as f:
                 data2 = json.load(f)
@@ -266,6 +280,10 @@ async def admin_decision(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 text="❌ Ошибка",
                 reply_to_message_id=query.message.message_id,
             )
+    elif action == "accept_bet":
+        await accept_bet(query, data)
+    elif action == "pay":
+        await pr_pay(query, data, context)
 
 
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -716,273 +734,6 @@ async def anon_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             await msg.reply_text(f"Ошибка", reply_markup=ReplyKeyboardRemove())
 
-    else:
-        await msg.reply_text(
-            f"Внимание! Системой защиты «{bot_name}»  отражена попытка несанкционированного доступа к телеграм каналу",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-
-
-async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-    if not msg or not msg.from_user or not msg.text:
-        return
-
-    user_id = msg.from_user.id
-
-    economy = Pig6Economy()
-    config = load_config()
-
-    if economy.get_balance(user_id) < config["cost"]:
-        await msg.reply_text(
-            text=(
-                "❌ <b>Покупка невозможна</b>\n\n"
-                f"💰 Требуется: <b>{config['cost']} P6T</b>\n"
-                f"📦 Ваш баланс: <b>{economy.get_balance(user_id)} P6T</b>\n\n"
-                "Пополните баланс и попробуйте снова."
-            ),
-            reply_markup=ReplyKeyboardRemove(),
-            parse_mode="HTML",
-        )
-    else:
-        superlist = []
-
-        for code in range(0xE0100, 0xE01F0):
-            superlist.append(chr(code))
-
-        code = "".join(secrets.choice(superlist) for _ in range(5))
-        await msg.reply_text(
-            text=(
-                "✅ <b>Покупка завершена</b>\n\n"
-                f"Списано: <b>{config['cost']} P6T</b>\n\n"
-                f"Остаток на счёте: <b>{economy.get_balance(user_id) - config['cost']} P6T</b>\n\n"
-                "Ваш одноразовый код:\n"
-                f"◆<code>⠀{code}⠀</code>◆\n\n"
-                "Вставьте его в сообщение, которое хотите отправить анонимно.\n\n"
-                "После использования код станет недействительным.\n\n"
-                "⚠️ Если сообщение будет отклонено системой модерации Свиньи-6, "
-                "возврат средств не предусмотрен."
-            ),
-            reply_markup=ReplyKeyboardRemove(),
-            parse_mode="HTML",
-        )
-
-        config = load_config()
-        config["anon_codes"].append(code)
-        save_config(config)
-        file = "codes.json"
-
-        if os.path.exists(file):
-            with open(file, "r") as f:
-                data = json.load(f)
-        else:
-            data = {}
-
-        data[code] = [msg.from_user.id, msg.from_user.username]
-
-        with open(file, "w") as f:
-            json.dump(data, f, indent=4)
-
-        economy = Pig6Economy()
-        economy.create_transaction(
-            msg.from_user.id, 0, config["cost"], "buy a anon code"
-        )
-        economy.close()
-
-
-async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-
-    if not msg or not msg.from_user:
-        return
-
-    user_id = msg.from_user.id
-
-    economy = Pig6Economy()
-    balance = economy.get_balance(user_id)
-    economy.close()
-
-    await msg.reply_text(
-        text=("💳 <b>Баланс</b>\n\n" f"💰 Доступно: <b>{balance} P6T</b>"),
-        parse_mode="HTML",
-    )
-
-
-async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-
-    if not msg or not msg.from_user or not msg.text:
-        return
-
-    args = msg.text.split()
-
-    if len(args) != 3:
-        if not msg.reply_to_message:
-            await msg.reply_text("❌ Формат:\n/pay @username количество")
-            return
-        else:
-            target_username = f"@{msg.reply_to_message.from_user.username}"
-            try:
-                amount = int(args[1])
-            except ValueError:
-                await msg.reply_text("❌ Количество должно быть числом.")
-                return
-    else:
-        target_username = args[1]
-
-        try:
-            amount = int(args[2])
-        except ValueError:
-            await msg.reply_text("❌ Количество должно быть числом.")
-            return
-
-    config = load_config()
-
-    receiver_id = None
-    receiver_name = None
-
-    users = config.get("protected_users", []) + config.get("super_users", [])
-
-    for user in users:
-        if user["owner"] == target_username:
-            receiver_id = int(user["id"])
-            receiver_name = user["owner"]
-            break
-
-    if receiver_id is None:
-        await msg.reply_text("❌ Пользователь не найден.")
-        return
-
-    sender_id = msg.from_user.id
-
-    economy = Pig6Economy()
-
-    if economy.get_balance(sender_id) < amount:
-        await msg.reply_text("❌ Недостаточно средств.")
-        economy.close()
-        return
-
-    if not economy.user_exists(receiver_id):
-        economy.add_user(receiver_id, 0)
-
-    success = economy.create_transaction(
-        sender_id, receiver_id, amount, "user transfer"
-    )
-
-    economy.close()
-
-    if not success:
-        await msg.reply_text("❌ Не удалось выполнить перевод.")
-        return
-
-    await msg.reply_text(
-        text=(
-            "✅ <b>Перевод выполнен</b>\n\n"
-            f"👤 Получатель: <b>{receiver_name}</b>\n"
-            f"💰 Сумма: <b>{amount} P6T</b>\n\n"
-            "Средства успешно отправлены."
-        ),
-        parse_mode="HTML",
-    )
-
-    try:
-        await context.bot.send_message(
-            chat_id=receiver_id,
-            text=(
-                "💳 <b>Новое поступление</b>\n\n"
-                f"💰 Вам отправлено: <b>{amount} P6T</b>\n"
-                f"👤 От пользователя: <b>@{msg.from_user.username}</b>"
-            ),
-            parse_mode="HTML",
-        )
-    except Exception:
-        pass
-
-
-async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-    if not msg or not msg.from_user or not msg.text:
-        return
-
-    user_id = msg.from_user.id
-
-    bot_name = (await context.bot.get_me()).first_name
-
-    if user_id == OWNER_ID:
-
-        args = msg.text.split()
-
-        if len(args) != 3:
-            if not msg.reply_to_message:
-                await msg.reply_text("❌ Формат:\n/give @username количество")
-                return
-            else:
-                target_username = f"@{msg.reply_to_message.from_user.username}"
-                try:
-                    amount = int(args[1])
-                except ValueError:
-                    await msg.reply_text("❌ Количество должно быть числом.")
-                    return
-        else:
-            target_username = args[1]
-
-            try:
-                amount = int(args[2])
-            except ValueError:
-                await msg.reply_text("❌ Количество должно быть числом.")
-                return
-
-        config = load_config()
-
-        receiver_id = None
-        receiver_name = None
-
-        users = config.get("protected_users", []) + config.get("super_users", [])
-
-        for user in users:
-            if user["owner"] == target_username:
-                receiver_id = int(user["id"])
-                receiver_name = user["owner"]
-                break
-
-        if receiver_id is None:
-            await msg.reply_text("❌ Пользователь не найден.")
-            return
-
-        economy = Pig6Economy()
-
-        if not economy.user_exists(receiver_id):
-            economy.add_user(receiver_id, 0)
-
-        success = economy.create_transaction(0, receiver_id, amount, "user transfer")
-
-        economy.close()
-
-        if not success:
-            await msg.reply_text("❌ Не удалось выполнить перевод.")
-            return
-
-        await msg.reply_text(
-            text=(
-                "✅ <b>Подарок выдан</b>\n\n"
-                f"👤 Получатель: <b>{receiver_name}</b>\n"
-                f"💰 Сумма: <b>{amount} P6T</b>"
-            ),
-            parse_mode="HTML",
-        )
-
-        try:
-            await context.bot.send_message(
-                chat_id=receiver_id,
-                text=(
-                    "💳 <b>Новое поступление</b>\n\n"
-                    f"💰 Вам отправлено: <b>{amount} P6T</b>\n"
-                    f"👤 От пользователя: SYSTEM"
-                ),
-                parse_mode="HTML",
-            )
-        except Exception:
-            pass
     else:
         await msg.reply_text(
             f"Внимание! Системой защиты «{bot_name}»  отражена попытка несанкционированного доступа к телеграм каналу",

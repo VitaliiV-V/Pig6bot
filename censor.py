@@ -7,6 +7,7 @@ from config import *
 from settings import *
 from markovchain import *
 from datetime import datetime
+from pig6economy import *
 from telegram.ext import ContextTypes
 from telegram import Update, ReplyKeyboardMarkup
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -80,15 +81,9 @@ async def check_message(
 
     if not msg.author_signature:
         if config["anon_enable"] == 0:
-            ok = True
-            for i in config["anon_codes"]:
-                if i in message_text:
-                    ok = False
-                    config["anon_codes"] = [
-                        code for code in config["anon_codes"] if code != i
-                    ]
-                    save_config(config)
-            if ok:
+            ok = economy.use_code_from_text(message_text)
+
+            if not ok:
                 await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
                 return
 

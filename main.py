@@ -2,6 +2,7 @@ from config import *
 from settings import *
 from channel import *
 from commands import *
+from economy import *
 from telegram import InputTextMessageContent, InlineQueryResultArticle, Update
 from telegram.ext import (
     InlineQueryHandler,
@@ -36,6 +37,7 @@ app.add_handler(
     MessageHandler(filters.ChatType.PRIVATE & filters.Document.ALL, receive_config)
 )
 app.add_handler(CommandHandler("ban", ban))
+app.add_handler(CommandHandler("bet", xbet))
 app.add_handler(CommandHandler("pig", pig))
 app.add_handler(CommandHandler("svo", svo))
 app.add_handler(CommandHandler("buy", buy))
@@ -43,10 +45,12 @@ app.add_handler(CommandHandler("pay", send))
 app.add_handler(CommandHandler("post", post))
 app.add_handler(CommandHandler("jday", jday))
 app.add_handler(CommandHandler("give", give))
-app.add_handler(InlineQueryHandler(pig_query))
+app.add_handler(CommandHandler("sell", sell))
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("smart", smart))
 app.add_handler(CommandHandler("unban", unban))
+app.add_handler(CommandHandler("gift", bonus))
+app.add_handler(CommandHandler("mycodes", codes))
 app.add_handler(CommandHandler("config", config))
 app.add_handler(CommandHandler("reject", reject))
 app.add_handler(CommandHandler("add", addtolists))
@@ -57,16 +61,23 @@ app.add_handler(CommandHandler("del", delfromlists))
 app.add_handler(CommandHandler("blockall", blockall))
 app.add_handler(CommandHandler("jdaycode", jdaycode))
 app.add_handler(CommandHandler("download", download))
-app.add_handler(CallbackQueryHandler(admin_decision))
+app.add_handler(CallbackQueryHandler(buttons_handler))
 app.add_handler(MessageHandler(filters.ALL, reply_in_channel))
 app.add_handler(CommandHandler("anon_messages", anon_messages))
 app.add_handler(CommandHandler("setbaseprompt", set_base_prompt))
 app.add_handler(CommandHandler("setwhitelistsmode", setwhitelistsmode))
+
+app.add_handler(InlineQueryHandler(pig_query))
 app.add_handler(ChatMemberHandler(ban_new_members, ChatMemberHandler.CHAT_MEMBER))
 app.add_handler(
     MessageHandler(filters.UpdateType.EDITED_CHANNEL_POST, reply_in_channel)
 )
 
+app.job_queue.run_repeating(
+    replenish_codes,
+    interval=1,
+    first=10,
+)
 
 app.run_polling(
     allowed_updates=[

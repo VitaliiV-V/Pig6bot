@@ -222,9 +222,9 @@ async def check_owner(
                 amount = int(message_text.replace("/give ", ""))
                 author = get_author(msg.reply_to_message.message_id)
                 if author != -1:
-                    economy = Pig6Economy()
+
                     economy.create_transaction(0, author, amount, "gift")
-                    economy.close()
+
                     await msg.reply_text(
                         f"{msg.reply_to_message.author_signature} выдано {amount} P6T "
                     )

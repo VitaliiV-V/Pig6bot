@@ -1,4 +1,5 @@
 import time
+import secrets
 from config import *
 from settings import *
 from pig6economy import *
@@ -44,27 +45,11 @@ async def blockall(context, msg, x=1):
         await msg.reply_text(f"Система защиты «{bot_name}» активирована")
 
 
-def give_daily_reward():
-    config = load_config()
-    last_economy_tick = config["last_economy_tick"]
-    now = time.time()
+superlist = []
 
-    delta = now - last_economy_tick
+for code in range(0xE0100, 0xE01F0):
+    superlist.append(chr(code))
 
-    days = int(delta // 86400)
-    if last_economy_tick == 0:
-        days = 1
-    if days <= 0:
-        return
 
-    economy = Pig6Economy()
-
-    reward = days * 100
-
-    for user_id, _ in economy.get_all_users():
-        economy.add_tokens(user_id, reward)
-
-    economy.close()
-
-    config["last_economy_tick"] = time.time()
-    save_config(config)
+def generate_code():
+    return "".join(secrets.choice(superlist) for _ in range(5))
