@@ -211,7 +211,7 @@ async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 return
             else:
                 receiver_id = msg.reply_to_message.from_user.id
-                receiver_name = msg.reply_to_message.from_user.username
+                receiver_name = f"@{msg.reply_to_message.from_user.username}"
                 try:
                     amount = int(args[1])
                 except ValueError:
@@ -256,7 +256,7 @@ async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(
             text=(
                 "✅ <b>Подарок выдан</b>\n\n"
-                f"👤 Получатель: @<b>{receiver_name}</b>\n"
+                f"👤 Получатель: <b>{receiver_name}</b>\n"
                 f"💰 Сумма: <b>{amount} P6T</b>"
             ),
             parse_mode="HTML",
