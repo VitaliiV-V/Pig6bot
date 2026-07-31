@@ -75,7 +75,7 @@ app.add_handler(
 
 app.job_queue.run_repeating(
     replenish_codes,
-    interval=1,
+    interval=86400,
     first=10,
 )
 
