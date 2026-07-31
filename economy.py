@@ -256,7 +256,7 @@ async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(
             text=(
                 "✅ <b>Подарок выдан</b>\n\n"
-                f"👤 Получатель: <b>{receiver_name}</b>\n"
+                f"👤 Получатель: @<b>{receiver_name}</b>\n"
                 f"💰 Сумма: <b>{amount} P6T</b>"
             ),
             parse_mode="HTML",
