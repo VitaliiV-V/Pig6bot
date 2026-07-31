@@ -578,3 +578,32 @@ async def codes(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text=(f"🔑 <b>Ваши активные коды ({len(codes)})</b>\n\n" f"{codes_text}"),
             parse_mode="HTML",
         )
+
+
+async def market(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+
+    if not msg or not msg.from_user:
+        return
+
+    q = economy.get_system_codes_count()
+
+    config = load_config()
+
+    if q <= 0:
+        await msg.reply_text(
+            text=("📈 <b>Рынок кодов</b>\n\n" "Кодов на рынке сейчас нет."),
+            parse_mode="HTML",
+        )
+        return
+
+    price = int(config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
+
+    await msg.reply_text(
+        text=(
+            "📈 <b>Рынок кодов</b>\n\n"
+            f"Доступно кодов: <b>{q}</b>\n"
+            f"Текущая цена: <b>{price} P6T</b>"
+        ),
+        parse_mode="HTML",
+    )
