@@ -28,7 +28,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.reply_text(f"Вас приветствует система защиты «{bot_name}».\n")
 
 
-async def blockall(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def blockallh(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     if not msg or not msg.from_user or not msg.text:
         return
