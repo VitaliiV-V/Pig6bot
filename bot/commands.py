@@ -279,8 +279,6 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 text="❌ Ошибка",
                 reply_to_message_id=query.message.message_id,
             )
-    elif action == "accept_bet":
-        await accept_bet(query, data)
     elif action == "pay":
         await confirm_pay(query, data, context)
 

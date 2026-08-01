@@ -284,6 +284,7 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
+
     user_id = msg.from_user.id
     user_name = msg.from_user.username
 
@@ -299,7 +300,8 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await msg.reply_text("❌ Формат:\n/pay @username количество")
             return
         else:
-            target_username = f"@{msg.reply_to_message.from_user.username}"
+            receiver_id = msg.reply_to_message.from_user.id
+            receiver_name = f"@{msg.reply_to_message.from_user.username}"
             try:
                 amount = int(args[1])
             except ValueError:
@@ -314,22 +316,19 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await msg.reply_text("❌ Количество должно быть числом.")
             return
 
-    config = load_config()
+        config = load_config()
 
-    receiver_id = None
-    receiver_name = None
+        users = config.get("protected_users", []) + config.get("super_users", [])
 
-    users = config.get("protected_users", []) + config.get("super_users", [])
+        for user in users:
+            if user["owner"] == target_username:
+                receiver_id = int(user["id"])
+                receiver_name = user["owner"]
+                break
 
-    for user in users:
-        if user["owner"] == target_username:
-            receiver_id = int(user["id"])
-            receiver_name = user["owner"]
-            break
-
-    if receiver_id is None:
-        await msg.reply_text("❌ Пользователь не найден.")
-        return
+        if receiver_id is None:
+            await msg.reply_text("❌ Пользователь не найден.")
+            return
 
     sender_id = msg.from_user.id
 
@@ -341,8 +340,7 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         return
 
-    if not economy.user_exists(receiver_id):
-        economy.add_user(receiver_id)
+    economy.add_user(receiver_id)
 
     success = economy.create_transaction(
         sender_id, receiver_id, amount, "user transfer"
@@ -467,49 +465,6 @@ async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Внимание! Системой защиты «{bot_name}»  отражена попытка несанкционированного доступа к телеграм каналу",
             reply_markup=ReplyKeyboardRemove(),
         )
-
-
-async def accept_bet(query, data):
-    p1_id, p1_name, bet = data.split("$")
-    p2_id, p2_name = query.from_user.id, query.from_user.username
-    p1_id = int(p1_id)
-    bet = int(bet)
-    p2_id = int(p2_id)
-
-    p1_bal = economy.get_balance(p1_id)
-    p2_bal = economy.get_balance(p2_id)
-    if p1_bal < bet or p2_bal < bet:
-        await query.edit_message_text(
-            text=(
-                "⚔️ <b>Дуэль отменена</b>\n\n"
-                "❌ Недостаточно средств для участия.\n\n"
-                f"💰 Требуется ставка: <b>{bet} P6T</b>\n"
-                "━━━━━━━━━━━━━━━━━━━\n"
-                "Пополните баланс и попробуйте снова."
-            ),
-            parse_mode="HTML",
-        )
-        return
-    winner = secrets.choice([p1_id, p2_id])
-    loser = p1_id if winner == p2_id else p2_id
-    winner_name = p1_name if winner == p1_id else p2_name
-    loser_name = p2_name if loser == p2_id else p1_name
-
-    economy.create_transaction(loser, winner, bet, "game")
-
-    await query.edit_message_text(
-        text=(
-            "⚔️ <b>Дуэль завершена</b>\n\n"
-            f"👤 @{winner_name}\n\n"
-            "<b>VS\n\n</b>"
-            f"👤 @{loser_name}\n\n"
-            "━━━━━━━━━━━━━━\n"
-            f"🪙 Победитель: <b>@{winner_name}</b>\n\n"
-            f"💰 Выигрыш: <b>{bet * 2} P6T</b>\n"
-            "━━━━━━━━━━━━━━"
-        ),
-        parse_mode="HTML",
-    )
 
 
 async def bonus(update: Update, context: ContextTypes.DEFAULT_TYPE):
