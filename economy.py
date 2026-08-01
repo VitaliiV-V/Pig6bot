@@ -523,7 +523,10 @@ async def sell(update: Update, context: ContextTypes.DEFAULT_TYPE):
     economy.set_name_if_empty(user_id, user_name)
     q = economy.get_system_codes_count() + 1
     args = msg.text.split()
-    cnt = 1 if len(args) == 1 else int(args[1])
+    if args[1] == "all":
+        cnt = len(economy.get_user_codes(user_id))
+    else:
+        cnt = 1 if len(args) == 1 else int(args[1])
     config = load_config()
     total = 0
 
