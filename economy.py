@@ -670,6 +670,7 @@ async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
         prefix = medals[i - 1] if i <= 3 else f"<b>  {i}. </b>"
         name = name or "Без имени"
 
+        name = name.replace("@", "")
         lines.append(f"{prefix} {name} — <b>{balance} P6T</b>")
 
     await msg.reply_text(
