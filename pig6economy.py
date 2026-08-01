@@ -13,7 +13,8 @@ class Pig6Economy:
         CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY,
         balance INTEGER DEFAULT 0,
-        last_salary TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        last_salary TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        name TEXT
         )
         """)
 
@@ -44,12 +45,12 @@ class Pig6Economy:
     def close(self):
         self.db.close()
 
-    def add_user(self, user_id, balance=100):
+    def add_user(self, user_id, name=None, balance=100):
         self.cursor.execute(
             """
-        INSERT OR IGNORE INTO USERS (user_id, balance) VALUES (?,?)
+        INSERT OR IGNORE INTO USERS (user_id, balance, name) VALUES (?, ?, ?)
         """,
-            (user_id, balance),
+            (user_id, balance, name),
         )
         self.db.commit()
 
@@ -128,6 +129,20 @@ class Pig6Economy:
         )
 
         return self.cursor.fetchone() is not None
+
+    def get_top_users(self, limit: int = 10):
+        self.cursor.execute(
+            """
+                SELECT name, balance
+                FROM users
+                WHERE balance > 0
+                ORDER BY balance DESC
+                LIMIT ?
+                """,
+            (limit,),
+        )
+
+        return self.cursor.fetchall()
 
     def create_transaction(self, sender_id, receiver_id, amount, comment):
         if sender_id == 0:
@@ -324,6 +339,18 @@ class Pig6Economy:
 
         return False
 
+    def set_name_if_empty(self, user_id: int, name: str):
+        self.cursor.execute(
+            """
+            UPDATE users
+            SET name = ?
+            WHERE user_id = ?
+            AND (name IS NULL OR name = '')
+            """,
+            (f"@{name}", user_id),
+        )
+        self.db.commit()
+
 
 economy = Pig6Economy()
-economy.add_user(0, 0)
+economy.add_user(0, "SYSTEM", 0)

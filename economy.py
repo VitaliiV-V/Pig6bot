@@ -29,7 +29,12 @@ async def replenish_codes(context):
 
 
 async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     msg = update.message
+    user_id = msg.from_user.id
+    user_name = msg.from_user.username
+
+    economy.set_name_if_empty(user_id, user_name)
     if not msg or not msg.from_user or not msg.text:
         return
 
@@ -81,7 +86,12 @@ async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     msg = update.message
+    user_id = msg.from_user.id
+    user_name = msg.from_user.username
+
+    economy.set_name_if_empty(user_id, user_name)
 
     if not msg or not msg.from_user:
         return
@@ -104,6 +114,10 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
+    user_id = msg.from_user.id
+    user_name = msg.from_user.username
+
+    economy.set_name_if_empty(user_id, user_name)
 
     if not msg or not msg.from_user or not msg.text:
         return
@@ -194,6 +208,10 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
+    user_id = msg.from_user.id
+    user_name = msg.from_user.username
+
+    economy.set_name_if_empty(user_id, user_name)
     if not msg or not msg.from_user or not msg.text:
         return
 
@@ -283,6 +301,10 @@ async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def xbet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
+    user_id = msg.from_user.id
+    user_name = msg.from_user.username
+
+    economy.set_name_if_empty(user_id, user_name)
 
     args = msg.text.split()
     chat_id = msg.chat_id
@@ -380,6 +402,10 @@ async def accept_bet(query, data):
 
 async def bonus(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
+    user_id = msg.from_user.id
+    user_name = msg.from_user.username
+
+    economy.set_name_if_empty(user_id, user_name)
     user_id = msg.from_user.id
 
     last_salary = economy.get_last_salary(user_id=user_id)
@@ -488,7 +514,9 @@ async def pr_pay(query, data, context):
 async def sell(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     user_id = msg.from_user.id
+    user_name = msg.from_user.username
 
+    economy.set_name_if_empty(user_id, user_name)
     q = economy.get_system_codes_count() + 1
     args = msg.text.split()
     cnt = 1 if len(args) == 1 else int(args[1])
@@ -557,7 +585,10 @@ async def codes(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not msg or not msg.from_user:
         return
+    user_id = msg.from_user.id
+    user_name = msg.from_user.username
 
+    economy.set_name_if_empty(user_id, user_name)
     user_id = msg.from_user.id
 
     codes = economy.get_user_codes(user_id)
@@ -581,11 +612,15 @@ async def codes(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def market(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     msg = update.message
 
     if not msg or not msg.from_user:
         return
+    user_id = msg.from_user.id
+    user_name = msg.from_user.username
 
+    economy.set_name_if_empty(user_id, user_name)
     q = economy.get_system_codes_count()
 
     config = load_config()
@@ -605,5 +640,39 @@ async def market(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Доступно кодов: <b>{q}</b>\n"
             f"Текущая цена: <b>{price} P6T</b>"
         ),
+        parse_mode="HTML",
+    )
+
+
+async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+
+    if not msg or not msg.from_user:
+        return
+    user_id = msg.from_user.id
+    user_name = msg.from_user.username
+
+    economy.set_name_if_empty(user_id, user_name)
+    users = economy.get_top_users(10)
+
+    if not users:
+        await msg.reply_text(
+            "🏆 <b>Топ пользователей</b>\n\n" "Пока здесь никого нет.",
+            parse_mode="HTML",
+        )
+        return
+
+    lines = ["🏆 <b>Топ пользователей</b>\n"]
+
+    medals = ["🥇", "🥈", "🥉"]
+
+    for i, (name, balance) in enumerate(users, start=1):
+        prefix = medals[i - 1] if i <= 3 else f"<b>  {i}. </b>"
+        name = name or "Без имени"
+
+        lines.append(f"{prefix} {name} — <b>{balance} P6T</b>")
+
+    await msg.reply_text(
+        "\n".join(lines),
         parse_mode="HTML",
     )
