@@ -42,12 +42,16 @@ async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     args = msg.text.split()
     if args[1] == "all":
+        cnt = 0
         xx = economy.get_system_codes_count()
         balance = economy.get_balance(user_id)
+        config2 = load_config()
         while xx > 0 and balance >= int(
-            config["Pmin"] * (1 + config["constA"] * ((100 - xx) / xx))
+            config2["Pmin"] * (1 + config2["constA"] * ((100 - xx) / xx))
         ):
-            balance -= int(config["Pmin"] * (1 + config["constA"] * ((100 - xx) / xx)))
+            balance -= int(
+                config2["Pmin"] * (1 + config2["constA"] * ((100 - xx) / xx))
+            )
             xx -= 1
             cnt += 1
     else:
