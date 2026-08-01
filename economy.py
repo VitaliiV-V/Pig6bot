@@ -312,8 +312,12 @@ async def xbet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = msg.from_user.id
 
     try:
-        bet = int(args[1])
+        if args[1] == "all":
+            bet = economy.get_balance(user_id)
+        else:
+            bet = int(args[1])
     except Exception as e:
+        await msg.reply_text("❌ Количество должно быть числом.")
         return
 
     balance = economy.get_balance(user_id)
