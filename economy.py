@@ -41,7 +41,18 @@ async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = msg.from_user.id
 
     args = msg.text.split()
-    cnt = 1 if len(args) == 1 else int(args[1])
+    if args[1] == "all":
+        xx = economy.get_system_codes_count()
+        balance = economy.get_balance(user_id)
+        while xx > 0 and balance >= int(
+            config["Pmin"] * (1 + config["constA"] * ((100 - xx) / xx))
+        ):
+            balance -= int(config["Pmin"] * (1 + config["constA"] * ((100 - xx) / xx)))
+            xx -= 1
+            cnt += 1
+    else:
+        cnt = 1 if len(args) == 1 else int(args[1])
+
     q = economy.get_system_codes_count()
     if q < cnt:
         await msg.reply_text(
