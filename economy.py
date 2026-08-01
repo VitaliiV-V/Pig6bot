@@ -88,6 +88,7 @@ async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.reply_text(
         text=(
             "🧾 <b>Чек сформирован</b>\n\n"
+            f"Запрошено: <b>{cnt}</b>\n"
             f"Стоимость: <b>{total} P6T</b>\n\n"
             "Одноразовый код будет отправлен\n"
             "вам в личные сообщения после оплаты.\n\n"
