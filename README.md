@@ -40,6 +40,16 @@ https://pig6bot.sos.al
 - Protected file handling
 - Secure GIF processing
 - Extreme Protection mode
+- Pig-6 internal economy
+- Pig-6 Tokens (P6T)
+- User balances
+- P6T transfers
+- Transaction history
+- P6T duels
+- Anonymous message codes
+- Dynamic anonymous code market
+- Anonymous code trading
+- P6T user rankings
 
 
 # Pig-6
@@ -303,6 +313,112 @@ Changes:
 - Fixed incorrect anonymous message processing
 - Better administrator verification
 - Improved message source checking
+- One-time anonymous code verification
+
+
+# Pig-6 Economy
+
+Pig-6 includes an internal economy based on Pig-6 Tokens (P6T).
+
+P6T is the internal currency of the system.
+
+The economy includes:
+
+- User balances
+- P6T transfers
+- Transaction history
+- P6T duels
+- Anonymous message codes
+- Dynamic anonymous code market
+- Anonymous code trading
+- User rankings
+
+
+# Anonymous Code Market
+
+Anonymous codes are traded through a dynamic market.
+
+The market price depends on the current number of available codes.
+
+The more codes return to the system, the lower the price becomes.
+
+The price is recalculated during every transaction.
+
+When buying or selling multiple codes, the price of each code may change during the operation.
+
+The system maintains the anonymous code market around 100 available codes per day.
+
+
+# Anonymous Codes
+
+Each anonymous code can only be used once.
+
+After use, the code becomes invalid.
+
+To send an anonymous message, insert an active anonymous code anywhere in the message.
+
+
+Rules:
+
+- Each code is one-time use
+- Used codes become invalid
+- Transferring codes to other users is prohibited
+- Codes must not be used for spam
+- Codes must not be used for threats
+- Codes must not be used for fraud or other prohibited content
+- If a message is rejected by moderation, the used code is not refunded
+
+
+# P6T Economy Commands
+
+/balance
+
+View P6T balance and active anonymous codes.
+
+
+/gift
+
+Receive 100 P6T once per day.
+
+
+/mycodes
+
+View active anonymous codes.
+
+
+/buy <n>
+
+Buy anonymous codes at the current market price.
+
+
+/sell <n>
+
+Sell anonymous codes to the system at the current market price.
+
+
+/bet <n>
+
+Create a P6T duel with another user.
+
+
+/accept
+
+Accept a P6T duel.
+
+
+/pay <user> <n>
+
+Transfer P6T to another user.
+
+
+/top
+
+View the users with the highest P6T balances.
+
+
+/market
+
+View the current anonymous code market.
 
 
 # Markov Text Generator
@@ -391,6 +507,56 @@ Reject request.
 Register channel request.
 
 
+/balance
+
+View P6T balance and active anonymous codes.
+
+
+/gift
+
+Receive 100 P6T once per day.
+
+
+/mycodes
+
+View active anonymous codes.
+
+
+/buy <n>
+
+Buy anonymous codes at the current market price.
+
+
+/sell <n>
+
+Sell anonymous codes at the current market price.
+
+
+/bet <n>
+
+Create a P6T duel with another user.
+
+
+/accept
+
+Accept a P6T duel.
+
+
+/pay <user> <n>
+
+Transfer P6T to another user.
+
+
+/top
+
+View the users with the highest P6T balances.
+
+
+/market
+
+View the current anonymous code market.
+
+
 # Requirements
 
 - Python 3.10+
@@ -436,6 +602,15 @@ New generation features:
 - Extreme Protection
 - Content Protection
 - Pig6Guard module
+- P6T internal economy
+- User balances
+- P6T transfers
+- Transaction history
+- P6T duels
+- Anonymous message codes
+- Dynamic anonymous code market
+- Anonymous code trading
+- P6T user rankings
 
 
 ## Security Improvements
@@ -446,5 +621,5 @@ New generation features:
 - Unicode security signatures
 - Better protection against message spoofing
 - Advanced content control
-- Improved administrator security 
- 
+- Improved administrator security
+- One-time anonymous code verification
