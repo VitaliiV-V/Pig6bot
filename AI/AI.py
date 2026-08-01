@@ -1,8 +1,8 @@
 import re
-import tools
-from config import *
-from jarvis import *
-from settings import *
+import bot.tools as tools
+from config.config import *
+from AI.jarvis import *
+from bot.settings import *
 from time import sleep
 from telegram import Update
 from telegram.ext import ContextTypes

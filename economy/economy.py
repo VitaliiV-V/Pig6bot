@@ -1,19 +1,18 @@
 import uuid
-import tools
+import bot.tools as tools
 import time
 import secrets
-from config import *
-from settings import *
-from tools import *
+from config.config import *
+from bot.settings import *
+from bot.tools import *
 from pathlib import Path
-from markovchain import *
+from AI.markovchain import *
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from pig6economy import *
+from economy.pig6economy import *
 from telegram import (
     ReplyKeyboardRemove,
-    ReplyKeyboardMarkup,
     Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -41,7 +40,7 @@ async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = msg.from_user.id
 
     args = msg.text.split()
-    if args[1] == "all":
+    if len(args) > 1 and args[1] == "all":
         cnt = 0
         xx = economy.get_system_codes_count()
         balance = economy.get_balance(user_id)
@@ -87,7 +86,7 @@ async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await msg.reply_text(
         text=(
-            "🧾 <b>Чек сформирован</b>\n\n"
+            "🧾 <b>Заказ сформирован</b>\n\n"
             f"Запрошено: <b>{cnt}</b>\n"
             f"Стоимость: <b>{total} P6T</b>\n\n"
             "Одноразовые коды будут отправлены\n"
@@ -97,6 +96,161 @@ async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "возврат средств не предусмотрен."
         ),
         reply_markup=keyboard,
+        parse_mode="HTML",
+    )
+
+
+async def confirm_pay(query, data, context):
+    total, cnt, user_id = data.split("$")
+    buyer_id = query.from_user.id
+    cnt = int(cnt)
+    user_id = int(user_id)
+    balance = int(economy.get_balance(buyer_id))
+    count = economy.get_system_codes_count()
+    if user_id != buyer_id:
+        return
+
+    q = economy.get_system_codes_count()
+
+    config = load_config()
+    total = 0
+    for _ in range(cnt):
+        total += int(config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
+        q -= 1
+
+    if balance < total:
+        await query.edit_message_text(
+            text=(
+                "❌ <b>Недостаточно средств</b>\n\n"
+                f"Стоимость: <b>{total} P6T</b>\n"
+                f"Ваш баланс: <b>{balance} P6T</b>"
+            ),
+            parse_mode="HTML",
+        )
+    elif count < cnt:
+        await query.edit_message_text(
+            text=(
+                "❌ <b>Недостаточно кодов</b>\n\n"
+                f"Запрошено: <b>{cnt}</b>\n"
+                f"Доступно: <b>{count}</b>"
+            ),
+            parse_mode="HTML",
+        )
+    else:
+        economy.create_transaction(buyer_id, 0, total, "purchase of anonymous codes")
+        for _ in range(int(cnt)):
+            economy.get_code_for_user(buyer_id)
+
+        codes = economy.get_user_codes(buyer_id)
+
+        codes_text = "".join(
+            f"«<code>⠀{code}⠀</code>»,  " for i, code in enumerate(codes, 1)
+        )
+
+        codes_text = codes_text[:-3]
+
+        if query.message.chat_id != user_id:
+            await query.edit_message_text(
+                text=(
+                    "✅ <b>Оплата произведена</b>\n\n"
+                    f"Количество купленных кодов: <b>{cnt}</b>\n"
+                    f"Сумма: <b>{total} P6T</b>\n\n"
+                    "Одноразовые коды отправлены Вам в личные сообщения."
+                ),
+                parse_mode="HTML",
+            )
+        else:
+            await query.edit_message_text(
+                text=(
+                    "✅ <b>Оплата произведена</b>\n\n"
+                    f"Количество купленных кодов: <b>{cnt}</b>\n"
+                    f"Сумма: <b>{total} P6T</b>\n\n"
+                    f"Одноразовые коды ({len(codes)}):\n\n" + codes_text
+                ),
+                parse_mode="HTML",
+            )
+
+        if query.message.chat_id != user_id:
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=(
+                    "✅ <b>Оплата произведена</b>\n\n"
+                    f"Количество купленных кодов: <b>{cnt}</b>\n"
+                    f"Сумма: <b>{total} P6T</b>\n\n"
+                    f"Одноразовые коды ({len(codes)}):\n\n" + codes_text
+                ),
+                parse_mode="HTML",
+            )
+
+
+async def sell(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    user_id = msg.from_user.id
+    user_name = msg.from_user.username
+
+    economy.set_name_if_empty(user_id, user_name)
+    q = economy.get_system_codes_count() + 1
+    args = msg.text.split()
+    if len(args) > 1 and args[1] == "all":
+        cnt = len(economy.get_user_codes(user_id))
+    else:
+        cnt = 1 if len(args) == 1 else int(args[1])
+    config = load_config()
+    total = 0
+
+    codes = economy.get_user_codes(user_id)
+
+    if len(codes) < cnt:
+        await msg.reply_text(
+            "❌ <b>У вас нет нужного количества кодов</b>",
+            parse_mode="HTML",
+        )
+        return
+
+    for _ in range(cnt):
+        total += int(config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
+        economy.return_code_to_system(user_id)
+        q += 1
+
+    economy.create_transaction(
+        0,
+        user_id,
+        total,
+        "sale of anonymous code",
+    )
+
+    codes = economy.get_user_codes(user_id)
+
+    codes_text = "".join(
+        f"«<code>⠀{code}⠀</code>», " for i, code in enumerate(codes, 1)
+    )
+
+    codes_text = codes_text[:-2]
+
+    if codes_text:
+        codes_text = f"Ваши оставшиеся коды ({len(codes)}):\n\n" + codes_text
+    else:
+        codes_text = "Активных кодов больше нет."
+
+    if msg.chat_id != user_id:
+        await msg.reply_text(
+            text=(
+                "✅ <b>Продажа произведена</b>\n\n"
+                f"Количество проданных кодов: <b>{cnt}</b>\n"
+                f"Сумма: <b>{total} P6T</b>\n\n"
+                "Оставшиеся у Вас одноразовые коды отправлены Вам в личные сообщения."
+            ),
+            parse_mode="HTML",
+        )
+
+    await context.bot.send_message(
+        chat_id=user_id,
+        text=(
+            "✅ <b>Продажа произведена</b>\n\n"
+            f"Продано кодов: <b>{cnt}</b>\n"
+            f"Сумма: <b>{total} P6T</b>\n\n"
+            "Одноразовые коды:\n\n" + codes_text
+        ),
         parse_mode="HTML",
     )
 
@@ -315,68 +469,6 @@ async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def xbet(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-    user_id = msg.from_user.id
-    user_name = msg.from_user.username
-
-    economy.set_name_if_empty(user_id, user_name)
-
-    args = msg.text.split()
-    chat_id = msg.chat_id
-    message_id = msg.message_id
-    user_id = msg.from_user.id
-
-    try:
-        if args[1] == "all":
-            bet = economy.get_balance(user_id)
-        else:
-            bet = int(args[1])
-    except Exception as e:
-        await msg.reply_text("❌ Количество должно быть числом.")
-        return
-
-    balance = economy.get_balance(user_id)
-
-    if balance < bet:
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text=(
-                "❌ <b>Недостаточно P6T</b>\n"
-                f"Нужно: <b>{bet} P6T</b>\n"
-                f"Доступно: <b>{balance} P6T</b>"
-            ),
-            parse_mode="HTML",
-        )
-    else:
-        keyboard = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "⚔️ Accept Bet",
-                        callback_data=f"accept_bet^{msg.from_user.id}${msg.from_user.username}${bet}",
-                    )
-                ]
-            ]
-        )
-
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text=(
-                "⚔️ <b>Вызов на дуэль</b>\n\n"
-                f"👤 Инициатор: @{msg.from_user.username}\n"
-                f"💰 Ставка: <b>{bet} P6T</b>\n"
-                "🪙 Исход: случайный\n\n"
-                "После подтверждения победитель определяется\n"
-                "подбросом монеты."
-            ),
-            parse_mode="HTML",
-            reply_markup=keyboard,
-        )
-
-    await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-
-
 async def accept_bet(query, data):
     p1_id, p1_name, bet = data.split("$")
     p2_id, p2_name = query.from_user.id, query.from_user.username
@@ -454,153 +546,6 @@ async def bonus(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⏳ Следующий подарок через " f"<b>{hours}ч {minutes}м</b>.",
             parse_mode="HTML",
         )
-
-
-async def pr_pay(query, data, context):
-    total, cnt, user_id = data.split("$")
-    buyer_id = query.from_user.id
-    total = int(total)
-    cnt = int(cnt)
-    user_id = int(user_id)
-    balance = int(economy.get_balance(buyer_id))
-    count = economy.get_system_codes_count()
-    if user_id != buyer_id:
-        return
-    if balance < total:
-        await query.edit_message_text(
-            text=(
-                "❌ <b>Недостаточно средств</b>\n\n"
-                f"Стоимость: <b>{total} P6T</b>\n"
-                f"Ваш баланс: <b>{balance} P6T</b>"
-            ),
-            parse_mode="HTML",
-        )
-    elif count < cnt:
-        await query.edit_message_text(
-            text=(
-                "❌ <b>Недостаточно кодов</b>\n\n"
-                f"Запрошено: <b>{cnt}</b>\n"
-                f"Доступно: <b>{count}</b>"
-            ),
-            parse_mode="HTML",
-        )
-    else:
-        economy.create_transaction(buyer_id, 0, total, "purchase of anonymous codes")
-        for _ in range(int(cnt)):
-            economy.get_code_for_user(buyer_id)
-
-        codes = economy.get_user_codes(buyer_id)
-
-        codes_text = "".join(
-            f"«<code>⠀{code}⠀</code>»,  " for i, code in enumerate(codes, 1)
-        )
-
-        codes_text = codes_text[:-3]
-
-        if query.message.chat_id != user_id:
-            await query.edit_message_text(
-                text=(
-                    "✅ <b>Оплата произведена</b>\n\n"
-                    f"Количество купленных кодов: <b>{cnt}</b>\n"
-                    f"Сумма: <b>{total} P6T</b>\n\n"
-                    "Одноразовые коды отправлены Вам в личные сообщения."
-                ),
-                parse_mode="HTML",
-            )
-        else:
-            await query.edit_message_text(
-                text=(
-                    "✅ <b>Оплата произведена</b>\n\n"
-                    f"Количество купленных кодов: <b>{cnt}</b>\n"
-                    f"Сумма: <b>{total} P6T</b>\n\n"
-                    f"Одноразовые коды ({len(codes)}):\n\n" + codes_text
-                ),
-                parse_mode="HTML",
-            )
-
-        if query.message.chat_id != user_id:
-            await context.bot.send_message(
-                chat_id=user_id,
-                text=(
-                    "✅ <b>Оплата произведена</b>\n\n"
-                    f"Количество купленных кодов: <b>{cnt}</b>\n"
-                    f"Сумма: <b>{total} P6T</b>\n\n"
-                    f"Одноразовые коды ({len(codes)}):\n\n" + codes_text
-                ),
-                parse_mode="HTML",
-            )
-
-
-async def sell(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-    user_id = msg.from_user.id
-    user_name = msg.from_user.username
-
-    economy.set_name_if_empty(user_id, user_name)
-    q = economy.get_system_codes_count() + 1
-    args = msg.text.split()
-    if args[1] == "all":
-        cnt = len(economy.get_user_codes(user_id))
-    else:
-        cnt = 1 if len(args) == 1 else int(args[1])
-    config = load_config()
-    total = 0
-
-    codes = economy.get_user_codes(user_id)
-
-    if len(codes) < cnt:
-        await msg.reply_text(
-            "❌ <b>У вас нет нужного количества кодов</b>",
-            parse_mode="HTML",
-        )
-        return
-
-    for _ in range(cnt):
-        total += int(config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
-        economy.return_code_to_system(user_id)
-        q += 1
-
-    economy.create_transaction(
-        0,
-        user_id,
-        total,
-        "sale of anonymous code",
-    )
-
-    codes = economy.get_user_codes(user_id)
-
-    codes_text = "".join(
-        f"«<code>⠀{code}⠀</code>», " for i, code in enumerate(codes, 1)
-    )
-
-    codes_text = codes_text[:-2]
-
-    if codes_text:
-        codes_text = f"Ваши оставшиеся коды ({len(codes)}):\n\n" + codes_text
-    else:
-        codes_text = "Активных кодов больше нет."
-
-    if msg.chat_id != user_id:
-        await msg.reply_text(
-            text=(
-                "✅ <b>Продажа произведена</b>\n\n"
-                f"Количество проданных кодов: <b>{cnt}</b>\n"
-                f"Сумма: <b>{total} P6T</b>\n\n"
-                "Оставшиеся у Вас одноразовые коды отправлены Вам в личные сообщения."
-            ),
-            parse_mode="HTML",
-        )
-
-    await context.bot.send_message(
-        chat_id=user_id,
-        text=(
-            "✅ <b>Продажа произведена</b>\n\n"
-            f"Продано кодов: <b>{cnt}</b>\n"
-            f"Сумма: <b>{total} P6T</b>\n\n"
-            "Одноразовые коды:\n\n" + codes_text
-        ),
-        parse_mode="HTML",
-    )
 
 
 async def codes(update: Update, context: ContextTypes.DEFAULT_TYPE):

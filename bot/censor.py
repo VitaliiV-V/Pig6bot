@@ -1,17 +1,17 @@
 import uuid
 import time
-import tools
+import bot.tools as tools
 import secrets
 import asyncio
-from config import *
-from settings import *
-from markovchain import *
+from config.config import *
+from bot.settings import *
+from AI.markovchain import *
 from datetime import datetime
-from pig6economy import *
+from economy.pig6economy import *
 from telegram.ext import ContextTypes
 from telegram import Update, ReplyKeyboardMarkup
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from protection import *
+from bot.protection import *
 
 
 def check(text):

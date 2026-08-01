@@ -1,5 +1,5 @@
-from settings import *
-from config import *
+from bot.settings import *
+from config.config import *
 from google import genai
 from google.genai import types
 

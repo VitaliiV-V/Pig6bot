@@ -1,6 +1,6 @@
 import uuid
-from config import *
-from settings import *
+from config.config import *
+from bot.settings import *
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHandler

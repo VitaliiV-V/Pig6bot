@@ -1,20 +1,20 @@
 import os
 import json
 
+
 def load_config():
-    file_path = "config.json"
-    default_data = {        
+    file_path = "config/config.json"
+    default_data = {
         "ban_messages": 0,
         "banned": [],
         "banned_users": [],
         "OWNER_NAMEs": [],
-        "white_lists_mode" : "off",
+        "white_lists_mode": "off",
         "white_list": [],
-        "anon_enable": 0
+        "anon_enable": 0,
     }
-    
+
     if not os.path.exists(file_path):
-        os.makedirs("configs", exist_ok=True)
         config = default_data.copy()
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, indent=4)
@@ -24,10 +24,12 @@ def load_config():
 
     return config
 
+
 load_config()
 
+
 def save_config(data):
-    file_path = "config.json"
-    
+    file_path = "config/config.json"
+
     with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent = 4)
+        json.dump(data, f, ensure_ascii=False, indent=4)

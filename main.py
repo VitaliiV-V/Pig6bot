@@ -1,8 +1,8 @@
-from config import *
-from settings import *
-from channel import *
-from commands import *
-from economy import *
+from config.config import *
+from bot.settings import *
+from bot.channel import *
+from bot.commands import *
+from economy.economy import *
 from telegram import InputTextMessageContent, InlineQueryResultArticle, Update
 from telegram.ext import (
     InlineQueryHandler,
@@ -37,7 +37,6 @@ app.add_handler(
     MessageHandler(filters.ChatType.PRIVATE & filters.Document.ALL, receive_config)
 )
 app.add_handler(CommandHandler("ban", ban))
-app.add_handler(CommandHandler("bet", xbet))
 app.add_handler(CommandHandler("pig", pig))
 app.add_handler(CommandHandler("svo", svo))
 app.add_handler(CommandHandler("top", top))

@@ -1,8 +1,8 @@
 import time
 import secrets
-from config import *
-from settings import *
-from pig6economy import *
+from config.config import *
+from bot.settings import *
+from economy.pig6economy import *
 
 
 def ban(s):

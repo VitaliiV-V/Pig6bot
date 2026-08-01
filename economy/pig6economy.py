@@ -1,5 +1,5 @@
 import sqlite3
-import tools
+import bot.tools as tools
 
 
 class Pig6Economy:

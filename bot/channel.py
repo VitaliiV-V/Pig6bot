@@ -1,15 +1,14 @@
 import re
 import asyncio
-from game import *
-from config import *
-from censor import *
-from settings import *
-from markovchain import *
+from config.config import *
+from bot.censor import *
+from bot.settings import *
+from AI.markovchain import *
 from datetime import datetime
 from telegram.ext import ContextTypes
 from telegram import Update
-from protection import *
-from pig6economy import *
+from bot.protection import *
+from economy.pig6economy import *
 
 g = Generator()
 
@@ -39,19 +38,6 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = msg.text or ""
 
     config = load_config()
-    file = "log.json"
-    try:
-        if os.path.exists(file):
-            with open(file, "r") as f:
-                data = json.load(f)
-        else:
-            data = {}
-        data[str(message_id)] = get_author_id(msg.author_signature)
-        with open(file, "w") as f:
-            json.dump(data, f, indent=4)
-
-    except Exception as e:
-        pass
 
     if message_text == "/pig":
         await context.bot.send_message(

@@ -1,15 +1,15 @@
 import re
 import uuid
-import tools
+import bot.tools as tools
 import asyncio
 import secrets
-from config import *
-from settings import *
-from markovchain import *
+from config.config import *
+from bot.settings import *
+from AI.markovchain import *
 from datetime import datetime
 from telegram.ext import ContextTypes
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from pig6economy import *
+from economy.pig6economy import *
 
 superlist = []
 
@@ -59,15 +59,18 @@ async def protect_query(
                 protect_data = {
                     "name": msg.chat.title,
                     "channel_id": msg.chat.id,
-                    "type": "xuuid",
+                    "type": "unicode",
                     "uuid": "".join(secrets.choice(superlist) for _ in range(5)),
                     "owner": info,
                     "id": info2,
                 }
 
                 file_id = secrets.token_hex(8)
-
-                filename = f".protect_{file_id}.json"
+                try:
+                    os.mkdir("tmp")
+                except FileExistsError:
+                    pass
+                filename = f"tmp/.protect_{file_id}.json"
 
                 with open(filename, "w", encoding="utf-8") as f:
                     json.dump(protect_data, f, ensure_ascii=False, indent=4)
@@ -96,6 +99,7 @@ async def protect_query(
                 )
         if "unprotect" == (msg.text or "").lower():
             try:
+                config = load_config()
                 config["protected_users"] = [
                     user
                     for user in config["protected_users"]
@@ -113,10 +117,12 @@ async def protect_query(
                 )
         if "uuid" == (msg.text or "").lower():
             try:
+                config = load_config()
                 for i in config["protected_users"]:
                     if i["channel_id"] == msg.chat.id:
                         i["type"] = "xuuid"
                         new_uuid = " " + rand() + str(uuid.uuid4())
+                        i["uuid"] = new_uuid
                         await context.bot.set_chat_title(
                             i["channel_id"], i["name"] + new_uuid
                         )
@@ -133,10 +139,12 @@ async def protect_query(
                 )
         if "unicode" == (msg.text or "").lower():
             try:
+                config = load_config()
                 for i in config["protected_users"]:
                     if i["channel_id"] == msg.chat.id:
                         i["type"] = "unicode"
                         new_uuid = "".join(secrets.choice(superlist) for _ in range(5))
+                        i["uuid"] = new_uuid
                         await context.bot.set_chat_title(
                             i["channel_id"], i["name"] + new_uuid
                         )

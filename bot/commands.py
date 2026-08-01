@@ -1,14 +1,14 @@
 import uuid
-import tools
+import bot.tools as tools
 import secrets
-from config import *
-from economy import *
-from settings import *
+from config.config import *
+from economy.economy import *
+from bot.settings import *
 from pathlib import Path
-from markovchain import *
+from AI.markovchain import *
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from pig6economy import *
+from economy.pig6economy import *
 from telegram import (
     ReplyKeyboardRemove,
     ReplyKeyboardMarkup,
@@ -208,7 +208,6 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             await query.edit_message_text("✅ Видеозапись отправлена пользователю")
         req["status"] = "approved"
-
     elif action == "reject":
         if query.from_user.id != OWNER_ID:
             await query.answer(
@@ -283,7 +282,7 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif action == "accept_bet":
         await accept_bet(query, data)
     elif action == "pay":
-        await pr_pay(query, data, context)
+        await confirm_pay(query, data, context)
 
 
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
