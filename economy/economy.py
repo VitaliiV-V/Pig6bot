@@ -217,7 +217,10 @@ async def sell(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     for _ in range(cnt):
-        total += int(config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
+        total += int(
+            (config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
+            * config["coeff"]
+        )
         economy.return_code_to_system(user_id)
         q += 1
 
