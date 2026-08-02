@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,21 +13,4 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-def index():
-    return FileResponse("index.html")
-
-
-@app.get("/styles.css")
-def get_styles():
-    return FileResponse("styles.css")
-
-
-@app.get("/marketApi.js")
-def get_market_api():
-    return FileResponse("marketApi.js")
-
-
-@app.get("/app.js")
-def get_market_api_alias():
-    return FileResponse("app.js")
+uvicorn.run(app, host="127.0.0.1", port=3001)

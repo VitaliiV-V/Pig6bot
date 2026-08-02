@@ -20,6 +20,7 @@ import random
 from config.config import *
 from economy.pig6economy import *
 import time
+from fastapi.responses import FileResponse
 import uvicorn
 from datetime import datetime
 from typing import Literal
@@ -287,12 +288,32 @@ def get_operations():
     return result
 
 
+@app.get("/")
+def index():
+    return FileResponse("web/index.html")
+
+
+@app.get("/styles.css")
+def get_styles():
+    return FileResponse("web/styles.css")
+
+
+@app.get("/marketApi.js")
+def get_market_api():
+    return FileResponse("web/marketApi.js")
+
+
+@app.get("/app.js")
+def get_market_api_alias():
+    return FileResponse("web/app.js")
+
+
 import threading
 import uvicorn
 
 
 def run_api():
-    uvicorn.run(app, host="127.0.0.1", port=3000, log_level="info")
+    uvicorn.run(app, host="127.0.0.1", port=2322, log_level="info")
 
 
 api_thread = threading.Thread(target=run_api, daemon=True)
