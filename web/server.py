@@ -313,7 +313,7 @@ import uvicorn
 
 
 def run_api():
-    uvicorn.run(app, host="127.0.0.1", port=2322, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=2322, log_level="info")
 
 
 api_thread = threading.Thread(target=run_api, daemon=True)

@@ -1,9 +1,18 @@
 version: "3.9"
 
 services:
+
   pigbot:
     build: .
+
     container_name: pigbot
+
+    restart: always
+
     volumes:
       - .:/app
+
+    ports:
+      - "2322:2322"
+
     command: supervisord -c /app/supervisor.conf
