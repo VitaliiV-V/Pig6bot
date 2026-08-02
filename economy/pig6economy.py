@@ -40,6 +40,34 @@ class Pig6Economy:
             )
             """)
 
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS market_state (
+            id INTEGER PRIMARY KEY,
+            available_codes INTEGER DEFAULT 0,
+            price REAL DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS market_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            price REAL,
+            available_codes INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS market_operations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            type TEXT,
+            amount INTEGER,
+            total REAL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+
         self.db.commit()
 
     def close(self):
@@ -350,6 +378,104 @@ class Pig6Economy:
             (f"@{name}", user_id),
         )
         self.db.commit()
+
+        # ==========================================
+
+    # MARKET API
+    # ==========================================
+
+    def save_market_state(self, available_codes, price):
+        self.cursor.execute(
+            """
+            INSERT INTO market_state
+            (id, available_codes, price)
+            VALUES (1, ?, ?)
+            ON CONFLICT(id)
+            DO UPDATE SET
+                available_codes = excluded.available_codes,
+                price = excluded.price,
+                updated_at = CURRENT_TIMESTAMP
+        """,
+            (available_codes, price),
+        )
+
+        self.db.commit()
+
+    def get_market_state(self):
+
+        self.cursor.execute("""
+            SELECT available_codes, price
+            FROM market_state
+            WHERE id = 1
+        """)
+
+        result = self.cursor.fetchone()
+
+        if not result:
+            return {"available_codes": 0, "price": 0}
+
+        return {"available_codes": result[0], "price": result[1]}
+
+    def add_market_history(self, price, available_codes):
+
+        self.cursor.execute(
+            """
+            INSERT INTO market_history
+            (price, available_codes)
+            VALUES (?, ?)
+        """,
+            (price, available_codes),
+        )
+
+        self.db.commit()
+
+    def get_market_history(self, limit=50):
+
+        self.cursor.execute(
+            """
+            SELECT created_at, price
+            FROM market_history
+            ORDER BY id DESC
+            LIMIT ?
+        """,
+            (limit,),
+        )
+
+        rows = self.cursor.fetchall()
+
+        rows.reverse()
+
+        return [{"timestamp": row[0], "price": row[1]} for row in rows]
+
+    def add_market_operation(self, operation_type, amount, total):
+
+        self.cursor.execute(
+            """
+            INSERT INTO market_operations
+            (type, amount, total)
+            VALUES (?, ?, ?)
+        """,
+            (operation_type, amount, total),
+        )
+
+        self.db.commit()
+
+    def get_market_operations(self, limit=20):
+
+        self.cursor.execute(
+            """
+            SELECT type, amount, total, created_at
+            FROM market_operations
+            ORDER BY id DESC
+            LIMIT ?
+        """,
+            (limit,),
+        )
+
+        return [
+            {"type": row[0], "amount": row[1], "total": row[2], "created_at": row[3]}
+            for row in self.cursor.fetchall()
+        ]
 
 
 economy = Pig6Economy()

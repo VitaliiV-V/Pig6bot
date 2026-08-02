@@ -3,6 +3,7 @@ from bot.settings import *
 from bot.channel import *
 from bot.commands import *
 from economy.economy import *
+from server.server import *
 from telegram import InputTextMessageContent, InlineQueryResultArticle, Update
 from telegram.ext import (
     InlineQueryHandler,

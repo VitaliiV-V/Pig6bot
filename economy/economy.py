@@ -70,6 +70,7 @@ async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     config = load_config()
     total = 0
+    res = 0
     for _ in range(cnt):
         total += int(config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
         q -= 1
@@ -137,6 +138,14 @@ async def confirm_pay(query, data, context):
             parse_mode="HTML",
         )
     else:
+        economy.add_market_history(
+            (
+                0
+                if q == 0
+                else int(config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
+            ),
+            q,
+        )
         economy.create_transaction(buyer_id, 0, total, "purchase of anonymous codes")
         for _ in range(int(cnt)):
             economy.get_code_for_user(buyer_id)
@@ -231,8 +240,17 @@ async def sell(update: Update, context: ContextTypes.DEFAULT_TYPE):
         codes_text = f"Ваши оставшиеся коды ({len(codes)}):\n\n" + codes_text
     else:
         codes_text = "Активных кодов больше нет."
-
+    q -= 1
+    economy.add_market_history(
+        (
+            0
+            if q == 0
+            else int(config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
+        ),
+        q,
+    )
     if msg.chat_id != user_id:
+
         await msg.reply_text(
             text=(
                 "✅ <b>Продажа произведена</b>\n\n"

@@ -18,7 +18,13 @@ const chartFallback = document.getElementById("chartFallback");
 
 // Hard ceiling: if init() hasn't finished by this point, stop waiting
 // and show an error instead of hanging on the loading screen forever.
-const INIT_TIMEOUT_MS = 8000;
+const INIT_TIMEOUT_MS = 5000;
+
+// How often to silently refresh live data once the app is showing.
+const AUTO_REFRESH_MS = 3000;
+
+let currentRange = "24H";
+let autoRefreshTimer = null;
 
 // ----------------------------
 // Helpers
@@ -142,17 +148,6 @@ async function init() {
 
         }
 
-        console.log("[init] step 6: fetching operations");
-
-        const operations = await withTimeout(
-            marketApi.getRecentOperations(),
-            INIT_TIMEOUT_MS,
-            "getRecentOperations"
-        );
-
-        console.log("[init] step 7: operations received", operations);
-
-        renderOperations(operations);
 
         console.log("[init] step 8: operations rendered, showing app");
 
@@ -169,6 +164,8 @@ async function init() {
 
         console.log("[init] step 10: done");
 
+        startAutoRefresh();
+
     }
 
     catch (e) {
@@ -178,6 +175,66 @@ async function init() {
         clearTimeout(failsafe);
 
         showError();
+
+    }
+
+}
+
+// ----------------------------
+
+// ----------------------------
+// Auto-refresh (live market)
+// ----------------------------
+
+function startAutoRefresh() {
+
+    // Avoid stacking multiple intervals if init() runs again (e.g. after Retry).
+    if (autoRefreshTimer) {
+
+        clearInterval(autoRefreshTimer);
+
+    }
+
+    autoRefreshTimer = setInterval(refreshData, AUTO_REFRESH_MS);
+
+}
+
+async function refreshData() {
+
+    // Silent refresh: don't touch the loading screen or error box.
+    // If a single refresh fails, just skip this cycle and try again
+    // on the next tick — a live market shouldn't flash an error over
+    // one missed poll.
+    try {
+
+        const market = await marketApi.getMarket();
+
+        renderMarket(market);
+
+    }
+
+    catch (e) {
+
+        console.error("[refresh] market update failed:", e);
+
+    }
+
+
+    
+
+    if (chartLibAvailable()) {
+
+        try {
+
+            await loadHistory(currentRange);
+
+        }
+
+        catch (e) {
+
+            console.error("[refresh] chart update failed:", e);
+
+        }
 
     }
 
@@ -233,16 +290,24 @@ async function loadHistory(range) {
     const prices =
         history.map(item => item.price);
 
+    const ctx =
+    document
+        .getElementById("marketChart")
+        .getContext("2d");
+
+
     if (chart) {
 
-        chart.destroy();
+        chart.data.labels = labels;
+
+        chart.data.datasets[0].data = prices;
+
+        chart.update("none");
+
+        return;
 
     }
 
-    const ctx =
-        document
-            .getElementById("marketChart")
-            .getContext("2d");
 
     chart = new Chart(ctx, {
 
@@ -275,6 +340,7 @@ async function loadHistory(range) {
         },
 
         options: {
+            animation: false,
 
             responsive: true,
 
@@ -336,58 +402,6 @@ async function loadHistory(range) {
 
 // ----------------------------
 
-function renderOperations(list) {
-
-    const container =
-        document.getElementById("operationsList");
-
-    container.innerHTML = "";
-
-    list.forEach(op => {
-
-        const div =
-            document.createElement("div");
-
-        div.className = "operation";
-
-        div.innerHTML = `
-
-<div class="operation-left">
-
-<div class="operation-type">
-
-${op.type}
-
-</div>
-
-<div>
-
-${op.amount} code${op.amount > 1 ? "s" : ""}
-
-</div>
-
-<div class="operation-time">
-
-${op.timestamp}
-
-</div>
-
-</div>
-
-<strong class="${op.type === "BUY" ? "buy" : "sell"}">
-
-${op.total > 0 ? "+" : ""}${op.total} P6T
-
-</strong>
-
-`;
-
-        container.appendChild(div);
-
-    });
-
-}
-
 // ----------------------------
 
 function initButtons() {
@@ -403,6 +417,8 @@ function initButtons() {
                     .forEach(b => b.classList.remove("active"));
 
                 button.classList.add("active");
+
+                currentRange = button.dataset.range;
 
                 try {
 

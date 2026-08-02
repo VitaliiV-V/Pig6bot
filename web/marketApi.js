@@ -3,11 +3,11 @@
 // Replace only this file when backend becomes available.
 // =======================================================
 
-const API_BASE_URL = "https://your-backend-url/api";
+const API_BASE_URL = "http://127.0.0.1:3000/api";
 
 // false = use mock data
 // true  = use real backend
-const USE_API = false;
+const USE_API = true;
 
 // =======================================================
 
@@ -55,45 +55,6 @@ const history = {
     ]
 
 };
-
-const operations = [
-
-{
-    type:"BUY",
-    amount:12,
-    total:-1240,
-    timestamp:"2 min ago"
-},
-
-{
-    type:"SELL",
-    amount:4,
-    total:320,
-    timestamp:"6 min ago"
-},
-
-{
-    type:"BUY",
-    amount:1,
-    total:-25,
-    timestamp:"11 min ago"
-},
-
-{
-    type:"BUY",
-    amount:8,
-    total:-640,
-    timestamp:"18 min ago"
-},
-
-{
-    type:"SELL",
-    amount:2,
-    total:160,
-    timestamp:"25 min ago"
-}
-
-];
 
 // =======================================================
 
