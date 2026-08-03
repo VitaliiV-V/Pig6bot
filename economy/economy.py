@@ -507,7 +507,7 @@ async def bonus(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if time_passed >= timedelta(days=1):
         economy.create_transaction(0, user_id, 100, "salary")
-
+        economy.update_last_salary(user_id)
         await msg.reply_text(
             "🎁 Подарок получен!\n\n" "Начислено: <b>+100 P6T</b>",
             parse_mode="HTML",

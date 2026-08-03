@@ -367,6 +367,20 @@ class Pig6Economy:
 
         return False
 
+    def update_last_salary(self, user_id):
+        self.add_user(user_id)
+
+        self.cursor.execute(
+            """
+            UPDATE users
+            SET last_salary = CURRENT_TIMESTAMP
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        )
+
+        self.db.commit()
+
     def set_name_if_empty(self, user_id: int, name: str):
         self.cursor.execute(
             """
@@ -379,7 +393,7 @@ class Pig6Economy:
         )
         self.db.commit()
 
-        # ==========================================
+    # ==========================================
 
     # MARKET API
     # ==========================================
