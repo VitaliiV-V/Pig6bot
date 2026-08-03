@@ -57,13 +57,23 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await protect_query(context=context, msg=msg, config=config)
         return
 
+    role = await check_signed_user(context=context, msg=msg, config=config)
+    ignore = False
+    if role == "root":
+        await owner_commands(context=context, msg=msg, config=config)
+        return
+    elif role == "sudo":
+        return
+    elif role == "user":
+        ignore = True
+
     if await check_super_user(context=context, msg=msg, config=config):
         return
 
     if await check_owner(context=context, msg=msg, config=config):
         return
 
-    await check_message(context=context, msg=msg, config=config)
+    await check_message(context=context, msg=msg, config=config, ignore=ignore)
 
 
 async def ban_new_members(update: Update, context: ContextTypes.DEFAULT_TYPE):

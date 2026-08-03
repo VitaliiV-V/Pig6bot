@@ -50,11 +50,7 @@ class Message:
         return (datetime.now() - self.created_at).total_seconds()
 
 
-async def check_message(
-    context: ContextTypes.DEFAULT_TYPE,
-    msg,
-    config,
-):
+async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=False):
     global last_time, messages
     chat_id = msg.chat_id
 
@@ -68,9 +64,10 @@ async def check_message(
         await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
         return
 
-    if msg.author_signature in config["banned_users"]:
-        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-        return
+    if not ignore:
+        if msg.author_signature in config["banned_users"]:
+            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+            return
 
     if config["ban_messages"] == "all":
         await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
@@ -79,45 +76,48 @@ async def check_message(
         await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
         return
 
-    if not msg.author_signature:
-        if config["anon_enable"] == 0:
-            ok = economy.use_code_from_text(message_text)
+    if not ignore:
+        if not msg.author_signature:
+            if config["anon_enable"] == 0:
+                ok = economy.use_code_from_text(message_text)
+
+                if not ok:
+                    await context.bot.delete_message(
+                        chat_id=chat_id, message_id=message_id
+                    )
+                    return
+
+        if (
+            msg.author_signature
+            and config["white_lists_mode"] != "off"
+            and not (await check_protection(context=context, msg=msg, config=config))
+        ):
+            ok = False
+            if config["white_lists_mode"] == "admins":
+                admins = await context.bot.get_chat_administrators(chat_id)
+                for u in admins:
+                    admin = ""
+                    if u.user.first_name:
+                        admin += u.user.first_name
+                    if u.user.first_name and u.user.last_name:
+                        admin += " "
+                    if u.user.last_name:
+                        admin += u.user.last_name
+
+                    if admin == msg.author_signature:
+                        ok = True
+
+            if (
+                config["white_lists_mode"] == "admins"
+                or config["white_lists_mode"] == "manual"
+            ):
+                for u in config["white_list"]:
+                    if u == msg.author_signature:
+                        ok = True
 
             if not ok:
                 await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
                 return
-
-    if (
-        msg.author_signature
-        and config["white_lists_mode"] != "off"
-        and not (await check_protection(context=context, msg=msg, config=config))
-    ):
-        ok = False
-        if config["white_lists_mode"] == "admins":
-            admins = await context.bot.get_chat_administrators(chat_id)
-            for u in admins:
-                admin = ""
-                if u.user.first_name:
-                    admin += u.user.first_name
-                if u.user.first_name and u.user.last_name:
-                    admin += " "
-                if u.user.last_name:
-                    admin += u.user.last_name
-
-                if admin == msg.author_signature:
-                    ok = True
-
-        if (
-            config["white_lists_mode"] == "admins"
-            or config["white_lists_mode"] == "manual"
-        ):
-            for u in config["white_list"]:
-                if u == msg.author_signature:
-                    ok = True
-
-        if not ok:
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-            return
 
     if len(messages) >= 10 and messages[-10].age() < 5:
         await tools.blockall(context=context, msg=None, x=0)

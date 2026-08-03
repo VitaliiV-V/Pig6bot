@@ -288,6 +288,25 @@ def get_operations():
     return result
 
 
+from pathlib import Path
+from fastapi.responses import Response
+
+CERT_DIR = Path("certificates")
+
+
+@app.get("/certificate/{filename}")
+def get_certificate(filename: str):
+    filename = filename + ".json"
+    file_path = CERT_DIR / filename
+
+    if not file_path.exists():
+        return {"error": "Certificate not found"}
+
+    return Response(
+        content=file_path.read_text(encoding="utf-8"), media_type="application/json"
+    )
+
+
 @app.get("/")
 def index():
     return FileResponse("web/index.html")

@@ -10,6 +10,32 @@ from datetime import datetime
 from telegram.ext import ContextTypes
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from economy.pig6economy import *
+import json
+import os
+from cryptography.hazmat.primitives import serialization
+from cryptography.exceptions import InvalidSignature
+
+
+def verify_certificate(user_id, text, signature):
+
+    public_path = f"keys/public/{user_id}.public.pem"
+
+    if not os.path.exists(public_path):
+        return False
+
+    with open(public_path, "rb") as f:
+        public_key = serialization.load_pem_public_key(f.read())
+
+    payload = f"{user_id}:{text}".encode("utf-8")
+
+    try:
+        public_key.verify(bytes.fromhex(signature), payload)
+
+        return True
+
+    except Exception as e:
+        return False
+
 
 superlist = []
 
@@ -196,6 +222,138 @@ async def check_super_user(
 
                     return True
     return False
+
+
+async def check_signed_user(
+    context: ContextTypes.DEFAULT_TYPE,
+    msg,
+    config,
+):
+    if not msg.text:
+        return False
+
+    if not msg.author_signature:
+        return False
+
+    message_text = msg.text
+    signature = None
+
+    for i in config["signed_users"]:
+
+        if str(msg.author_signature) != str(i["name"]):
+            continue
+
+        message_text = message_text.replace(
+            "\n\nThis message was signed by Pig-6 Certificates.\nView signature.", ""
+        ).strip()
+
+        if msg.entities:
+            for entity in msg.entities:
+                if entity.type == "text_link":
+                    signature = entity.url.rsplit("/")[-1]
+                    break
+        if not signature:
+
+            print("Подпись не найдена")
+
+            return None
+
+        print(f"Автор: {i['name']}")
+        print(f"Роль: {i['role']}")
+        print(f"Текст: «{message_text}»")
+        print(f"Подпись: {signature}")
+
+        if verify_certificate(i["owner_id"], message_text, signature):
+            print("✅ Подпись верная")
+            return i["role"]
+        else:
+            print("❌ Подпись неверная")
+            return False
+        return True
+
+    return False
+
+
+async def owner_commands(context: ContextTypes.DEFAULT_TYPE, msg, config):
+    global last_time
+    chat_id = msg.chat_id
+
+    message_id = msg.message_id
+
+    message_text = msg.text or ""
+
+    bot_name = (await context.bot.get_me()).first_name
+    if "/bangif" in message_text:
+        config = load_config()
+        config["bad_gifs"].append(msg.reply_to_message.animation.file_id)
+        save_config(config)
+    elif "/ban" in message_text:
+        tools.ban(msg.reply_to_message.author_signature)
+    elif "/unban" in message_text:
+        tools.unban(msg.reply_to_message.author_signature)
+    elif "EXCOMMUNICADO" in message_text:
+        config = load_config()
+        config["mode"] = "Judgment Day"
+        save_config(config)
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=f"Системное уведомление «{bot_name}»:\n"
+            "Активирован протокол «Judgment Day».\n"
+            "Все сообщения в канале и чате будут уничтожены.\n"
+            "Доступ пользователей аннулирован.\n"
+            "Попытки обхода бесполезны.\n"
+            "Канал изолирован и находится под полным контролем.\n\n"
+            f"Код подтверждения: {config['Judgment Day Code']}",
+        )
+
+        await asyncio.sleep(1)
+        name = ""
+        for i in config["protected_users"]:
+            if i["name"] in msg.reply_to_message.author_signature:
+                name = i["name"]
+        for i in range(5, 0, -1):
+            config = load_config()
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=(
+                    f"{name} EXCOMMUNICADO {i}\n\n"
+                    f"Код подтверждения: {config['Judgment Day Code']}"
+                ),
+            )
+            await asyncio.sleep(1)
+        config = load_config()
+        for i in config["protected_users"]:
+            if i["name"] in msg.reply_to_message.author_signature:
+                await context.bot.set_chat_title(i["channel_id"], "EXCOMMUNICADO")
+                i["name"] = "74938749037493793409"
+                i["uuid"] = "EXCOMMUNICADO"
+                save_config(config)
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text=(
+                        f"{name} EXCOMMUNICADO в силе\n\n"
+                        "Решением системы безопасности Свинья-6 защита вашего канала отозвана.\n\n"
+                        "UUID-подпись аннулирована.\n"
+                        "Канал исключён из списка доверенных и навсегда внесён в черный список.\n\n"
+                        "Вы лишаетесь всех прав и привилегий.\n"
+                        "Отныне вы — изгой.\n\n"
+                        "Доступ к сервисам Свиньи-6 прекращён.\n\n"
+                        "Вердикт окончательный.\n\n"
+                        f"Код подтверждения: {config['Judgment Day Code']}"
+                    ),
+                    reply_to_message_id=msg.reply_to_message.message_id,
+                )
+
+        await asyncio.sleep(1)
+        config = load_config()
+        config["mode"] = "normal"
+        save_config(config)
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=f"Системное уведомление «{bot_name}»:\n"
+            "Протокол «Judgment Day» остановлен.\n\n"
+            f"Код подтверждения: {config['Judgment Day Code']}",
+        )
 
 
 async def check_owner(

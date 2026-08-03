@@ -11,3 +11,5 @@ supervisord.pid
 pig6economy.db
 gifs/
 assets/dataset.json
+certificates/
+keys/
