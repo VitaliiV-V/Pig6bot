@@ -21,6 +21,7 @@ from telegram.ext import (
     ApplicationBuilder,
     CallbackQueryHandler,
     CommandHandler,
+    ContextTypes,
 )
 
 from uuid import uuid4
