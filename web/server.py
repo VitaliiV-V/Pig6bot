@@ -608,7 +608,7 @@ Message
 
 <p class="subtitle">
 
-This message was signed using Pig-6 Certificates.
+This message was signed by Pig-6 Certificates.
 
 </p>
 
