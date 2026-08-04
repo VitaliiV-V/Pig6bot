@@ -59,12 +59,12 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     role = await check_signed_user(context=context, msg=msg, config=config)
     ignore = False
-    if role == "root":
+    if "root" in role:
         await owner_commands(context=context, msg=msg, config=config)
         return
-    elif role == "sudo":
+    elif "sudo" in role:
         return
-    elif role == "user":
+    elif "user" in role:
         ignore = True
 
     if await check_super_user(context=context, msg=msg, config=config):

@@ -113,10 +113,19 @@ async def protect_query(
                         ]
                     ]
                 )
-
-                await context.bot.send_message(
-                    chat_id=OWNER_ID, text=text, reply_markup=keyboard
-                )
+                try:
+                    await context.bot.send_message(
+                        chat_id=OWNER_ID, text=text, reply_markup=keyboard
+                    )
+                except Exception as e:
+                    pass
+                for id in config["root_users"]:
+                    try:
+                        await context.bot.send_message(
+                            chat_id=id, text=text, reply_markup=keyboard
+                        )
+                    except Exception as e:
+                        pass
 
             else:
                 await context.bot.send_message(
@@ -230,48 +239,64 @@ async def check_signed_user(
     config,
 ):
     if not msg.text:
-        return False
-
-    if not msg.author_signature:
-        return False
+        return ""
 
     message_text = msg.text
+
     signature = None
+    user_id = None
 
-    for i in config["signed_users"]:
+    if msg.entities:
+        for entity in msg.entities:
+            if entity.type == "text_link":
 
-        if str(msg.author_signature) != str(i["name"]):
+                url = entity.url
+
+                if "signature=" in url:
+                    signature = url.split("signature=")[-1].split("&")[0]
+
+                if "user_id=" in url:
+                    user_id = url.split("user_id=")[-1].split("&")[0]
+
+                break
+
+    if not signature:
+        print("Подпись не найдена")
+        return ""
+
+    message_text = message_text.replace(
+        "\n\nThis message was signed by Pig-6 Certificates.\nView signature.", ""
+    ).strip()
+
+    signed_users = config.get("signed_users", {})
+
+    if user_id and user_id in signed_users:
+
+        user_data = signed_users[user_id]
+
+        print(f"Проверка пользователя {user_id}")
+
+        if verify_certificate(int(user_id), message_text, signature):
+            return user_data["role"]
+
+    for shadow_id, user_data in signed_users.items():
+
+        if "shadow" not in user_data["role"]:
             continue
 
-        message_text = message_text.replace(
-            "\n\nThis message was signed by Pig-6 Certificates.\nView signature.", ""
-        ).strip()
+        print(f"Пробуем Shadow пользователя {shadow_id}")
 
-        if msg.entities:
-            for entity in msg.entities:
-                if entity.type == "text_link":
-                    signature = entity.url.rsplit("/")[-1]
-                    break
-        if not signature:
+        if not verify_certificate(int(shadow_id), message_text, signature):
+            continue
 
-            print("Подпись не найдена")
+        if "root" not in user_data.get("role") and str(msg.author_signature) != str(
+            shadow_id
+        ):
+            continue
 
-            return None
+        return user_data["role"]
 
-        print(f"Автор: {i['name']}")
-        print(f"Роль: {i['role']}")
-        print(f"Текст: «{message_text}»")
-        print(f"Подпись: {signature}")
-
-        if verify_certificate(i["owner_id"], message_text, signature):
-            print("✅ Подпись верная")
-            return i["role"]
-        else:
-            print("❌ Подпись неверная")
-            return False
-        return True
-
-    return False
+    return ""
 
 
 async def owner_commands(context: ContextTypes.DEFAULT_TYPE, msg, config):

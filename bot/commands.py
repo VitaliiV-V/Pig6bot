@@ -20,6 +20,13 @@ from telegram import (
 g = Generator()
 
 
+def check_id(user_id):
+    config = load_config()
+    if user_id in config["root_users"]:
+        return True
+    return user_id == OWNER_ID
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bot_name = (await context.bot.get_me()).first_name
     msg = update.message
@@ -40,7 +47,7 @@ async def blockallh(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not msg:
         return
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
         await tools.blockall(context=context, msg=msg)
     else:
 
@@ -58,7 +65,7 @@ async def smart(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
 
         name = str(MAIN_CHANNEL_ID)
         config = load_config()
@@ -91,7 +98,7 @@ async def disable(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
 
         name = str(MAIN_CHANNEL_ID)
         config = load_config()
@@ -184,7 +191,7 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     action, data = query.data.split("^")
 
     if action == "approve":
-        if query.from_user.id != OWNER_ID:
+        if not check_id(query.from_user.id):
             await query.answer(
                 f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
             )
@@ -209,7 +216,7 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text("✅ Видеозапись отправлена пользователю")
         req["status"] = "approved"
     elif action == "reject":
-        if query.from_user.id != OWNER_ID:
+        if not check_id(query.from_user.id):
             await query.answer(
                 f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
             )
@@ -226,7 +233,7 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("❌ Запрос отклонён")
 
     elif action == "protectc":
-        if query.from_user.id != OWNER_ID:
+        if not check_id(query.from_user.id):
             await query.answer(
                 f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
             )
@@ -256,7 +263,7 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_to_message_id=query.message.message_id,
             )
     elif action == "rejectc":
-        if query.from_user.id != OWNER_ID:
+        if check_id(query.from_user.id):
             await query.answer(
                 f"Внимание! Системой защиты «{bot_name}» отражена попытка несанкционированного доступа к телеграм каналу"
             )
@@ -292,7 +299,7 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
 
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
@@ -318,7 +325,7 @@ async def unban(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
 
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
@@ -343,7 +350,7 @@ async def setwhitelistsmode(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
 
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
         if s == "admins" or s == "admins_only" or s == "manual" or s == "off":
@@ -372,7 +379,7 @@ async def addtolists(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
 
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
@@ -408,7 +415,7 @@ async def delfromlists(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
 
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
@@ -457,7 +464,7 @@ async def reject(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
         await msg.reply_text(f"Отклонено", reply_markup=ReplyKeyboardRemove())
 
     else:
@@ -475,7 +482,7 @@ async def setfreq(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
 
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
@@ -527,7 +534,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not msg:
         return
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
         name = str(MAIN_CHANNEL_ID)
 
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
@@ -555,7 +562,7 @@ async def jday(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not msg:
         return
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
         name = str(MAIN_CHANNEL_ID)
         config = load_config()
         status = "активен"
@@ -604,7 +611,7 @@ async def jdaycode(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not msg:
         return
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
         config = load_config()
 
         await msg.reply_text(
@@ -640,7 +647,7 @@ async def config(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not msg:
         return
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
         document = update.message.document
         if document:
             file = await document.get_file()
@@ -665,7 +672,7 @@ async def receive_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not msg:
         return
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
         document = update.message.document
         if document:
             file = await document.get_file()
@@ -686,7 +693,7 @@ async def set_base_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
 
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 
@@ -716,7 +723,7 @@ async def anon_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
 
         s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
 

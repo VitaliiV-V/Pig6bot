@@ -24,7 +24,7 @@ from fastapi.responses import FileResponse
 import uvicorn
 from datetime import datetime
 from typing import Literal
-
+from fastapi import HTTPException
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -766,6 +766,1207 @@ Cryptographically signed messages.
 """
 
 
+from fastapi import Query
+from fastapi.responses import HTMLResponse
+import json
+
+
+@app.get("/check", response_class=HTMLResponse)
+def certificate(
+    signature: str = Query(...),
+    user_id: int | None = Query(None),
+):
+
+    with open(f"certificates/{signature}.json", "r", encoding="utf-8") as f:
+        cert = json.load(f)
+
+    author = cert["author"]
+
+    author_name_parts = [
+        author.get("first_name"),
+        author.get("last_name"),
+    ]
+
+    author_name = " ".join(part for part in author_name_parts if part)
+
+    if not author_name:
+        author_name = "Unknown"
+
+    if author.get("username"):
+        author_name += f" ({author['username']})"
+
+        # здесь можешь использовать user_id для новой схемы проверки
+        # например:
+        # if user_id is not None:
+        #     verify_certificate(user_id, ...)
+    public_key = "Public key not found"
+
+    public_path = f"keys/public/{author['id']}.public.pem"
+
+    if os.path.exists(public_path):
+
+        with open(public_path, "r", encoding="utf-8") as f:
+
+            public_key = f.read()
+
+        return f"""
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Pig-6 Certificate</title>
+
+
+<style>
+
+:root {{
+
+    --bg: #09090b;
+    --surface: #111113;
+    --surface-2: #18181b;
+
+    --border: #27272a;
+
+    --text: #fafafa;
+    --muted: #a1a1aa;
+
+    --green: #22c55e;
+
+    --radius: 18px;
+
+    --shadow:
+        0 12px 40px rgba(0,0,0,.35);
+
+}}
+
+
+* {{
+
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+
+}}
+
+
+body {{
+
+    background:var(--bg);
+
+    color:var(--text);
+
+    font-family:"Inter", sans-serif;
+
+    line-height:1.5;
+
+}}
+
+
+#app {{
+
+    max-width:1100px;
+
+    margin:auto;
+
+    padding:60px 32px 80px;
+
+}}
+
+.copy-btn {{
+
+    margin-bottom: 16px;
+
+    padding: 8px 14px;
+
+    background: var(--surface-2);
+
+    color: var(--text);
+
+    border: 1px solid var(--border);
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    transition: .2s ease;
+
+}}
+
+.copy-btn:hover {{
+
+    background: #222226;
+
+}}
+
+.copy-btn.copied {{
+
+    background: var(--green);
+
+    border-color: var(--green);
+
+    color: white;
+
+}}
+
+.badge {{
+
+    display:inline-flex;
+
+    padding:8px 14px;
+
+    border-radius:999px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    color:var(--muted);
+
+    font-size:13px;
+
+    margin-bottom:30px;
+
+}}
+
+
+.hero {{
+
+    display:grid;
+
+    grid-template-columns:1fr 350px;
+
+    gap:50px;
+
+    align-items:center;
+
+    margin-bottom:50px;
+
+}}
+
+
+h1 {{
+
+    font-size:72px;
+
+    letter-spacing:-3px;
+
+    line-height:1;
+
+}}
+
+
+.subtitle {{
+
+    color:var(--muted);
+
+    margin-top:15px;
+
+    font-size:18px;
+
+}}
+
+.label-row {{
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 10px;
+
+}}
+
+
+.copy-btn {{
+
+    padding: 6px 12px;
+
+    background: var(--surface-2);
+
+    color: var(--text);
+
+    border: 1px solid var(--border);
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    transition: .2s ease;
+
+    font-size: 13px;
+
+}}
+
+
+.copy-btn:hover {{
+
+    background: #27272a;
+
+}}
+
+
+.copy-btn.copied {{
+
+    background: #3b82f6;
+
+    border-color: #3b82f6;
+
+    color: white;
+
+}}
+
+
+.card {{
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    padding:28px;
+
+    box-shadow:var(--shadow);
+
+    margin-bottom:25px;
+
+}}
+
+
+.label {{
+
+    color:var(--muted);
+
+    font-size:12px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.08em;
+
+    margin-bottom:10px;
+
+    display:block;
+
+}}
+
+
+.status {{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    font-size:20px;
+
+}}
+
+
+.dot {{
+
+    width:12px;
+
+    height:12px;
+
+    background:var(--green);
+
+    border-radius:50%;
+
+    box-shadow:0 0 12px rgba(34,197,94,.6);
+
+}}
+
+
+.grid {{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:20px;
+
+}}
+
+
+.info-value {{
+
+    font-size:20px;
+
+    font-weight:700;
+
+}}
+
+
+pre {{
+
+    white-space:pre-wrap;
+
+    color:#d4d4d8;
+
+    font-family:ui-monospace, monospace;
+
+    line-height:1.8;
+
+}}
+
+
+
+code {{
+
+    word-break:break-all;
+
+    color:#d4d4d8;
+
+}}
+
+
+footer {{
+
+    margin-top:60px;
+
+    padding-top:30px;
+
+    border-top:1px solid var(--border);
+
+    color:var(--muted);
+
+}}
+
+
+@media(max-width:900px) {{
+
+    .hero,
+    .grid {{
+
+        grid-template-columns:1fr;
+
+    }}
+
+
+    h1 {{
+
+        font-size:48px;
+
+    }}
+
+}}
+
+</style>
+
+
+</head>
+
+<script>
+
+async function copyText(id, button) {{
+
+    const text = document.getElementById(id).innerText;
+
+    await navigator.clipboard.writeText(text);
+
+    button.classList.add("copied");
+    button.textContent = "Copied";
+
+    setTimeout(() => {{
+
+        button.classList.remove("copied");
+        button.textContent = "Copy";
+
+    }}, 1500);
+
+}}
+
+</script>
+
+<body>
+
+
+<div id="app">
+
+
+<div class="badge">
+
+Pig-6 Certificates
+
+</div>
+
+
+
+<div class="hero">
+
+
+<div>
+
+<h1>
+
+Verified<br>
+Message
+
+</h1>
+
+
+<p class="subtitle">
+
+This message was signed by Pig-6 Certificates.
+
+</p>
+
+
+</div>
+
+
+
+<div class="card">
+
+
+<span class="label">
+
+Signature status
+
+</span>
+
+
+<div class="status">
+
+<div class="dot"></div>
+
+VALID
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+<div class="card">
+
+<div class="label-row">
+
+<span class="label">
+
+Message 
+
+</span>
+
+<button class="copy-btn" onclick="copyText('message', this)">
+
+    Copy
+
+</button>
+
+</div>
+
+<pre id="message"><code>{cert["message"]}</code></pre>
+
+</div>
+
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<span class="label">
+
+Author
+
+</span>
+
+<div class="info-value">
+
+{author_name}
+
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<span class="label">
+
+Created at
+
+</span>
+
+
+<div class="info-value">
+
+{cert["created_at"]}
+
+</div>
+
+
+</div>
+
+
+
+<div class="card">
+
+<span class="label">
+
+Certificate ID
+
+</span>
+
+
+<div class="info-value">
+
+{cert["id"]}
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+<div class="label-row">
+
+<span class="label">
+Cryptographic Signature
+</span>
+
+<button class="copy-btn" onclick="copyText('signature', this)">
+    Copy
+</button>
+
+</div>
+
+<pre id="signature"><code>{cert["signature"]}</code></pre>
+
+</div>
+
+
+<div class="card">
+
+<div class="label-row">
+
+<span class="label">
+Public Key
+</span>
+
+<button class="copy-btn" onclick="copyText('pubkey', this)">
+    Copy
+</button>
+
+</div>
+
+<pre id="pubkey"><code>{public_key}</code></pre>
+
+</div>
+
+
+<footer>
+
+Pig-6 Certificates<br>
+
+Cryptographically signed messages.
+
+</footer>
+
+
+</div>
+
+
+</body>
+
+</html>
+
+"""
+
+
+@app.get("/shadow", response_class=HTMLResponse)
+def shadow_certificate(
+    signature: str = Query(...),
+):
+
+    with open(f"certificates/{signature}.json", "r", encoding="utf-8") as f:
+        cert = json.load(f)
+
+    public_key = "Public key not found"
+
+    author_id = cert["author"]["id"]
+
+    public_path = f"keys/public/{author_id}.public.pem"
+
+    if os.path.exists(public_path):
+        with open(public_path, "r", encoding="utf-8") as f:
+            public_key = f.read()
+    if cert.get("shadow") is not True:
+
+        raise HTTPException(status_code=404)
+    return f"""
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Shadow Protocol</title>
+
+
+<style>
+
+:root {{
+
+    --bg: #050505;
+    --surface: #0d0d0f;
+    --surface-2: #18181b;
+
+    --border: #27272a;
+
+    --text: #fafafa;
+    --muted: #71717a;
+
+    --purple: #8b5cf6;
+
+    --radius: 18px;
+
+    --shadow:
+        0 12px 40px rgba(0,0,0,.55);
+
+}}
+
+
+* {{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}}
+
+
+body {{
+
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Inter",sans-serif;
+    line-height:1.5;
+
+}}
+
+
+#app {{
+
+    max-width:1100px;
+    margin:auto;
+    padding:60px 32px 80px;
+
+}}
+
+
+.badge {{
+
+    display:inline-flex;
+    padding:8px 14px;
+    border-radius:999px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    color:var(--muted);
+
+    font-size:13px;
+
+    margin-bottom:30px;
+
+    letter-spacing:.1em;
+
+}}
+
+
+.hero {{
+
+    display:grid;
+
+    grid-template-columns:1fr 350px;
+
+    gap:50px;
+
+    align-items:center;
+
+    margin-bottom:50px;
+
+}}
+
+
+h1 {{
+
+    font-size:72px;
+
+    letter-spacing:-3px;
+
+    line-height:1;
+
+}}
+
+
+.subtitle {{
+
+    color:var(--muted);
+
+    margin-top:15px;
+
+    font-size:18px;
+
+}}
+
+
+.card {{
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    padding:28px;
+
+    box-shadow:var(--shadow);
+
+    margin-bottom:25px;
+
+}}
+
+
+.label-row {{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    margin-bottom:10px;
+
+}}
+
+
+.label {{
+
+    color:var(--muted);
+
+    font-size:12px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.08em;
+
+}}
+
+
+.copy-btn {{
+
+    padding:6px 12px;
+
+    background:var(--surface-2);
+
+    color:var(--text);
+
+    border:1px solid var(--border);
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+}}
+
+
+.copy-btn:hover {{
+
+    background:#27272a;
+
+}}
+
+
+.copy-btn.copied {{
+
+    background:#3b82f6;
+
+    border-color:#3b82f6;
+
+}}
+
+
+.status {{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    font-size:20px;
+
+}}
+
+
+.dot {{
+
+    width:12px;
+
+    height:12px;
+
+    background:var(--purple);
+
+    border-radius:50%;
+
+    box-shadow:0 0 15px rgba(139,92,246,.8);
+
+}}
+
+
+.grid {{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:20px;
+
+}}
+
+
+.info-value {{
+
+    font-size:20px;
+
+    font-weight:700;
+
+    color:#a78bfa;
+
+}}
+
+
+pre {{
+
+    white-space:pre-wrap;
+
+    color:#d4d4d8;
+
+    font-family:monospace;
+
+    line-height:1.8;
+
+}}
+
+
+code {{
+
+    word-break:break-all;
+
+    color:#a78bfa;
+
+}}
+
+
+footer {{
+
+    margin-top:60px;
+
+    padding-top:30px;
+
+    border-top:1px solid var(--border);
+
+    color:var(--muted);
+
+}}
+
+
+@media(max-width:900px) {{
+
+    .hero,
+    .grid {{
+        grid-template-columns:1fr;
+    }}
+
+    h1 {{
+        font-size:48px;
+    }}
+
+}}
+
+</style>
+
+
+<script>
+
+async function copyText(id, button) {{
+
+    const text = document.getElementById(id).innerText;
+
+    await navigator.clipboard.writeText(text);
+
+    button.classList.add("copied");
+
+    button.textContent="Copied";
+
+    setTimeout(() => {{
+
+        button.classList.remove("copied");
+
+        button.textContent="Copy";
+
+    }},1500);
+
+}}
+
+</script>
+
+
+</head>
+
+
+<body>
+
+
+<div id="app">
+
+
+<div class="badge">
+
+Shadow Protocol
+
+</div>
+
+
+<div class="hero">
+
+
+<div>
+
+<h1>
+
+Shadow<br>
+Certificate
+
+</h1>
+
+
+<p class="subtitle">
+
+Anonymous cryptographic layer.
+Public identity records are sealed.
+
+</p>
+
+
+</div>
+
+
+
+<div class="card">
+
+
+<span class="label">
+
+Protocol status
+
+</span>
+
+
+<div class="status">
+
+<div class="dot"></div>
+
+SHADOW VERIFIED
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+<div class="card">
+
+<div class="label-row">
+
+<span class="label">
+
+Message
+
+</span>
+
+
+<button class="copy-btn" onclick="copyText('message',this)">
+Copy
+</button>
+
+
+</div>
+
+
+<pre id="message"><code>{cert["message"]}</code></pre>
+
+
+</div>
+
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<span class="label">
+
+Identity
+
+</span>
+
+
+<div class="info-value">
+
+Hidden
+
+</div>
+
+
+</div>
+
+
+
+<div class="card">
+
+<span class="label">
+
+Timestamp
+
+</span>
+
+
+<div class="info-value">
+
+Hidden
+
+</div>
+
+
+</div>
+
+
+
+<div class="card">
+
+<span class="label">
+
+Certificate ID
+
+</span>
+
+
+<div class="info-value">
+
+Hidden
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+<div class="card">
+
+
+<div class="label-row">
+
+<span class="label">
+
+Cryptographic Signature
+
+</span>
+
+
+<button class="copy-btn" onclick="copyText('signature',this)">
+Copy
+</button>
+
+
+</div>
+
+
+<pre id="signature"><code>{cert["signature"]}</code></pre>
+
+
+</div>
+
+
+
+<div class="card">
+
+
+<div class="label-row">
+
+<span class="label">
+
+Public Key
+
+</span>
+
+
+<button class="copy-btn" onclick="copyText('pubkey',this)">
+Copy
+</button>
+
+
+</div>
+
+
+<pre id="pubkey"><code>{public_key}</code></pre>
+
+
+</div>
+
+
+
+<footer>
+
+Shadow Protocol<br>
+
+Anonymous cryptographic certification layer.
+
+</footer>
+
+
+</div>
+
+
+</body>
+
+</html>
+
+"""
+
+
 @app.get("/")
 def index():
     return FileResponse("web/index.html")
@@ -788,6 +1989,204 @@ def get_market_api_alias():
 
 import threading
 import uvicorn
+
+
+@app.exception_handler(404)
+async def not_found(request, exc):
+
+    return HTMLResponse(
+        """
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>404</title>
+
+<style>
+
+:root {
+
+    --bg: #09090b;
+    --surface: #111113;
+    --surface-2: #18181b;
+
+    --border: #27272a;
+
+    --text: #fafafa;
+    --muted: #a1a1aa;
+
+    --radius: 18px;
+
+    --shadow:
+        0 12px 40px rgba(0,0,0,.35);
+
+}
+
+
+* {
+
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+
+}
+
+
+body {
+
+    background:var(--bg);
+
+    color:var(--text);
+
+    font-family:"Inter", sans-serif;
+
+    line-height:1.5;
+
+    height:100vh;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+
+#app {
+
+    max-width:600px;
+
+    width:100%;
+
+    padding:32px;
+
+}
+
+
+.card {
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    padding:40px;
+
+    box-shadow:var(--shadow);
+
+    text-align:center;
+
+}
+
+
+h1 {
+
+    font-size:90px;
+
+    font-weight:700;
+
+    letter-spacing:-4px;
+
+    line-height:1;
+
+    margin-bottom:20px;
+
+}
+
+
+.title {
+
+    font-size:24px;
+
+    font-weight:700;
+
+    margin-bottom:12px;
+
+}
+
+
+.text {
+
+    color:var(--muted);
+
+    font-size:16px;
+
+}
+
+
+footer {
+
+    margin-top:30px;
+
+    text-align:center;
+
+    color:var(--muted);
+
+    font-size:13px;
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div id="app">
+
+
+<div class="card">
+
+
+<h1>
+
+404
+
+</h1>
+
+
+<div class="title">
+
+Page not found
+
+</div>
+
+
+<div class="text">
+
+The requested page does not exist.
+
+</div>
+
+
+</div>
+
+
+<footer>
+
+Nothing here.
+
+</footer>
+
+
+</div>
+
+
+</body>
+
+</html>
+        """,
+        status_code=404,
+    )
 
 
 def run_api():

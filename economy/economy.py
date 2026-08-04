@@ -19,6 +19,13 @@ from telegram import (
 )
 
 
+def check_id(user_id):
+    config = load_config()
+    if user_id in config["root_users"]:
+        return True
+    return user_id == OWNER_ID
+
+
 async def replenish_codes(context):
     count = economy.get_active_codes_count()
 
@@ -408,7 +415,7 @@ async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     bot_name = (await context.bot.get_me()).first_name
 
-    if user_id == OWNER_ID:
+    if check_id(user_id):
 
         args = msg.text.split()
 

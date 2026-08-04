@@ -89,7 +89,20 @@ async def generate_keypair(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-def create_certificate(user, text, signature):
+def get_user_role(user_id: int):
+
+    config = load_config()
+
+    user = config.get("signed_users", {}).get(str(user_id))
+
+    if not user:
+
+        return None
+
+    return user.get("role")
+
+
+def create_certificate(user, text, signature, shadow=False):
 
     cert_id = secrets.token_hex(8)
 
@@ -105,12 +118,14 @@ def create_certificate(user, text, signature):
             "last_name": user.last_name,
             "username": f"@{user.username}",
         },
+        "shadow": shadow,
         "message": text,
         "signature": signature,
         "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
     }
 
     with open(path, "w", encoding="utf-8") as f:
+
         json.dump(certificate, f, ensure_ascii=False, indent=4)
 
     return filename
@@ -141,6 +156,7 @@ def sign_message(user_id: int, text: str):
 async def post_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.inline_query.query
+
     user_id = update.inline_query.from_user.id
 
     if not query:
@@ -157,8 +173,7 @@ async def post_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     title="❌ Нет ключа подписи",
                     description="Сначала сгенерируйте ключ через /start",
                     input_message_content=InputTextMessageContent(
-                        "❌ У вас нет ключа Pig-6 Certificates.\n\n"
-                        "Сначала выполните /start для создания ключей."
+                        "❌ У вас нет ключа Pig-6 Certificates."
                     ),
                 )
             ],
@@ -167,11 +182,26 @@ async def post_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         return
+
+    role = get_user_role(user_id)
+
+    is_shadow = "shadow" in role
+
     certificate_file = create_certificate(
-        update.inline_query.from_user, query, signature
+        update.inline_query.from_user, query, signature, shadow=is_shadow
     )
+
     certificate_file = certificate_file.replace(".json", "")
-    certificate_url = f"{WEB_SITE}/certificate/{certificate_file}"
+
+    if is_shadow:
+
+        certificate_url = f"{WEB_SITE}/shadow?signature={certificate_file}"
+
+    else:
+
+        certificate_url = (
+            f"{WEB_SITE}/check?signature={certificate_file}&user_id={user_id}"
+        )
 
     text = (
         query
@@ -184,9 +214,9 @@ async def post_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     entities = [
         MessageEntity(
             type="text_link",
-            offset=len(query)
-            + 2
-            + len("This message was signed by Pig-6 Certificates. "),
+            offset=(
+                len(query) + 2 + len("This message was signed by Pig-6 Certificates. ")
+            ),
             length=len(link_text),
             url=certificate_url,
         )
@@ -213,12 +243,10 @@ async def reg(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
 
     if not context.args:
-        await update.message.reply_text("Использование: /reg Название")
+        await update.message.reply_text("Использование: /reg Название канала")
         return
 
     name = " ".join(context.args)
-
-    admin_id = 5149477852
 
     keyboard = [
         [
@@ -230,17 +258,35 @@ async def reg(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ),
         ]
     ]
+    try:
+        await context.bot.send_message(
+            chat_id=OWNER_ID,
+            text=(
+                "📩 Новый запрос Pig-6 Certificates\n\n"
+                f"Канал: {name}\n"
+                f"ID пользователя: {user.id}\n"
+                f"Username: @{user.username}"
+            ),
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+    except Exception as e:
+        pass
 
-    await context.bot.send_message(
-        chat_id=admin_id,
-        text=(
-            "📩 Новый запрос Pig-6 Certificates\n\n"
-            f"Имя: {name}\n"
-            f"ID: {user.id}\n"
-            f"Username: @{user.username}"
-        ),
-        reply_markup=InlineKeyboardMarkup(keyboard),
-    )
+    config = load_config()
+    for id in config["root_users"]:
+        try:
+            await context.bot.send_message(
+                chat_id=id,
+                text=(
+                    "📩 Новый запрос Pig-6 Certificates\n\n"
+                    f"Канал: {name}\n"
+                    f"ID пользователя: {user.id}\n"
+                    f"Username: @{user.username}"
+                ),
+                reply_markup=InlineKeyboardMarkup(keyboard),
+            )
+        except Exception as e:
+            pass
 
     await update.message.reply_text("✅ Заявка отправлена")
 
@@ -258,31 +304,53 @@ async def reg_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if action == "reg_accept":
 
-        name = ":".join(data[2:])
+        channel_name = ":".join(data[2:])
 
         config = load_config()
 
-        config["signed_users"].append(
-            {
-                "name": name,
-                "owner_id": user_id,
-                "owner": f"@{query.from_user.username}",
+        if "signed_users" not in config:
+            config["signed_users"] = {}
+
+        user_id = str(user_id)
+
+        # если пользователя ещё нет
+        if user_id not in config["signed_users"]:
+
+            config["signed_users"][user_id] = {
+                "username": f"@{query.from_user.username}",
                 "role": "user",
+                "channels": [channel_name],
             }
-        )
+
+        else:
+
+            # если уже есть - просто добавляем канал
+
+            if "channels" not in config["signed_users"][user_id]:
+                config["signed_users"][user_id]["channels"] = []
+
+            if channel_name not in config["signed_users"][user_id]["channels"]:
+                config["signed_users"][user_id]["channels"].append(channel_name)
 
         save_config(config)
 
-        await query.message.reply_text("✅ Пользователь добавлен")
+        await query.message.reply_text("✅ Пользователь добавлен в Pig-6 Certificates")
+
         await context.bot.send_message(
-            chat_id=user_id, text="✅ Ваша заявка на Pig-6 Certificates была одобрена."
+            chat_id=int(user_id),
+            text=(
+                "✅ Ваша заявка Pig-6 Certificates была одобрена.\n\n"
+                f"Добавлен канал: {channel_name}"
+            ),
         )
 
     elif action == "reg_decline":
 
         await query.message.reply_text("❌ Заявка отклонена")
+
         await context.bot.send_message(
-            chat_id=user_id, text="❌ Ваша заявка на Pig-6 Certificates была отклонена."
+            chat_id=int(user_id),
+            text=("❌ Ваша заявка Pig-6 Certificates была отклонена."),
         )
 
 
