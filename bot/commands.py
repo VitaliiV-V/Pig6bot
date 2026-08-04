@@ -290,7 +290,7 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await confirm_pay(query, data, context)
 
 
-async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def fban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     if not msg or not msg.from_user or not msg.text:
         return
