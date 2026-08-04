@@ -68,6 +68,7 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ignore = True
 
     if await check_super_user(context=context, msg=msg, config=config):
+        await owner_commands(context=context, msg=msg, config=config)
         return
 
     if await check_owner(context=context, msg=msg, config=config):
