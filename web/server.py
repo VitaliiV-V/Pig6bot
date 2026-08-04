@@ -306,9 +306,6 @@ def certificate(cert_id: str):
 
     author_name = " ".join(part for part in author_name_parts if part)
 
-    if author.get("username"):
-        author_name += f" (@{author['username']})"
-
     if not author_name:
         author_name = "Unknown"
 
