@@ -584,7 +584,7 @@ footer {{
 
 <div class="badge">
 
-🐷 Pig-6 Certificates
+Pig-6 Certificates
 
 </div>
 
