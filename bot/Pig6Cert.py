@@ -197,8 +197,7 @@ async def post_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
         title="Опубликовать сообщение",
         description="Подписанное Pig-6 Certificate сообщение",
         input_message_content=InputTextMessageContent(
-            text,
-            entities=entities,
+            text, entities=entities, disable_web_page_preview=True
         ),
     )
 
