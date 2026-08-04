@@ -310,7 +310,7 @@ def certificate(cert_id: str):
 
     <body>
 
-        <h2>🐷 Pig-6 Certificate</h2>
+        <h2>Pig-6 Certificate</h2>
 
         <p><b>Author:</b> {cert['author']['username']}</p>
 
