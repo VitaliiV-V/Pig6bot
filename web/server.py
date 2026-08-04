@@ -290,45 +290,477 @@ def get_operations():
 
 from fastapi.responses import HTMLResponse
 
+from fastapi.responses import HTMLResponse
+import json
+
 
 @app.get("/certificate/{cert_id}", response_class=HTMLResponse)
 def certificate(cert_id: str):
 
     with open(f"certificates/{cert_id}.json", "r", encoding="utf-8") as f:
-
         cert = json.load(f)
 
+    author = cert["author"]
+
+    author_name = (
+        f"{author.get('first_name', '')} " f"{author.get('last_name', '')}"
+    ).strip()
+
+    if author.get("username"):
+        author_name += f" ({author['username']})"
+
     return f"""
+<!DOCTYPE html>
 
-    <html>
+<html lang="en">
 
-    <head>
+<head>
 
-        <title>Pig-6 Certificate</title>
+<meta charset="UTF-8">
 
-    </head>
+<title>Pig-6 Certificate</title>
 
-    <body>
 
-        <h2>Pig-6 Certificate</h2>
+<style>
 
-        <p><b>Author:</b> {cert['author']['username']}</p>
+:root {{
 
-        <p><b>Created:</b> {cert['created_at']}</p>
+    --bg: #09090b;
+    --surface: #111113;
+    --surface-2: #18181b;
 
-        <p><b>Message:</b></p>
+    --border: #27272a;
 
-        <pre>{cert['message']}</pre>
+    --text: #fafafa;
+    --muted: #a1a1aa;
 
-        <p><b>Signature:</b></p>
+    --green: #22c55e;
 
-        <code>{cert['signature']}</code>
+    --radius: 18px;
 
-    </body>
+    --shadow:
+        0 12px 40px rgba(0,0,0,.35);
 
-    </html>
+}}
 
-    """
+
+* {{
+
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+
+}}
+
+
+body {{
+
+    background:var(--bg);
+
+    color:var(--text);
+
+    font-family:"Inter", sans-serif;
+
+    line-height:1.5;
+
+}}
+
+
+#app {{
+
+    max-width:1100px;
+
+    margin:auto;
+
+    padding:60px 32px 80px;
+
+}}
+
+
+.badge {{
+
+    display:inline-flex;
+
+    padding:8px 14px;
+
+    border-radius:999px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    color:var(--muted);
+
+    font-size:13px;
+
+    margin-bottom:30px;
+
+}}
+
+
+.hero {{
+
+    display:grid;
+
+    grid-template-columns:1fr 350px;
+
+    gap:50px;
+
+    align-items:center;
+
+    margin-bottom:50px;
+
+}}
+
+
+h1 {{
+
+    font-size:72px;
+
+    letter-spacing:-3px;
+
+    line-height:1;
+
+}}
+
+
+.subtitle {{
+
+    color:var(--muted);
+
+    margin-top:15px;
+
+    font-size:18px;
+
+}}
+
+
+.card {{
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    padding:28px;
+
+    box-shadow:var(--shadow);
+
+    margin-bottom:25px;
+
+}}
+
+
+.label {{
+
+    color:var(--muted);
+
+    font-size:12px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.08em;
+
+    margin-bottom:10px;
+
+    display:block;
+
+}}
+
+
+.status {{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    font-size:20px;
+
+}}
+
+
+.dot {{
+
+    width:12px;
+
+    height:12px;
+
+    background:var(--green);
+
+    border-radius:50%;
+
+    box-shadow:0 0 12px rgba(34,197,94,.6);
+
+}}
+
+
+.grid {{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:20px;
+
+}}
+
+
+.info-value {{
+
+    font-size:20px;
+
+    font-weight:700;
+
+}}
+
+
+pre {{
+
+    white-space:pre-wrap;
+
+    color:#d4d4d8;
+
+    font-family:ui-monospace, monospace;
+
+    line-height:1.8;
+
+}}
+
+
+code {{
+
+    word-break:break-all;
+
+    color:#d4d4d8;
+
+}}
+
+
+footer {{
+
+    margin-top:60px;
+
+    padding-top:30px;
+
+    border-top:1px solid var(--border);
+
+    color:var(--muted);
+
+}}
+
+
+@media(max-width:900px) {{
+
+    .hero,
+    .grid {{
+
+        grid-template-columns:1fr;
+
+    }}
+
+
+    h1 {{
+
+        font-size:48px;
+
+    }}
+
+}}
+
+</style>
+
+
+</head>
+
+
+<body>
+
+
+<div id="app">
+
+
+<div class="badge">
+
+🐷 Pig-6 Certificates
+
+</div>
+
+
+
+<div class="hero">
+
+
+<div>
+
+<h1>
+
+Verified<br>
+Message
+
+</h1>
+
+
+<p class="subtitle">
+
+This message was signed using Pig-6 Cryptography.
+
+</p>
+
+
+</div>
+
+
+
+<div class="card">
+
+
+<span class="label">
+
+Signature status
+
+</span>
+
+
+<div class="status">
+
+<div class="dot"></div>
+
+VALID
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+<div class="card">
+
+
+<span class="label">
+
+Message
+
+</span>
+
+
+<pre>{cert["message"]}</pre>
+
+
+</div>
+
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<span class="label">
+
+Author
+
+</span>
+
+<div class="info-value">
+
+{author_name}
+
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<span class="label">
+
+Created at
+
+</span>
+
+
+<div class="info-value">
+
+{cert["created_at"]}
+
+</div>
+
+
+</div>
+
+
+
+<div class="card">
+
+<span class="label">
+
+Certificate ID
+
+</span>
+
+
+<div class="info-value">
+
+{cert["id"]}
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<span class="label">
+
+Cryptographic Signature
+
+</span>
+
+
+<code>
+
+{cert["signature"]}
+
+</code>
+
+
+</div>
+
+
+
+
+<footer>
+
+Pig-6 Certificates<br>
+
+Cryptographically signed messages.
+
+</footer>
+
+
+</div>
+
+
+</body>
+
+</html>
+
+"""
 
 
 @app.get("/")
