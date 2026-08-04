@@ -288,23 +288,47 @@ def get_operations():
     return result
 
 
-from pathlib import Path
-from fastapi.responses import Response
-
-CERT_DIR = Path("certificates")
+from fastapi.responses import HTMLResponse
 
 
-@app.get("/certificate/{filename}")
-def get_certificate(filename: str):
-    filename = filename + ".json"
-    file_path = CERT_DIR / filename
+@app.get("/certificate/{cert_id}", response_class=HTMLResponse)
+def certificate(cert_id: str):
 
-    if not file_path.exists():
-        return {"error": "Certificate not found"}
+    with open(f"certificates/{cert_id}.json", "r", encoding="utf-8") as f:
 
-    return Response(
-        content=file_path.read_text(encoding="utf-8"), media_type="application/json"
-    )
+        cert = json.load(f)
+
+    return f"""
+
+    <html>
+
+    <head>
+
+        <title>Pig-6 Certificate</title>
+
+    </head>
+
+    <body>
+
+        <h2>🐷 Pig-6 Certificate</h2>
+
+        <p><b>Author:</b> {cert['author']['username']}</p>
+
+        <p><b>Created:</b> {cert['created_at']}</p>
+
+        <p><b>Message:</b></p>
+
+        <pre>{cert['message']}</pre>
+
+        <p><b>Signature:</b></p>
+
+        <code>{cert['signature']}</code>
+
+    </body>
+
+    </html>
+
+    """
 
 
 @app.get("/")
