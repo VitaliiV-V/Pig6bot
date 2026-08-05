@@ -3,7 +3,7 @@
 // Replace only this file when backend becomes available.
 // =======================================================
 
-const API_BASE_URL = "http://127.0.0.1:2322/api";
+const API_BASE_URL = "/api";
 
 // false = use mock data
 // true  = use real backend
