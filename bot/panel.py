@@ -170,7 +170,7 @@ def user_detail_keyboard(category, entry, user_id):
     rows = []
 
     if category == "protected" and entry is not None:
-        mute_txt = "🟢 Unmute" if entry.get("mute") else "🟠 Mute"
+        mute_txt = "🟠 Unmute" if entry.get("mute") else "🟢 Mute"
         exc_txt = (
             "🔴 Снять EXCOMMUNICADO"
             if entry.get("EXCOMMUNICADO")
