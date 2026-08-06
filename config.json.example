@@ -1,0 +1,28 @@
+{
+    "Pmin": 100,
+    "constA": 1,
+    "ban_messages": "off",
+    "owner_name": "",
+    "cost": 300,
+    "uuid": "󠄟󠇅󠅸󠇒󠄵",
+    "white_lists_mode": "manual",
+    "anon_enable": 0,
+    "freq": 1000000,
+    "mode": "normal",
+    "AI mode": "messages",
+    "Judgment Day Code": "",
+    "base_prompt": "",
+    "banned": [],
+    "banned_users": [
+    ],
+    "white_list": [
+    ],
+    "logs_mode": "off",
+    "logs": [],
+    "protected_users": [],
+    "root_users": [],
+    "super_users": [
+    ],
+    "signed_users": {
+    }
+}

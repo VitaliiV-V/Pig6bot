@@ -5,11 +5,9 @@ venv/
 .uuid.json
 .idea/
 config.json
-AI/dataset.json
 supervisord.log
 supervisord.pid
 pig6economy.db
-gifs/
 assets/dataset.json
 certificates/
 keys/

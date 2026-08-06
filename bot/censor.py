@@ -1,17 +1,10 @@
-import uuid
-import time
 import bot.tools as tools
-import secrets
-import asyncio
-from config.config import *
 from bot.settings import *
-from AI.markovchain import *
+from config.config import *
+from bot.protection import *
 from datetime import datetime
 from economy.pig6economy import *
 from telegram.ext import ContextTypes
-from telegram import Update, ReplyKeyboardMarkup
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from bot.protection import *
 
 
 def check(text):
@@ -61,71 +54,72 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
     bot_name = (await context.bot.get_me()).first_name
 
     if msg.animation and msg.animation.file_id in config["bad_gifs"]:
-        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        with suppress(BadRequest, Forbidden):
+            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
         return
 
     if not ignore:
         if msg.author_signature in config["banned_users"]:
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+            with suppress(BadRequest, Forbidden):
+                await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
             return
 
     if config["ban_messages"] == "all":
-        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        with suppress(BadRequest, Forbidden):
+            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
         return
     elif config["ban_messages"] == "manual" and check(message_text):
-        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        with suppress(BadRequest, Forbidden):
+            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
         return
 
-    if not ignore:
-        if not msg.author_signature:
-            if config["anon_enable"] == 0:
-                ok = economy.use_code_from_text(message_text)
+    if not msg.author_signature:
+        with suppress(BadRequest, Forbidden):
+            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        return
 
-                if not ok:
-                    await context.bot.delete_message(
-                        chat_id=chat_id, message_id=message_id
-                    )
-                    return
+    if (
+        not ignore
+        and msg.author_signature
+        and config["white_lists_mode"] != "off"
+        and not (await check_protection(context=context, msg=msg, config=config))
+    ):
+        ok = False
+        if config["white_lists_mode"] == "admins":
+            admins = await context.bot.get_chat_administrators(chat_id)
+            for u in admins:
+                admin = ""
+                if u.user.first_name:
+                    admin += u.user.first_name
+                if u.user.first_name and u.user.last_name:
+                    admin += " "
+                if u.user.last_name:
+                    admin += u.user.last_name
+
+                if admin == msg.author_signature:
+                    ok = True
 
         if (
-            msg.author_signature
-            and config["white_lists_mode"] != "off"
-            and not (await check_protection(context=context, msg=msg, config=config))
+            config["white_lists_mode"] == "admins"
+            or config["white_lists_mode"] == "manual"
         ):
-            ok = False
-            if config["white_lists_mode"] == "admins":
-                admins = await context.bot.get_chat_administrators(chat_id)
-                for u in admins:
-                    admin = ""
-                    if u.user.first_name:
-                        admin += u.user.first_name
-                    if u.user.first_name and u.user.last_name:
-                        admin += " "
-                    if u.user.last_name:
-                        admin += u.user.last_name
+            for u in config["white_list"]:
+                if u == msg.author_signature:
+                    ok = True
 
-                    if admin == msg.author_signature:
-                        ok = True
-
-            if (
-                config["white_lists_mode"] == "admins"
-                or config["white_lists_mode"] == "manual"
-            ):
-                for u in config["white_list"]:
-                    if u == msg.author_signature:
-                        ok = True
-
-            if not ok:
+        if not ok:
+            with suppress(BadRequest, Forbidden):
                 await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-                return
+            return
 
     if len(messages) >= 10 and messages[-10].age() < 5:
         await tools.blockall(context=context, msg=None, x=0)
         for i in range(-min(40, len(messages) - 1), 0):
             if i >= -11 or messages[i].message_text == messages[-1].message_text:
-                await context.bot.delete_message(
-                    chat_id=chat_id, message_id=messages[i].message_id
-                )
+                with suppress(BadRequest, Forbidden):
+                    await context.bot.delete_message(
+                        chat_id=chat_id, message_id=message_id
+                    )
 
     messages.append(Message(msg.author_signature, message_text, message_id))
     if len(messages) > 1000:

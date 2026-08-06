@@ -3,7 +3,7 @@ import json
 
 
 def load_config():
-    file_path = "config/config.json"
+    file_path = "config.json"
     default_data = {
         "ban_messages": 0,
         "banned": [],
@@ -29,7 +29,7 @@ load_config()
 
 
 def save_config(data):
-    file_path = "config/config.json"
+    file_path = "config.json"
 
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)

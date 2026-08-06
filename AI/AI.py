@@ -7,6 +7,12 @@ from time import sleep
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHandler
+from bot.censor import *
+from bot.settings import *
+from config.config import *
+from telegram import Update
+from bot.protection import *
+from economy.pig6economy import *
 
 jarvis = Jarvis()
 
@@ -19,109 +25,45 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.reply_text("Привет! Я Свинья-6 AI!")
 
 
-def check(text, id):
-
-    with open("dict.json", "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    text = text.lower()
-    text2 = ""
-    for i in text:
-        val = data.get(i)
-        if val is not None:
-            if len(text2) == 0 or text2[-1] != val:
-                text2 += val
-
-    config = load_config()
-
-    for i in config["banned"]:
-        if i in text2 or i in text:
-            return True
-
-    return False
-
-
 async def query(update, context):
-    config = load_config()
-    msg = update.message or update.channel_post or update.edited_channel_post
+    msg = update.channel_post or update.edited_channel_post
+
     if not msg:
         return
+
     chat_id = msg.chat_id
+
+    config = load_config()
+
+    if chat_id != MAIN_CHANNEL_ID:
+        await protect_query(context=context, msg=msg, config=config)
+        return
+
+    ok = False
+
+    if await check_owner(context=context, msg=msg, config=config):
+        ok = True
+
+    if not ok and await check_super_user(context=context, msg=msg, config=config):
+        await root_commands(context=context, msg=msg, config=config)
+        ok = True
+
+    ignore = False
+    if not ok:
+        role = await check_signed_user(context=context, msg=msg, config=config)
+
+        if "root" in role:
+            await root_commands(context=context, msg=msg, config=config)
+            ok = True
+        elif "sudo" in role:
+            ok = True
+        elif "user" in role:
+            ignore = True
+
+    if not ok:
+        await check_message(context=context, msg=msg, config=config, ignore=ignore)
+
     message_id = msg.message_id
-    message_text = msg.text or ""
-
-    isMaster = False
-
-    if msg.author_signature:
-        txt = msg.author_signature
-        ok = 0
-        if config["owner_names"]:
-            for i in config["owner_names"]:
-                if i in txt:
-                    ok = 1
-
-        if ok:
-            if config["uuid"] not in msg.author_signature:
-                return
-            isMaster = True
-
-    if not isMaster and msg.author_signature in config["banned_users"]:
-        return
-
-    if not isMaster and config["ban_messages"] == "all":
-        return
-    elif not isMaster and config["ban_messages"] == "manual":
-        if check(message_text, chat_id):
-            return
-
-    if not msg.author_signature and not update.message:
-        if config["anon_enable"] == 0:
-            return
-
-    protected = False
-    if msg.author_signature:
-        for i in config["protected_users"]:
-            if i["name"] in msg.author_signature:
-                if i["uuid"] not in msg.author_signature:
-                    return
-                else:
-                    protected = True
-
-    if (
-        config["anon_enable"] == 0
-        and config["white_lists_mode"] != "off"
-        and (update.channel_post or update.edited_channel_post)
-        and not isMaster
-    ):
-        if not protected:
-            ok = False
-            if (
-                config["white_lists_mode"] == "admins"
-                or config["white_lists_mode"] == "admins_only"
-            ):
-                admins = await context.bot.get_chat_administrators(chat_id)
-                for u in admins:
-                    admin = ""
-                    if u.user.first_name:
-                        admin += u.user.first_name
-                    if u.user.first_name and u.user.last_name:
-                        admin += " "
-                    if u.user.last_name:
-                        admin += u.user.last_name
-
-                    if admin == msg.author_signature:
-                        ok = True
-            if (
-                config["white_lists_mode"] == "admins"
-                or config["white_lists_mode"] == "manual"
-            ):
-                for u in config["white_list"]:
-                    if u == msg.author_signature:
-                        ok = True
-
-            if not ok:
-                return
-
     x = context.bot.first_name
     if msg.reply_to_message:
         y = msg.reply_to_message.author_signature

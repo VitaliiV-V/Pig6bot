@@ -1,625 +1,232 @@
-# Telegram Channel Protection Bot
-
-A Telegram bot designed to protect and moderate Telegram channels.
-
-It provides message filtering, user banning, whitelist management, logging functionality, AI moderation, advanced channel security and intelligent protection systems.
-
-Official website:
-
-https://pig6bot.sos.al
-
-
-# Features
-
-- Automatic message filtering and deletion
-- User banning and unbanning (via commands and reply)
-- Multiple moderation modes:
-    - off — no filtering
-    - admins — only admins allowed
-    - admins_only — strict admin-only mode
-    - manual — whitelist-based control
-
-- Whitelist system for allowed users
-- Anonymous message blocking
-- Message forwarding to a log channel
-- Owner-only administrative commands
-- UUID-based administrator verification
-- Unicode-enhanced protection signatures
-- Invisible security identifiers
-- AI moderation system
-- Real-time message analysis
-- Intelligent response system
-- Markov text generator
-- Unified configuration system
-- Live configuration editing through Telegram
-- Distributed logging system
-- Personality mode support
-- Docker infrastructure
-- Service-based architecture
-- Content protection system
-- Protected file handling
-- Secure GIF processing
-- Extreme Protection mode
-- Pig-6 internal economy
-- Pig-6 Tokens (P6T)
-- User balances
-- P6T transfers
-- Transaction history
-- P6T duels
-- Anonymous message codes
-- Dynamic anonymous code market
-- Anonymous code trading
-- P6T user rankings
-
-
 # Pig-6
 
-Pig-6 is the next generation of the Telegram channel protection system.
-
-This is not just an update.
-
-It is a new architecture.
-
-Svynya-5 was completely redesigned and transformed into a new generation protection system with improved stability, scalability and intelligence.
-
-The external behavior remains familiar.
-
-Internally, the system has been rebuilt.
-
-
-# Designed to protect
-
-Pig-6 was created with one main principle:
-
-Security should work quietly.
-
-The system focuses on reliability, verification and intelligent protection without unnecessary complexity.
-
-Created by Hammam Inc.
-
-
-# Architecture
-
-Pig-6 uses a service-based architecture.
-
-The system is divided into specialized services:
-
-
-## Pig-6 Core
-
-Main protection and moderation system.
-
-Responsible for:
-
-- message security
-- channel control
-- administrator verification
-- protection logic
-
-
-## Pig-6 AI
-
-Artificial intelligence subsystem.
-
-Features:
-
-- AI moderation
-- message analysis
-- context processing
-- intelligent responses
-- decision assistance
-
-
-## Pig-6 Logs
-
-Distributed logging system.
-
-Features:
-
-- event tracking
-- independent log processing
-- security history
-- moderation records
-
-
-## Pig-6 Judgment Day
-
-Advanced decision system.
-
-Responsible for:
-
-- complex protection decisions
-- advanced control mechanisms
-- security evaluation
-
-
-## Pig6Guard
-
-Official protection module.
-
-Provides:
-
-- Telegram channel protection
-- administrator verification
-- security control
-- advanced protection modes
-
-
-# AI Moderation
-
-Pig-6 includes an AI moderation system.
-
-Features:
-
-- Real-time message analysis
-- Context-aware decisions
-- Automated content evaluation
-- Smart responses
-- Moderation assistance
-
-
-# Unified Configuration System
-
-All bot settings are managed through a unified configuration system.
-
-Features:
-
-- Centralized configuration
-- Live configuration editing from Telegram
-- Dynamic settings updates
-- Easier administration
-
-
-# Distributed Logging System
-
-Logging is separated from the main bot.
-
-Features:
-
-- Independent logging service
-- Better reliability
-- Moderation event tracking
-- Separate processing and storage
-
-
-# Personality Mode
-
-Pig-6 supports AI personality modes.
-
-Current personality:
-
-Platnitsa HSE
-
-The AI can operate with a configured style and behavior during interactions.
-
-
-# Docker Infrastructure
-
-Pig-6 supports Docker-based deployment.
-
-Benefits:
-
-- Predictable deployment
-- Easier updates
-- Isolated services
-- Better scalability
-
-
-# UUID Protection System
-
-Pig-6 includes a UUID-based administrator verification system.
-
-Administrators can protect their messages using unique security signatures.
-
-The system verifies whether messages actually belong to trusted administrators.
-
-Protection uses:
-
-- UUID identifiers
-- Unicode-based invisible signatures
-- Additional validation layers
-
-
-If protection is not enabled, administrator messages may receive:
-
-⚠️ Unsafe message
-
-
-This is not a restriction.
-
-It is a way to quickly understand whether a message source can be trusted.
-
-
-# Extreme Protection
-
-Extreme Protection is the highest security level available in Pig-6.
-
-This mode is available only to:
-
-- system owners
-- trusted superusers
-
-
-Features:
-
-- Advanced Unicode-based identification
-- Invisible security signatures
-- Additional anti-spoofing protection
-- Maximum control mode
-- Extended verification rules
-
-
-Extreme Protection is designed for situations where standard protection is not enough.
-
-Maximum protection.
-
-Minimum visibility.
-
-
-# Content Protection System
-
-Pig-6 includes additional protection for user-uploaded content.
-
-Features:
-
-- Secure file processing
-- Content tracking
-- Controlled access
-- Administrative approval system
-- File removal capability
-
-
-The system helps prevent unwanted content from being distributed through protected channels.
-
-
-# Protected GIF System
-
-Pig-6 supports secure GIF handling.
-
-Features:
-
-- Protected GIF downloads
-- Controlled access
-- Administrator confirmation
-- Secure processing flow
-
-
-Files can be reviewed before becoming available.
-
-
-# Whitelist System
-
-The whitelist system allows administrators to manually control who can interact with the channel.
-
-Available modes:
-
-- off
-- admins
-- admins_only
-- manual
-
-
-The whitelist system has been improved in Pig-6.
-
-The manual mode is now stricter to provide better security and control.
-
-
-# Anonymous Message Protection
-
-Pig-6 includes improved anonymous message detection.
-
-Changes:
-
-- Fixed incorrect anonymous message processing
-- Better administrator verification
-- Improved message source checking
-- One-time anonymous code verification
-
-
-# Pig-6 Economy
-
-Pig-6 includes an internal economy based on Pig-6 Tokens (P6T).
-
-P6T is the internal currency of the system.
-
-The economy includes:
-
-- User balances
-- P6T transfers
-- Transaction history
-- P6T duels
-- Anonymous message codes
-- Dynamic anonymous code market
-- Anonymous code trading
-- User rankings
-
-
-# Anonymous Code Market
-
-Anonymous codes are traded through a dynamic market.
-
-The market price depends on the current number of available codes.
-
-The more codes return to the system, the lower the price becomes.
-
-The price is recalculated during every transaction.
-
-When buying or selling multiple codes, the price of each code may change during the operation.
-
-The system maintains the anonymous code market around 100 available codes per day.
-
-
-# Anonymous Codes
-
-Each anonymous code can only be used once.
-
-After use, the code becomes invalid.
-
-To send an anonymous message, insert an active anonymous code anywhere in the message.
-
-
-Rules:
-
-- Each code is one-time use
-- Used codes become invalid
-- Transferring codes to other users is prohibited
-- Codes must not be used for spam
-- Codes must not be used for threats
-- Codes must not be used for fraud or other prohibited content
-- If a message is rejected by moderation, the used code is not refunded
-
-
-# P6T Economy Commands
-
-/balance
-
-View P6T balance and active anonymous codes.
-
-
-/gift
-
-Receive 100 P6T once per day.
-
-
-/mycodes
-
-View active anonymous codes.
-
-
-/buy <n>
-
-Buy anonymous codes at the current market price.
-
-
-/sell <n>
-
-Sell anonymous codes to the system at the current market price.
-
-
-/bet <n>
-
-Create a P6T duel with another user.
-
-
-/accept
-
-Accept a P6T duel.
-
-
-/pay <user> <n>
-
-Transfer P6T to another user.
-
-
-/top
-
-View the users with the highest P6T balances.
-
-
-/market
-
-View the current anonymous code market.
-
-
-# Markov Text Generator
-
-The bot includes a Markov-chain-based generator trained on parsed2.json.
-
-
-## How it works
-
-- Uses n-gram model (n=1 and n=2 chains)
-- Trained on stored administrator messages
-- Generates probabilistic text based on context
-- Applies temperature-based variation control
-
-
-# Source Code Security
-
-The Pig-6 source code is no longer publicly available.
-
-The project has moved to a closed-source model.
-
-This decision was made to improve security, protect internal mechanisms and prevent misuse of the system.
-
-
-# Commands
-
-## Admin commands
-
-/blockall
-
-Enable full blocking mode.
-
-
-/smart
-
-Enable smart moderation mode.
-
-
-/disable
-
-Disable protection system.
-
-
-/ban <username>
-
-Ban user.
-
-
-/unban <username>
-
-Unban user.
-
-
-/setwhitelistsmode <mode>
-
-Set whitelist mode.
-
-
-Available modes:
-
-- off
-- admins
-- admins_only
-- manual
-
-
-/add <name>
-
-Add user to whitelist.
-
-
-/del <name>
-
-Remove user from whitelist.
-
-
-/reject
-
-Reject request.
-
-
-# User commands
-
-/reg <channel_name>
-
-Register channel request.
-
-
-/balance
-
-View P6T balance and active anonymous codes.
-
-
-/gift
-
-Receive 100 P6T once per day.
-
-
-/mycodes
-
-View active anonymous codes.
-
-
-/buy <n>
-
-Buy anonymous codes at the current market price.
-
-
-/sell <n>
-
-Sell anonymous codes at the current market price.
-
-
-/bet <n>
-
-Create a P6T duel with another user.
-
-
-/accept
-
-Accept a P6T duel.
-
-
-/pay <user> <n>
-
-Transfer P6T to another user.
-
-
-/top
-
-View the users with the highest P6T balances.
-
-
-/market
-
-View the current anonymous code market.
-
-
-# Requirements
-
-- Python 3.10+
-- python-telegram-bot library
-- python-dotenv library
-- Docker (recommended)
-- Properly configured Telegram bot token
-- Bot must be admin in the target channel
-
-
-# Deployment
-
-Install dependencies:
-
-pip install -r requirements.txt
-
-
-Configure environment:
-
-BOT_TOKEN=your_token_here
-
-
-Run:
-
-python main.py
-
-
-# Updates
-
-
-## Pig-6 Evolution
-
-New generation features:
-
-- AI moderation
-- Unified configuration
-- Live configuration editing
-- Distributed logging
-- Personality system
-- Docker infrastructure
-- Service-based architecture
-- Unicode protection
-- Extreme Protection
-- Content Protection
-- Pig6Guard module
-- P6T internal economy
-- User balances
-- P6T transfers
-- Transaction history
-- P6T duels
-- Anonymous message codes
-- Dynamic anonymous code market
-- Anonymous code trading
-- P6T user rankings
-
-
-## Security Improvements
- 
-- Stricter whitelist behavior
-- Improved anonymous message handling
-- UUID administrator verification
-- Unicode security signatures
-- Better protection against message spoofing
-- Advanced content control
-- Improved administrator security
-- One-time anonymous code verification
+Pig-6 (Свинья-6) is a suite of cooperating **Telegram bots** built with
+`python-telegram-bot` that together form a channel protection, moderation,
+identity-verification and assistant system. It is designed around a single
+primary channel (the "Main Channel") whose integrity, admin list and
+content are actively monitored and defended, plus a set of satellite
+channels that can opt in to the same protection.
+
+> **Note:** All in-bot user-facing text is in Russian, since the project
+> was built for a Russian-speaking community. This README is in English
+> for documentation purposes.
+
+## Overview
+
+Pig-6 is not a single bot but **five separate Telegram applications**,
+each authenticated with its own bot token, that share a common
+`config.json` state file and a common code base (`bot/`, `config/`,
+`economy/`, `AI/`):
+
+| Bot | Entry point | Token env var | Purpose |
+|---|---|---|---|
+| Main / Protection bot | `censor.py`, `channel.py`, `commands.py`, `panel.py`, `protection.py`, `tools.py` | `TOKEN` | Core moderation, admin panel, channel protection |
+| Judgment Day bot | `jday.py` | `JUDGMENT_DAY_TOKEN` | Emergency lockdown / mass-deletion protocol |
+| Logs bot | `logs.py` | `LOGS_TOKEN` | Forwards every post in the main channel to subscribed users |
+| Pig-6 Certificates bot | `Pig6Cert.py` | `CERT_TOKEN` | Cryptographic message signing/verification service |
+| Jarvis AI bot | `AI.py`, `AI/jarvis.py` | `AI_TOKEN` | Gemini-powered conversational assistant with voice/text admin commands |
+
+All bots read/write the same `config.json` via `config/config.py`, so
+state (moderation mode, whitelist, users, keys, etc.) is shared across
+processes.
+
+## Features
+
+### Channel identity protection (`bot/protection.py`)
+- Verifies that posts signed with a given `author_signature` (the channel
+  post's admin signature) actually belong to the registered owner, a
+  "super user", or a "protected" (registered) channel — by comparing it
+  against a rotating **name + UUID** pair.
+- The UUID is a short string of invisible Unicode variation-selector
+  characters (`U+E0100`–`U+E01EF`) appended to the channel/admin title.
+  After every legitimate post, the title is rotated to a fresh UUID, so a
+  captured/forged signature can only be replayed once before it becomes
+  invalid — a lightweight anti-impersonation / anti-replay mechanism.
+- Impersonation attempts (title present without the correct current UUID)
+  result in immediate deletion of the offending post.
+- Channels with only one human admin + the bot can request protection
+  (`protect` command in-chat); the request is approved/rejected by the
+  owner or root users via an inline keyboard. `unprotect` removes
+  protection.
+
+### Pig-6 Certificates (`Pig6Cert.py`)
+- Lets registered ("signed") users generate an **Ed25519 keypair**
+  (`/start` in the Cert bot).
+- Users can sign arbitrary text via an inline query; the bot attaches a
+  cryptographic signature and a verification link (`WEB_SITE/check?...`
+  or `WEB_SITE/shadow?...` for shadow-role users) to the posted message.
+- `bot/protection.py`'s `check_signed_user` extracts the signature/user
+  id from the message's link entity and verifies it against the stored
+  public key, then maps the signer to a role (`root` / `sudo` / `user`,
+  optionally `shadow`) as configured in `config.json["signed_users"]`.
+- `/reg <channel name>` lets a user request that a channel be linked to
+  their signed identity; owner/root users approve or decline via inline
+  buttons.
+
+### Content moderation (`bot/censor.py`)
+- `ban_messages` mode can be `off`, `manual` (filtered) or `all`
+  (delete everything).
+- Manual filtering normalizes text through a leetspeak/character-mapping
+  dictionary (`dict.json`) before checking it against a list of banned
+  substrings/words in `config.json["banned"]`.
+- Simple **anti-flood protection**: if 10+ messages arrive within 5
+  seconds, the channel is automatically switched to full lockdown
+  (`blockall`) and the recent burst of messages is purged.
+- Per-user bans (`banned_users`) and per-GIF bans (`bad_gifs`) are
+  enforced on every incoming post.
+- A whitelist system (`white_lists_mode`: `off` / `admins` / `manual`)
+  can restrict who is allowed to post at all.
+
+### Judgment Day protocol (`tools.EXCOMMUNICADO`, `jday.py`)
+- An emergency "lockdown" mode. When triggered (by the owner, a root
+  user, or the Jarvis voice command), the main channel is put into
+  maximum-security mode and a countdown/announcement sequence runs.
+- The dedicated Judgment Day bot (`jday.py`) then deletes **any** message
+  in any chat it's added to unless it contains the current secret
+  confirmation code (`config.json["Judgment Day Code"]`), which rotates
+  every time it's used.
+- A protected channel/user can be permanently marked `EXCOMMUNICADO`,
+  revoking their protection and blacklisting them.
+
+### Admin control panel (`bot/panel.py`)
+- An inline-keyboard dashboard (`/panel`-style entry point via
+  `showpanel`) restricted to root users/owner, exposing:
+  - Toggle moderation on/off (`blockall` / `disable`).
+  - Toggle Judgment Day mode.
+  - Browse and manage **Protected users** (mute, EXCOMMUNICADO).
+  - Browse **Super users**.
+  - Browse and manage **Signed users** (change role, revoke a linked
+    channel, toggle "shadow" visibility per channel).
+
+### Logging (`logs.py`)
+- Any user can `/start` the Logs bot to subscribe; while
+  `config.json["logs_mode"] == "on"`, every post in the main channel is
+  forwarded to all subscribers.
+
+### Jarvis AI assistant (`AI.py`, `AI/jarvis.py`)
+- Wraps the Google Gemini API (`google-genai`) with a persistent chat
+  session and a configurable `base_prompt`.
+- Responds when a message mentions "jarvis"/"джарвис" (or is a reply to
+  the bot), and runs the same moderation/protection pipeline as the
+  main bot on every message it sees.
+- A designated "master" user can issue natural-language admin commands
+  in Russian (e.g. *"джарвис забань ..."*, *"джарвис включи логи"*,
+  *"джарвис судный день"*) to ban/unban users, change the base prompt,
+  toggle logging, switch moderation mode, manage the whitelist, or
+  trigger/cancel Judgment Day — without touching the panel.
+
+### Economy (`economy/pig6economy.py`)
+- A small SQLite-backed token economy (`pig6economy.db`) tracking user
+  balances, peer-to-peer transactions, a redeemable-code system, and a
+  simple code market with price/volume history — used to gate or reward
+  access within the community.
+
+## Configuration
+
+### Environment variables (`.env`, loaded by `bot/settings.py`)
+
+| Variable | Description |
+|---|---|
+| `TOKEN` | Main/protection bot token |
+| `JUDGMENT_DAY_TOKEN` | Judgment Day bot token |
+| `LOGS_TOKEN` | Logs bot token |
+| `CERT_TOKEN` | Pig-6 Certificates bot token |
+| `AI_TOKEN` | Jarvis AI bot token |
+| `GEMINI_API_KEY` | Google Gemini API key used by Jarvis |
+| `OWNER_ID` | Telegram user ID of the project owner |
+| `OWNER_USERNAME` | Owner's @username, shown in some prompts |
+| `MAIN_CHANNEL_ID` | ID of the protected main channel |
+| `PERSONAL_CHANNEL_ID` | ID of the owner's personal signed channel |
+| `WEB_SITE` | Base URL used to build certificate verification links |
+
+### `config.json`
+Created automatically on first run by `config/config.py` with sensible
+defaults, and then read/written by every bot. Beyond the defaults shown
+below, the codebase reads and expects a number of additional keys that
+are populated over time through normal use (root/super/protected/signed
+user lists, current mode, rotating UUIDs and codes, etc.):
+
+```json
+{
+  "ban_messages": 0,
+  "banned": [],
+  "banned_users": [],
+  "OWNER_NAMEs": [],
+  "white_lists_mode": "off",
+  "white_list": [],
+  "anon_enable": 0
+}
+```
+
+Other keys used throughout the code that should exist in a complete
+config: `root_users`, `super_users`, `protected_users`, `signed_users`,
+`owner_name`, `uuid`, `mode`, `Judgment Day Code`, `bad_gifs`, `logs`,
+`logs_mode`, `base_prompt`, `AI mode`.
+
+### `dict.json`
+A character-normalization map used by the censor to catch
+leetspeak/lookalike-character evasion before matching against the
+banned-word list.
+
+## Project structure
+
+```
+bot/
+  censor.py       # word-filtering, flood protection, message pipeline
+  channel.py       # channel-post entry point, routing to protection/censor
+  commands.py       # private-message admin commands
+  panel.py          # inline-keyboard admin control panel
+  protection.py      # identity verification, certificates, Judgment Day trigger
+  settings.py        # environment variable loading
+  tools.py           # ban/unban, blockall/disable, EXCOMMUNICADO, judgment-day toggling
+AI/
+  jarvis.py           # Gemini chat wrapper
+config/
+  config.py          # config.json load/save
+economy/
+  pig6economy.py     # SQLite token economy
+AI.py                # Jarvis bot entry point
+jday.py              # Judgment Day bot entry point
+logs.py              # Logs bot entry point
+Pig6Cert.py          # Pig-6 Certificates bot entry point (key generation, signing)
+```
+
+## Setup
+
+1. Install dependencies:
+   ```bash
+   pip install python-telegram-bot python-dotenv cryptography google-genai
+   ```
+2. Create a `.env` file in the project root with all variables listed
+   above.
+3. Ensure `dict.json` exists alongside the bots (used by the censor).
+4. Run each bot process independently, e.g.:
+   ```bash
+   python channel.py   # or whichever file wires up the main bot's handlers
+   python jday.py
+   python logs.py
+   python Pig6Cert.py
+   python AI.py
+   ```
+   Each bot polls independently with its own token and shares state
+   through `config.json` / `pig6economy.db`.
+
+## Security notes
+
+- The invisible-Unicode UUID rotation and Ed25519 certificate signing
+  are the two mechanisms this project relies on to distinguish a
+  legitimate admin/channel from an impersonator — both should be
+  reviewed carefully before production use, since they are custom,
+  unaudited implementations rather than standard, widely-reviewed
+  protocols.
+- `config.json` and the `keys/private/` directory contain sensitive
+  material (banned-user lists, rotating secret codes, private signing
+  keys) and should never be committed to version control or exposed
+  publicly.
+- The Judgment Day protocol is a destructive, irreversible-by-design
+  operation (mass deletion / blacklisting) — access to trigger it should
+  be tightly restricted to trusted root users.
+
+## License
+
+No license specified.

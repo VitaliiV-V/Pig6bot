@@ -2,297 +2,241 @@
 <html lang="en">
 
     <head>
+
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Pig-6 • P6T Market</title>
+        <title>Pig-6</title>
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <style>
 
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-            rel="stylesheet">
+:root{
 
-        <link rel="stylesheet" href="styles.css">
+    --bg:#09090b;
+    --surface:#111113;
+    --border:#27272a;
 
-        <!--
-            IMPORTANT:
-            All scripts use "defer" so they don't block HTML parsing and
-            they still execute in document order (chart.js -> marketApi.js -> app.js)
-            once the DOM is ready. This alone does not fix a hung/blocked CDN request,
-            so app.js also has its own timeout + fallback logic — see app.js.
-        -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-        <script src="marketApi.js" defer></script>
-        <script src="app.js" defer></script>
+    --text:#fafafa;
+    --muted:#a1a1aa;
+
+    --green:#22c55e;
+
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    background:var(--bg);
+    color:var(--text);
+
+    font-family:Inter,system-ui,sans-serif;
+
+}
+
+main{
+
+    min-height:100vh;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:40px;
+
+    text-align:center;
+
+}
+
+.badge{
+
+    display:inline-flex;
+
+    padding:8px 14px;
+
+    border-radius:999px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    color:var(--muted);
+
+    font-size:13px;
+
+    margin-bottom:28px;
+
+}
+
+.logo{
+
+    width:14px;
+    height:14px;
+
+    border-radius:50%;
+
+    background:var(--green);
+
+    box-shadow:0 0 18px rgba(34,197,94,.8);
+
+    margin-bottom:22px;
+
+}
+
+h1{
+
+    font-size:72px;
+
+    letter-spacing:-3px;
+
+    margin-bottom:18px;
+
+}
+
+.subtitle{
+
+    color:var(--muted);
+
+    font-size:18px;
+
+    max-width:620px;
+
+    line-height:1.7;
+
+}
+
+.cards{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+
+    gap:18px;
+
+    margin-top:60px;
+
+    width:100%;
+
+    max-width:900px;
+
+}
+
+.card{
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:18px;
+
+    padding:24px;
+
+    text-align:left;
+
+}
+
+.card h2{
+
+    font-size:18px;
+
+    margin-bottom:8px;
+
+}
+
+.card p{
+
+    color:var(--muted);
+
+    line-height:1.6;
+
+}
+
+footer{
+
+    margin-top:70px;
+
+    color:#71717a;
+
+    font-size:14px;
+
+}
+
+@media(max-width:900px){
+
+h1{
+
+    font-size:48px;
+
+}
+
+}
+
+</style>
+
     </head>
 
     <body>
 
-        <div class="loading-screen" id="loading">
-            <div class="loading-text" id="loadingText">Loading market...</div>
-        </div>
+        <main>
 
-        <div id="app" class="hidden">
+            <div class="badge">
+                Pig-6 Network
+            </div>
 
-            <header class="hero">
+            <div class="logo"></div>
 
-                <div class="hero-left">
+            <h1>
+                Pig-6
+            </h1>
 
-                    <div class="badge">
-                        P6T Market
-                    </div>
+            <p class="subtitle">
+                Secure infrastructure for protected Telegram communities,
+                cryptographic certificates and distributed moderation.
+            </p>
 
-                    <h1>
-                        Свинья-6
-                    </h1>
+            <div class="cards">
 
-                    <p class="subtitle">
-                        Designed to protect.
+                <div class="card">
+                    <h2>Certificates</h2>
+                    <p>
+                        Verify digital certificates and signed messages issued
+                        through Pig-6.
                     </p>
-
-                </div>
-
-                <div class="hero-right">
-
-                    <div class="price-card">
-
-                        <span class="label">
-                            Current Code Price
-                        </span>
-
-                        <div class="price">
-
-                            <span id="currentPrice">
-                                --
-                            </span>
-
-                            <small>P6T</small>
-
-                        </div>
-
-                    </div>
-
-                    <div class="market-info">
-
-                        <div>
-
-                            <span class="label">
-                                Available Codes
-                            </span>
-
-                            <strong id="availableCodes">
-                                --
-                            </strong>
-
-                        </div>
-
-                        <div>
-
-                            <span class="label">
-                                Market Status
-                            </span>
-
-                            <strong class="status">
-
-                                <span class="dot" id="statusDot"></span>
-
-                                <span id="marketStatus">
-                                    ACTIVE
-                                </span>
-
-                            </strong>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </header>
-
-            <section class="chart-section">
-
-                <div class="section-header">
-
-                    <h2>
-                        Price History
-                    </h2>
-
-                    <div class="range-buttons">
-
-                        <button data-range="1H">1H</button>
-                        <button data-range="6H">6H</button>
-                        <button data-range="24H" class="active">24H</button>
-                        <button data-range="7D">7D</button>
-                        <button data-range="30D">30D</button>
-
-                    </div>
-
-                </div>
-
-                <canvas id="marketChart"></canvas>
-
-                <div id="chartFallback" class="chart-fallback hidden">
-                    Chart library unavailable — showing raw values only.
-                </div>
-
-            </section>
-
-            <section class="stats-grid">
-
-                <div class="card">
-
-                    <span>Current Price</span>
-
-                    <strong id="statPrice">--</strong>
-
                 </div>
 
                 <div class="card">
-
-                    <span>Available Codes</span>
-
-                    <strong id="statCodes">--</strong>
-
+                    <h2>Marketplace</h2>
+                    <p>
+                        Anonymous codes and P6T economy are available through
+                        the marketplace.
+                    </p>
                 </div>
 
                 <div class="card">
-
-                    <span>Market Capacity</span>
-
-                    <strong id="statCapacity">100</strong>
-
+                    <h2>Protection</h2>
+                    <p>
+                        Intelligent moderation, Shadow Protocol and Judgment Day
+                        protection systems.
+                    </p>
                 </div>
 
-                <div class="card">
-
-                    <span>Price Change</span>
-
-                    <strong id="statChange">--</strong>
-
-                </div>
-
-                <div class="card">
-
-                    <span>Market Activity</span>
-
-                    <strong id="statStatus">ACTIVE</strong>
-
-                </div>
-
-            </section>
-
-            <section class="info">
-
-                <h2>Dynamic pricing</h2>
-
-                <p>
-
-                    The price of anonymous codes changes with market
-                    availability.
-
-                </p>
-
-                <ul>
-
-                    <li>More available codes → lower price.</li>
-
-                    <li>Fewer available codes → higher price.</li>
-
-                    <li>Every operation recalculates the market.</li>
-
-                </ul>
-
-            </section>
-
-            <section class="formula">
-
-                <h2>Price Formula</h2>
-
-                <pre>
-
-Price = Pmin × (1 + A × ((100 − Q) / Q))
-
-Pmin — minimum price
-
-A — market coefficient
-
-Q — available codes
-
-</pre>
-
-            </section>
-
-            <section class="commands">
-
-                <h2>P6T Commands</h2>
-
-                <div class="command-list">
-
-                    <div><code>/market</code><span>View current market
-                            state.</span></div>
-
-                    <div><code>/balance</code><span>View your P6T balance and
-                            active codes.</span></div>
-
-                    <div><code>/buy</code><span>Buy anonymous
-                            codes.</span></div>
-
-                    <div><code>/sell</code><span>Sell anonymous
-                            codes.</span></div>
-
-                    <div><code>/mycodes</code><span>View your active anonymous
-                            codes.</span></div>
-
-                    <div><code>/pay</code><span>Transfer P6T.</span></div>
-                </div>
-
-            </section>
-
-            <section class="security">
-
-                <h2>Built for control</h2>
-
-                <ul>
-
-                    <li>Single-use anonymous codes</li>
-
-                    <li>Automatically invalidated after use</li>
-
-                    <li>Not transferable</li>
-
-                    <li>Subject to moderation rules</li>
-
-                </ul>
-
-            </section>
+            </div>
 
             <footer>
 
-                <div>
-
-                    <h3>Pig-6</h3>
-
-                    <p>Pig-6 Tokens</p>
-
-                    <p>Designed to protect.</p>
-
-                </div>
-
-                <div>
-
-                </div>
+                Pig-6 © 2026
 
             </footer>
 
-        </div>
-
-        <div id="errorBox" class="error hidden">
-            <span id="errorText">Market data temporarily unavailable.</span>
-            <button id="retryButton" type="button">Retry</button>
-        </div>
+        </main>
 
     </body>
 </html>

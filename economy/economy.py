@@ -6,7 +6,6 @@ from config.config import *
 from bot.settings import *
 from bot.tools import *
 from pathlib import Path
-from AI.markovchain import *
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes

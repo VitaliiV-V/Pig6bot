@@ -1,19 +1,23 @@
-import re
-import uuid
 import bot.tools as tools
 import asyncio
 import secrets
 from config.config import *
 from bot.settings import *
-from AI.markovchain import *
 from datetime import datetime
 from telegram.ext import ContextTypes
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from economy.pig6economy import *
 import json
 import os
+from telegram.error import BadRequest, Forbidden
+from contextlib import suppress
 from cryptography.hazmat.primitives import serialization
-from cryptography.exceptions import InvalidSignature
+
+superlist = []
+last_time = datetime.now()
+
+for code in range(0xE0100, 0xE01F0):
+    superlist.append(chr(code))
 
 
 def verify_certificate(user_id, text, signature):
@@ -30,21 +34,10 @@ def verify_certificate(user_id, text, signature):
 
     try:
         public_key.verify(bytes.fromhex(signature), payload)
-
         return True
 
     except Exception as e:
         return False
-
-
-superlist = []
-
-for code in range(0xE0100, 0xE01F0):
-    superlist.append(chr(code))
-
-
-def rand():
-    return chr(0xAC00 + (uuid.uuid4().int % (0xD7A3 - 0xAC00 + 1)))
 
 
 async def protect_query(
@@ -55,21 +48,24 @@ async def protect_query(
     chat_id = msg.chat_id
     if chat_id != MAIN_CHANNEL_ID:
         if msg.new_chat_title:
-            await context.bot.delete_message(
-                chat_id=msg.chat.id, message_id=msg.message_id
-            )
+            with suppress(BadRequest, Forbidden):
+                await context.bot.delete_message(
+                    chat_id=msg.chat.id, message_id=msg.message_id
+                )
         if "protect" == (msg.text or "").lower():
             for i in config["protected_users"]:
                 if i["channel_id"] == msg.chat_id:
                     if i["uuid"] == "EXCOMMUNICADO":
-                        await context.bot.send_message(
-                            chat_id=chat_id,
-                            text="Вы EXCOMMUNICADO. Защита канала вам недоступна",
-                        )
+                        with suppress(BadRequest, Forbidden):
+                            await context.bot.send_message(
+                                chat_id=chat_id,
+                                text="🔴 Вы EXCOMMUNICADO. Защита канала вам недоступна",
+                            )
                     else:
-                        await context.bot.send_message(
-                            chat_id=chat_id, text="Канал уже под защитой!"
-                        )
+                        with suppress(BadRequest, Forbidden):
+                            await context.bot.send_message(
+                                chat_id=chat_id, text="🟢 Канал уже под защитой!"
+                            )
                     return
 
             admins = await context.bot.get_chat_administrators(chat_id)
@@ -85,7 +81,6 @@ async def protect_query(
                 protect_data = {
                     "name": msg.chat.title,
                     "channel_id": msg.chat.id,
-                    "type": "unicode",
                     "uuid": "".join(secrets.choice(superlist) for _ in range(5)),
                     "owner": info,
                     "id": info2,
@@ -105,7 +100,7 @@ async def protect_query(
                     [
                         [
                             InlineKeyboardButton(
-                                "🛡 Protect", callback_data=f"protectc^{filename}"
+                                "✅ Accept", callback_data=f"protectc^{filename}"
                             ),
                             InlineKeyboardButton(
                                 "❌ Reject", callback_data=f"rejectc^{filename}"
@@ -113,25 +108,30 @@ async def protect_query(
                         ]
                     ]
                 )
-                try:
+
+                with suppress(BadRequest, Forbidden):
                     await context.bot.send_message(
                         chat_id=OWNER_ID, text=text, reply_markup=keyboard
                     )
-                except Exception as e:
-                    pass
+
                 for id in config["root_users"]:
-                    try:
+                    with suppress(BadRequest, Forbidden):
                         await context.bot.send_message(
                             chat_id=id, text=text, reply_markup=keyboard
                         )
-                    except Exception as e:
-                        pass
 
+                with suppress(BadRequest, Forbidden):
+                    await context.bot.send_message(
+                        chat_id=chat_id,
+                        text="🟠 Запрос на защиту отправлен.",
+                    )
             else:
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text="Регистрация недоступна.\nДля подключения защиты в канале должен быть только один администратор и бот.",
-                )
+
+                with suppress(BadRequest, Forbidden):
+                    await context.bot.send_message(
+                        chat_id=chat_id,
+                        text="🔴 Регистрация недоступна.\nДля подключения защиты в канале должен быть только один администратор и бот.",
+                    )
         if "unprotect" == (msg.text or "").lower():
             try:
                 config = load_config()
@@ -141,62 +141,19 @@ async def protect_query(
                     if user["channel_id"] != msg.chat.id
                 ]
                 save_config(config)
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text="Защита отключена",
-                )
-            except Exception as e:
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text="Ошибка. Возможно Ваш канал не защищён",
-                )
-        if "uuid" == (msg.text or "").lower():
-            try:
-                config = load_config()
-                for i in config["protected_users"]:
-                    if i["channel_id"] == msg.chat.id:
-                        i["type"] = "xuuid"
-                        new_uuid = " " + rand() + str(uuid.uuid4())
-                        i["uuid"] = new_uuid
-                        await context.bot.set_chat_title(
-                            i["channel_id"], i["name"] + new_uuid
-                        )
 
-                save_config(config)
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text="Тип защиты изменен",
-                )
+                with suppress(BadRequest, Forbidden):
+                    await context.bot.send_message(
+                        chat_id=chat_id,
+                        text="🟢 Защита отключена",
+                    )
             except Exception as e:
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text="Ошибка. Возможно Ваш канал не защищён",
-                )
-        if "unicode" == (msg.text or "").lower():
-            try:
-                config = load_config()
-                for i in config["protected_users"]:
-                    if i["channel_id"] == msg.chat.id:
-                        i["type"] = "unicode"
-                        new_uuid = "".join(secrets.choice(superlist) for _ in range(5))
-                        i["uuid"] = new_uuid
-                        await context.bot.set_chat_title(
-                            i["channel_id"], i["name"] + new_uuid
-                        )
-                save_config(config)
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text="Тип защиты изменен",
-                )
-            except Exception as e:
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text="Ошибка. Возможно Ваш канал не защищён",
-                )
+                with suppress(BadRequest, Forbidden):
+                    await context.bot.send_message(
+                        chat_id=chat_id,
+                        text="🔴 Ошибка. Возможно Ваш канал не защищён",
+                    )
         return
-
-
-last_time = datetime.now()
 
 
 async def check_super_user(
@@ -213,21 +170,26 @@ async def check_super_user(
         for i in config["super_users"]:
             if i["name"] in msg.author_signature:
                 if i["name"] + i["uuid"] != msg.author_signature:
-                    if (datetime.now() - last_time).total_seconds() > 0.5:
-                        await context.bot.delete_message(
-                            chat_id=chat_id, message_id=message_id
-                        )
-                    return False
+                    if (
+                        datetime.now() - last_time
+                    ).total_seconds() > 0.5 or not msg.forward_origin:
+                        with suppress(BadRequest, Forbidden):
+                            await context.bot.delete_message(
+                                chat_id=chat_id, message_id=message_id
+                            )
+                        return False
+                    return True
                 else:
-
-                    new_uuid = "".join(secrets.choice(superlist) for _ in range(5))
-                    await context.bot.set_chat_title(
-                        i["channel_id"], i["name"] + new_uuid
-                    )
-
-                    i["uuid"] = new_uuid
-                    save_config(config)
-                    last_time = datetime.now()
+                    try:
+                        new_uuid = tools.generate_id()
+                        await context.bot.set_chat_title(
+                            i["channel_id"], i["name"] + new_uuid
+                        )
+                        i["uuid"] = new_uuid
+                        save_config(config)
+                        last_time = datetime.now()
+                    except:
+                        pass
 
                     return True
     return False
@@ -261,7 +223,6 @@ async def check_signed_user(
                 break
 
     if not signature:
-        print("Подпись не найдена")
         return ""
 
     message_text = message_text.replace(
@@ -274,8 +235,6 @@ async def check_signed_user(
 
         user_data = signed_users[user_id]
 
-        print(f"Проверка пользователя {user_id}")
-
         if verify_certificate(int(user_id), message_text, signature):
             return user_data["role"]
 
@@ -283,8 +242,6 @@ async def check_signed_user(
 
         if "shadow" not in user_data["role"]:
             continue
-
-        print(f"Пробуем Shadow пользователя {shadow_id}")
 
         if not verify_certificate(int(shadow_id), message_text, signature):
             continue
@@ -299,15 +256,11 @@ async def check_signed_user(
     return ""
 
 
-async def owner_commands(context: ContextTypes.DEFAULT_TYPE, msg, config):
+async def root_commands(context: ContextTypes.DEFAULT_TYPE, msg, config):
     global last_time
     chat_id = msg.chat_id
-
-    message_id = msg.message_id
-
     message_text = msg.text or ""
 
-    bot_name = (await context.bot.get_me()).first_name
     if "/bangif" in message_text:
         config = load_config()
         config["bad_gifs"].append(msg.reply_to_message.animation.file_id)
@@ -317,67 +270,24 @@ async def owner_commands(context: ContextTypes.DEFAULT_TYPE, msg, config):
     elif "/unban" in message_text:
         tools.unban(msg.reply_to_message.author_signature)
     elif "EXCOMMUNICADO" in message_text:
-        config = load_config()
-        config["mode"] = "Judgment Day"
-        save_config(config)
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text=f"Системное уведомление «{bot_name}»:\n"
-            "Активирован протокол «Judgment Day».\n"
-            "Все сообщения в канале и чате будут уничтожены.\n"
-            "Доступ пользователей аннулирован.\n"
-            "Попытки обхода бесполезны.\n"
-            "Канал изолирован и находится под полным контролем.\n\n"
-            f"Код подтверждения: {config['Judgment Day Code']}",
-        )
-
-        await asyncio.sleep(1)
-        name = ""
-        for i in config["protected_users"]:
-            if i["name"] in msg.reply_to_message.author_signature:
-                name = i["name"]
-        for i in range(5, 0, -1):
-            config = load_config()
-            await context.bot.send_message(
-                chat_id=chat_id,
-                text=(
-                    f"{name} EXCOMMUNICADO {i}\n\n"
-                    f"Код подтверждения: {config['Judgment Day Code']}"
-                ),
-            )
-            await asyncio.sleep(1)
-        config = load_config()
-        for i in config["protected_users"]:
-            if i["name"] in msg.reply_to_message.author_signature:
-                await context.bot.set_chat_title(i["channel_id"], "EXCOMMUNICADO")
-                i["name"] = "74938749037493793409"
-                i["uuid"] = "EXCOMMUNICADO"
-                save_config(config)
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text=(
-                        f"{name} EXCOMMUNICADO в силе\n\n"
-                        "Решением системы безопасности Свинья-6 защита вашего канала отозвана.\n\n"
-                        "UUID-подпись аннулирована.\n"
-                        "Канал исключён из списка доверенных и навсегда внесён в черный список.\n\n"
-                        "Вы лишаетесь всех прав и привилегий.\n"
-                        "Отныне вы — изгой.\n\n"
-                        "Доступ к сервисам Свиньи-6 прекращён.\n\n"
-                        "Вердикт окончательный.\n\n"
-                        f"Код подтверждения: {config['Judgment Day Code']}"
-                    ),
-                    reply_to_message_id=msg.reply_to_message.message_id,
-                )
+        await tools.EXCOMMUNICADO(context, msg)
 
         await asyncio.sleep(1)
         config = load_config()
         config["mode"] = "normal"
         save_config(config)
+        emoji = "⚪"
+        if config["ban_messages"] == "all":
+            emoji = "🟠"
+        elif config["ban_messages"] == "manual":
+            emoji = "🟡"
         await context.bot.send_message(
             chat_id=chat_id,
-            text=f"Системное уведомление «{bot_name}»:\n"
-            "Протокол «Judgment Day» остановлен.\n\n"
-            f"Код подтверждения: {config['Judgment Day Code']}",
+            text=(
+                f"{emoji} Протокол «Judgment Day» остановлен.\n"
+                "Система работает в штатном режиме.\n\n"
+                f"Код подтверждения: {config['Judgment Day Code']}"
+            ),
         )
 
 
@@ -397,9 +307,12 @@ async def check_owner(
 
     if msg.author_signature and config["owner_name"] in msg.author_signature:
         if msg.author_signature != config["owner_name"] + config["uuid"]:
-            if (datetime.now() - last_time).total_seconds() > 0.5:
+            if (
+                datetime.now() - last_time
+            ).total_seconds() > 0.5 or not msg.forward_origin:
                 await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-            return False
+                return False
+            return True
         else:
             if "/ban" in message_text:
                 tools.ban(msg.reply_to_message.author_signature)
@@ -409,91 +322,20 @@ async def check_owner(
                 config = load_config()
                 config["bad_gifs"].append(msg.reply_to_message.animation.file_id)
                 save_config(config)
-            elif re.fullmatch(r"/give \d+", message_text):
-                amount = int(message_text.replace("/give ", ""))
-                author = get_author(msg.reply_to_message.message_id)
-                if author != -1:
-
-                    economy.create_transaction(0, author, amount, "gift")
-
-                    await msg.reply_text(
-                        f"{msg.reply_to_message.author_signature} выдано {amount} P6T "
-                    )
             elif "EXCOMMUNICADO" in message_text:
-                config = load_config()
-                config["mode"] = "Judgment Day"
-                save_config(config)
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text=f"Системное уведомление «{bot_name}»:\n"
-                    "Активирован протокол «Judgment Day».\n"
-                    "Все сообщения в канале и чате будут уничтожены.\n"
-                    "Доступ пользователей аннулирован.\n"
-                    "Попытки обхода бесполезны.\n"
-                    "Канал изолирован и находится под полным контролем.\n\n"
-                    f"Код подтверждения: {config['Judgment Day Code']}",
+                await tools.EXCOMMUNICADO(context, msg)
+            try:
+                new_uuid = tools.generate_id()
+
+                await context.bot.set_chat_title(
+                    PERSONAL_CHANNEL_ID, config["owner_name"] + new_uuid
                 )
 
-                await asyncio.sleep(1)
-                name = ""
-                for i in config["protected_users"]:
-                    if i["name"] in msg.reply_to_message.author_signature:
-                        name = i["name"]
-                for i in range(5, 0, -1):
-                    config = load_config()
-                    await context.bot.send_message(
-                        chat_id=chat_id,
-                        text=(
-                            f"{name} EXCOMMUNICADO {i}\n\n"
-                            f"Код подтверждения: {config['Judgment Day Code']}"
-                        ),
-                    )
-                    await asyncio.sleep(1)
                 config = load_config()
-                for i in config["protected_users"]:
-                    if i["name"] in msg.reply_to_message.author_signature:
-                        await context.bot.set_chat_title(
-                            i["channel_id"], "EXCOMMUNICADO"
-                        )
-                        i["name"] = "74938749037493793409"
-                        i["uuid"] = "EXCOMMUNICADO"
-                        save_config(config)
-                        await context.bot.send_message(
-                            chat_id=chat_id,
-                            text=(
-                                f"{name} EXCOMMUNICADO в силе\n\n"
-                                "Решением системы безопасности Свинья-6 защита вашего канала отозвана.\n\n"
-                                "UUID-подпись аннулирована.\n"
-                                "Канал исключён из списка доверенных и навсегда внесён в черный список.\n\n"
-                                "Вы лишаетесь всех прав и привилегий.\n"
-                                "Отныне вы — изгой.\n\n"
-                                "Доступ к сервисам Свиньи-6 прекращён.\n\n"
-                                "Вердикт окончательный.\n\n"
-                                f"Код подтверждения: {config['Judgment Day Code']}"
-                            ),
-                            reply_to_message_id=msg.reply_to_message.message_id,
-                        )
-
-                await asyncio.sleep(1)
-                config = load_config()
-                config["mode"] = "normal"
+                config["uuid"] = new_uuid
                 save_config(config)
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text=f"Системное уведомление «{bot_name}»:\n"
-                    "Протокол «Judgment Day» остановлен.\n\n"
-                    f"Код подтверждения: {config['Judgment Day Code']}",
-                )
-
-            new_uuid = "".join(secrets.choice(superlist) for _ in range(5))
-
-            await context.bot.set_chat_title(
-                PERSONAL_CHANNEL_ID, config["owner_name"] + new_uuid
-            )
-
-            config = load_config()
-            config["uuid"] = new_uuid
-            save_config(config)
+            except:
+                pass
             last_time = datetime.now()
             return True
 
@@ -514,47 +356,30 @@ async def check_protection(
         for i in config["protected_users"]:
             if i["name"] in msg.author_signature:
                 if i["name"] + i["uuid"] != msg.author_signature:
-                    if (datetime.now() - last_time).total_seconds() > 0.5:
+                    if (
+                        datetime.now() - last_time
+                    ).total_seconds() > 0.5 or not msg.forward_origin:
                         await context.bot.delete_message(
                             chat_id=chat_id, message_id=message_id
                         )
-                    return False
+                        return False
+                    return True
                 else:
-                    if "type" not in i:
-                        i["type"] = "unicode"
-                    if i["type"] == "uuid":
-                        new_uuid = " " + str(uuid.uuid4())
-                    elif i["type"] == "xuuid":
-                        new_uuid = " " + rand() + str(uuid.uuid4())
-                    else:
-                        new_uuid = "".join(secrets.choice(superlist) for _ in range(5))
+                    if i["mute"] or i["EXCOMMUNICADO"]:
+                        await context.bot.delete_message(
+                            chat_id=chat_id, message_id=message_id
+                        )
+                        return False
+                    try:
+                        new_uuid = tools.generate_id()
+                        await context.bot.set_chat_title(
+                            i["channel_id"], i["name"] + new_uuid
+                        )
 
-                    await context.bot.set_chat_title(
-                        i["channel_id"], i["name"] + new_uuid
-                    )
-
-                    i["uuid"] = new_uuid
-                    save_config(config)
+                        i["uuid"] = new_uuid
+                        save_config(config)
+                    except:
+                        pass
                     last_time = datetime.now()
                     return True
     return False
-
-
-def get_author_id(signathure):
-    config = load_config()
-    if signathure == config["owner_name"] + config["uuid"]:
-        return OWNER_ID
-    for i in config["protected_users"]:
-        if signathure == i["name"] + i["uuid"]:
-            return int(i["id"])
-    for i in config["super_users"]:
-        if signathure == i["name"] + i["uuid"]:
-            return int(i["id"])
-    return -1
-
-
-def get_author(message_id):
-    with open("log.json", "r") as f:
-        data = json.load(f)
-
-    return data.get(str(message_id))
