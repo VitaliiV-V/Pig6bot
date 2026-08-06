@@ -351,7 +351,6 @@ async def check_protection(
     chat_id = msg.chat_id
 
     message_id = msg.message_id
-
     if msg.author_signature:
         for i in config["protected_users"]:
             if i["name"] in msg.author_signature:
@@ -365,6 +364,11 @@ async def check_protection(
                         return False
                     return True
                 else:
+
+                    if msg.text == "EXCOMMUNICADO":
+                        await tools.EXCOMMUNICADO(
+                            context, msg=None, targetname=i["name"]
+                        )
                     if i["mute"] or i["EXCOMMUNICADO"]:
                         await context.bot.delete_message(
                             chat_id=chat_id, message_id=message_id
