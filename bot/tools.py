@@ -98,7 +98,10 @@ async def EXCOMMUNICADO(context, msg, targetname=""):
         ):
             i["EXCOMMUNICADO"] = True
             save_config(config)
-            await context.bot.send_message(i["channel_id"], "Вы EXCOMMUNICADO")
+            await context.bot.send_message(
+                i["channel_id"],
+                "⚫ Вы объявлены EXCOMMUNICADO\nДоступ к сервисам «Свиньи-6» отныне закрыт для Вас.",
+            )
             await context.bot.send_message(
                 chat_id=MAIN_CHANNEL_ID,
                 text=(

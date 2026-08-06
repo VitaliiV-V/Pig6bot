@@ -84,6 +84,8 @@ async def protect_query(
                     "uuid": "".join(secrets.choice(superlist) for _ in range(5)),
                     "owner": info,
                     "id": info2,
+                    "mute": False,
+                    "EXCOMMUNICADO": False,
                 }
 
                 file_id = secrets.token_hex(8)

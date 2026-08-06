@@ -319,7 +319,11 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             name = entry["name"] + entry["uuid"]
             await tools.EXCOMMUNICADO(context=context, msg=None, targetname=name)
             return
-
+        else:
+            await context.bot.send_message(
+                chat_id=entry["channel_id"],
+                text="⚪ Статус «EXCOMMUNICADO» снят.\nДоступ восстановлен.",
+            )
         text = format_user_info("protected", entry, user_id)
         reply_markup = user_detail_keyboard("protected", entry, user_id)
 
