@@ -154,7 +154,7 @@ def certificate(
 
     public_path = f"keys/public/{author['id']}.public.pem"
 
-    message = cert["message"][:5]
+    message = f"{cert["message"][:5]}..."
     if os.path.exists(public_path):
 
         with open(public_path, "r", encoding="utf-8") as f:
@@ -188,7 +188,7 @@ def shadow_certificate(
 
     public_path = f"keys/public/{author_id}.public.pem"
 
-    message = cert["message"][:5]
+    message = f"{cert["message"][:5]}..."
     if os.path.exists(public_path):
         with open(public_path, "r", encoding="utf-8") as f:
             public_key = f.read()
