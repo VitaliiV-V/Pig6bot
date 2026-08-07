@@ -47,7 +47,9 @@ def _get_category_ids(config, category):
     if category == "signed":
         return sorted(config.get("signed_users", {}).keys(), key=str)
     key = CATEGORY_KEY[category]
-    return [str(u.get("id")) for u in config.get(key, [])]
+    penis = [str(u.get("channel_id")) for u in config.get(key, [])]
+
+    return [str(u.get("channel_id")) for u in config.get(key, [])]
 
 
 def _find_in_category(config, category, user_id):
@@ -56,7 +58,7 @@ def _find_in_category(config, category, user_id):
         return config.get("signed_users", {}).get(user_id)
     key = CATEGORY_KEY[category]
     for u in config.get(key, []):
-        if str(u.get("id")) == user_id:
+        if str(u.get("channel_id")) == user_id:
             return u
     return None
 
