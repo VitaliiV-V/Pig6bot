@@ -371,13 +371,13 @@ async def check_protection(
                         await tools.EXCOMMUNICADO(
                             context, msg=None, targetname=i["name"]
                         )
+                        return
                     if i["mute"] or i["EXCOMMUNICADO"]:
                         await context.bot.delete_message(
                             chat_id=chat_id, message_id=message_id
                         )
                         return False
                     try:
-                        config = load_config()
                         new_uuid = tools.generate_id()
                         await context.bot.set_chat_title(
                             i["channel_id"], i["name"] + new_uuid

@@ -85,6 +85,7 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
         and config["white_lists_mode"] != "off"
         and not (await check_protection(context=context, msg=msg, config=config))
     ):
+        config = load_config()
         ok = False
         if config["white_lists_mode"] == "admins":
             admins = await context.bot.get_chat_administrators(chat_id)
