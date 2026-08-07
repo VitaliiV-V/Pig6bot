@@ -30,7 +30,7 @@ async def replenish_codes(context):
 
     if count < 100:
         for _ in range(100 - count):
-            economy.create_code(generate_code())
+            economy.create_code(generate_id())
 
 
 async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):

@@ -305,7 +305,7 @@ class Pig6Economy:
             return None
 
         code_id = result[0]
-        new_code = tools.generate_code()
+        new_code = tools.generate_id()
 
         self.cursor.execute(
             """
