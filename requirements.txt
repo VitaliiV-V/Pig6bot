@@ -1,4 +1,4 @@
-jina2
+jinja2
 uvicorn
 fastapi	
 google-genai
