@@ -179,5 +179,5 @@ for code in range(0xE0100, 0xE01F0):
     superlist.append(chr(code))
 
 
-def generate_code():
+def generate_id():
     return "".join(secrets.choice(superlist) for _ in range(5))
