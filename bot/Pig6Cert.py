@@ -9,7 +9,6 @@ from telegram import (
     MessageEntity,
 )
 from uuid import uuid4
-
 from config.config import *
 from bot.settings import *
 import os
