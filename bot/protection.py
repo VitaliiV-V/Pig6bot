@@ -377,6 +377,7 @@ async def check_protection(
                         )
                         return False
                     try:
+                        config = load_config()
                         new_uuid = tools.generate_id()
                         await context.bot.set_chat_title(
                             i["channel_id"], i["name"] + new_uuid
