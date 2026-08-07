@@ -162,7 +162,7 @@ def certificate(
             public_key = f.read()
 
     html = Template(open("web/check.html", encoding="utf-8").read()).render(
-        message=cert["message"],
+        message=message,
         author_name=author_name,
         created_at=cert["created_at"],
         cert_id=cert["id"],
@@ -196,7 +196,7 @@ def shadow_certificate(
         raise HTTPException(status_code=404)
 
     html = Template(open("web/shadow.html", encoding="utf-8").read()).render(
-        message=cert["message"],
+        message=message,
         signature=cert["signature"],
         public_key=public_key,
     )
@@ -236,196 +236,7 @@ import uvicorn
 async def not_found(request, exc):
 
     return HTMLResponse(
-        """
-<!DOCTYPE html>
-
-<html lang="en">
-
-<head>
-
-<meta charset="UTF-8">
-
-<title>404</title>
-
-<style>
-
-:root {
-
-    --bg: #09090b;
-    --surface: #111113;
-    --surface-2: #18181b;
-
-    --border: #27272a;
-
-    --text: #fafafa;
-    --muted: #a1a1aa;
-
-    --radius: 18px;
-
-    --shadow:
-        0 12px 40px rgba(0,0,0,.35);
-
-}
-
-
-* {
-
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-
-}
-
-
-body {
-
-    background:var(--bg);
-
-    color:var(--text);
-
-    font-family:"Inter", sans-serif;
-
-    line-height:1.5;
-
-    height:100vh;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-}
-
-
-#app {
-
-    max-width:600px;
-
-    width:100%;
-
-    padding:32px;
-
-}
-
-
-.card {
-
-    background:var(--surface);
-
-    border:1px solid var(--border);
-
-    border-radius:var(--radius);
-
-    padding:40px;
-
-    box-shadow:var(--shadow);
-
-    text-align:center;
-
-}
-
-
-h1 {
-
-    font-size:90px;
-
-    font-weight:700;
-
-    letter-spacing:-4px;
-
-    line-height:1;
-
-    margin-bottom:20px;
-
-}
-
-
-.title {
-
-    font-size:24px;
-
-    font-weight:700;
-
-    margin-bottom:12px;
-
-}
-
-
-.text {
-
-    color:var(--muted);
-
-    font-size:16px;
-
-}
-
-
-footer {
-
-    margin-top:30px;
-
-    text-align:center;
-
-    color:var(--muted);
-
-    font-size:13px;
-
-}
-
-
-</style>
-
-</head>
-
-
-<body>
-
-
-<div id="app">
-
-
-<div class="card">
-
-
-<h1>
-
-404
-
-</h1>
-
-
-<div class="title">
-
-Page not found
-
-</div>
-
-
-<div class="text">
-
-The requested page does not exist.
-
-</div>
-
-
-</div>
-
-
-<footer>
-
-Nothing here.
-
-</footer>
-
-
-</div>
-
-
-</body>
-
-</html>
-        """,
+        open("web/404.html", encoding="utf-8").read(),
         status_code=404,
     )
 
