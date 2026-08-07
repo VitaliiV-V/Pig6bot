@@ -113,7 +113,7 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         data = {
             "user_id": msg.from_user.id,
-            "file_id": img[-1],
+            "file_id": img[-1].file_id,
             "username": msg.from_user.username,
             "status": "pending",
             "type": "img",
@@ -123,7 +123,7 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         data = {
             "user_id": msg.from_user.id,
-            "file_id": video,
+            "file_id": video.file_id,
             "username": msg.from_user.username,
             "status": "pending",
             "type": "video",
@@ -429,3 +429,38 @@ async def set_base_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(
             f"🔴 Не удалось установить частоту", reply_markup=ReplyKeyboardRemove()
         )
+
+
+async def myaccess(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    config = load_config()
+    if msg.from_user.id in config["root_users"] or msg.from_user.id == OWNER_ID:
+        await msg.reply_text(
+            text=(
+                "<b>🟣 Уровень доступа: ALPHA</b>\n\n"
+                "Абсолютный уровень доступа.\n\n"
+                "Вам доступны все функции Свиньи-6, управление системой, конфигурацией и уровнями допуска пользователей."
+            ),
+            parse_mode="HTML",
+        )
+        return
+    for i in config["protected_users"]:
+        if int(i["id"]) == msg.from_user.id and i["trust"]:
+            await msg.reply_text(
+                text=(
+                    "<b>🔵 Уровень доступа: TRUST</b>\n\n"
+                    "Абсолютный уровень доступа.\n\n"
+                    "Во время режима блокировки вы можете продолжать отправлять сообщения."
+                ),
+                parse_mode="HTML",
+            )
+            return
+
+    await msg.reply_text(
+        text=(
+            "<b>⚪ Уровень доступа: CIVIL</b>\n\n"
+            "Базовый уровень доступа.\n\n"
+            "На вас распространяются все стандартные правила и ограничения системы защиты."
+        ),
+        parse_mode="HTML",
+    )

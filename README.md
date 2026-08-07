@@ -159,7 +159,7 @@ user lists, current mode, rotating UUIDs and codes, etc.):
 ```
 
 Other keys used throughout the code that should exist in a complete
-config: `root_users`, `super_users`, `protected_users`, `signed_users`,
+config: `root_users`, `alpha_users`, `protected_users`, `signed_users`,
 `owner_name`, `uuid`, `mode`, `Judgment Day Code`, `bad_gifs`, `logs`,
 `logs_mode`, `base_prompt`, `AI mode`.
 

@@ -52,7 +52,9 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
     message_text = msg.text or ""
 
     bot_name = (await context.bot.get_me()).first_name
-
+    penis, trust = await check_protection(context=context, msg=msg, config=config)
+    if trust:
+        return
     if msg.animation and msg.animation.file_id in config["bad_gifs"]:
         with suppress(BadRequest, Forbidden):
             await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
@@ -83,7 +85,7 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
         not ignore
         and msg.author_signature
         and config["white_lists_mode"] != "off"
-        and not (await check_protection(context=context, msg=msg, config=config))
+        and not penis
     ):
         config = load_config()
         ok = False

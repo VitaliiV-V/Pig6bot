@@ -15,17 +15,17 @@ from telegram import (
 )
 
 ROLES = ("root", "sudo", "user")
-CATEGORIES = ("protected", "super", "signed")
+CATEGORIES = ("protected", "alpha", "signed")
 
 CATEGORY_KEY = {
     "protected": "protected_users",
-    "super": "super_users",
+    "alpha": "alpha_users",
     "signed": "signed_users",
 }
 
 CATEGORY_TITLE = {
     "protected": "🛡 Protected users",
-    "super": "⭐ Super users",
+    "alpha": "⭐ Alpha users",
     "signed": "✍️ Signed users",
 }
 
@@ -47,8 +47,6 @@ def _get_category_ids(config, category):
     if category == "signed":
         return sorted(config.get("signed_users", {}).keys(), key=str)
     key = CATEGORY_KEY[category]
-    penis = [str(u.get("channel_id")) for u in config.get(key, [])]
-
     return [str(u.get("channel_id")) for u in config.get(key, [])]
 
 
@@ -66,7 +64,11 @@ def _find_in_category(config, category, user_id):
 def _display_name(category, entry, user_id):
     if category == "signed":
         return entry.get("username") or user_id
-    return entry.get("name") or user_id
+    name = entry.get("name") or user_id
+    if category == "protected":
+        mark = "🟢" if entry.get("trust") else "🔴"
+        return f"{mark} {name}"
+    return name
 
 
 def format_user_info(category, entry, user_id):
@@ -83,11 +85,12 @@ def format_user_info(category, entry, user_id):
             f"Owner: {entry.get('owner')}\n"
             f"Channel ID: {entry.get('channel_id')}\n"
             f"UUID: {entry.get('uuid')}\n"
+            f"Trust: {'yes' if entry.get('trust') else 'no'}\n"
             f"Mute: {'yes' if entry.get('mute') else 'no'}\n"
             f"EXCOMMUNICADO: {'yes' if entry.get('EXCOMMUNICADO') else 'no'}\n"
         )
 
-    elif category == "super":
+    elif category == "alpha":
         lines.append(
             f"Name: {entry.get('name')}\n"
             f"Owner: {entry.get('owner')}\n"
@@ -124,27 +127,27 @@ def main_keyboard():
         else "🟢 Активировать протокол «Judgment Day»"
     )
     action2 = "jday"
-    return InlineKeyboardMarkup(
+
+    rows = [
+        [InlineKeyboardButton(f"{text1}", callback_data=f"panel^{action1}")],
+        [InlineKeyboardButton(f"{text2}", callback_data=f"panel^{action2}")],
         [
-            [InlineKeyboardButton(f"{text1}", callback_data=f"panel^{action1}")],
-            [InlineKeyboardButton(f"{text2}", callback_data=f"panel^{action2}")],
-            [
-                InlineKeyboardButton(
-                    CATEGORY_TITLE["protected"], callback_data="panel^cat^protected"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    CATEGORY_TITLE["super"], callback_data="panel^cat^super"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    CATEGORY_TITLE["signed"], callback_data="panel^cat^signed"
-                )
-            ],
-        ]
-    )
+            InlineKeyboardButton(
+                CATEGORY_TITLE["protected"], callback_data="panel^cat^protected"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                CATEGORY_TITLE["alpha"], callback_data="panel^cat^alpha"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                CATEGORY_TITLE["signed"], callback_data="panel^cat^signed"
+            )
+        ],
+    ]
+    return InlineKeyboardMarkup(rows)
 
 
 def keyboard():
@@ -172,6 +175,9 @@ def user_detail_keyboard(category, entry, user_id):
     rows = []
 
     if category == "protected" and entry is not None:
+        trust_txt = (
+            "🟢 Отозвать доверие" if entry.get("trust") else "🔴 Сделать доверенным"
+        )
         mute_txt = "🟠 Unmute" if entry.get("mute") else "🟢 Mute"
         exc_txt = (
             "🔴 Снять EXCOMMUNICADO"
@@ -184,16 +190,19 @@ def user_detail_keyboard(category, entry, user_id):
         rows.append(
             [InlineKeyboardButton(exc_txt, callback_data=f"panel^exc^{user_id}")]
         )
+        rows.append(
+            [InlineKeyboardButton(trust_txt, callback_data=f"panel^trust^{user_id}")]
+        )
 
-    elif category == "super" and entry is not None:
-        # super_users — только просмотр, изменяемых настроек no
+    elif category == "alpha" and entry is not None:
+        # alpha_users — только просмотр, изменяемых настроек no
         pass
 
     elif category == "signed" and entry is not None:
         current_role = entry.get("role")
         role_row = []
         for role in ROLES:
-            label = f"✅ {role}" if role == current_role else role
+            label = f"🟢 {role}" if role == current_role else role
             role_row.append(
                 InlineKeyboardButton(
                     label, callback_data=f"panel^role^{user_id}^{role}"
@@ -234,6 +243,13 @@ def category_text(category):
     return f"<b>{CATEGORY_TITLE[category]}</b>\n\nВыберите пользователя."
 
 
+PROCESSING_TEXT = (
+    "Добро пожаловать в панель управления Свинья-6."
+    "Центр управления системой защиты Свинья-6. Здесь доступны настройки, мониторинг, "
+    "управление сервисами, сертификатами и внутренней инфраструктурой.\n\nОбработка..."
+)
+
+
 async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     if not await check_id(query.from_user.id, query.message, context):
@@ -248,36 +264,19 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = MAIN_TEXT
     reply_markup = main_keyboard()
 
-    if action == "disable":
-        await tools.disable(context, None)
+    if action in ("disable", "blockall", "jday"):
+        handler = {
+            "disable": tools.disable,
+            "blockall": tools.blockall,
+            "jday": tools.jday,
+        }[action]
+        await handler(context, None)
         config = load_config()
-
         reply_markup = main_keyboard()
         await query.edit_message_text(
-            text="Добро пожаловать в панель управления Свинья-6.Центр управления системой защиты Свинья-6. Здесь доступны настройки, мониторинг, управление сервисами, сертификатами и внутренней инфраструктурой.\n\nОбработка...",
-            parse_mode="HTML",
-            reply_markup=reply_markup,
+            text=PROCESSING_TEXT, parse_mode="HTML", reply_markup=reply_markup
         )
-    elif action == "blockall":
-        await tools.blockall(context, None)
-        config = load_config()
 
-        reply_markup = main_keyboard()
-        await query.edit_message_text(
-            text="Добро пожаловать в панель управления Свинья-6.Центр управления системой защиты Свинья-6. Здесь доступны настройки, мониторинг, управление сервисами, сертификатами и внутренней инфраструктурой.\n\nОбработка...",
-            parse_mode="HTML",
-            reply_markup=reply_markup,
-        )
-    elif action == "jday":
-        await tools.jday(context, None)
-        config = load_config()
-
-        reply_markup = main_keyboard()
-        await query.edit_message_text(
-            text="Добро пожаловать в панель управления Свинья-6.Центр управления системой защиты Свинья-6. Здесь доступны настройки, мониторинг, управление сервисами, сертификатами и внутренней инфраструктурой.\n\nОбработка...",
-            parse_mode="HTML",
-            reply_markup=reply_markup,
-        )
     elif action == "back":
         pass  # остаёмся на главном тексте/клавиатуре
 
@@ -292,6 +291,17 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text = format_user_info(category, entry, user_id)
         reply_markup = user_detail_keyboard(category, entry, user_id)
 
+    elif action == "trust":
+        user_id = parts[2]
+        entry = _find_in_category(config, "protected", user_id)
+        if entry:
+            entry["trust"] = not entry.get("trust", False)
+            save_config(config)
+            config = load_config()
+            entry = _find_in_category(config, "protected", user_id)
+        text = format_user_info("protected", entry, user_id)
+        reply_markup = user_detail_keyboard("protected", entry, user_id)
+
     elif action == "mute":
         user_id = parts[2]
         entry = _find_in_category(config, "protected", user_id)
@@ -305,9 +315,7 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif action == "exc":
         await query.edit_message_text(
-            text="Добро пожаловать в панель управления Свинья-6.Центр управления системой защиты Свинья-6. Здесь доступны настройки, мониторинг, управление сервисами, сертификатами и внутренней инфраструктурой.\n\nОбработка...",
-            parse_mode="HTML",
-            reply_markup=reply_markup,
+            text=PROCESSING_TEXT, parse_mode="HTML", reply_markup=reply_markup
         )
         user_id = parts[2]
         entry = _find_in_category(config, "protected", user_id)

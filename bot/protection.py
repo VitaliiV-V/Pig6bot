@@ -86,6 +86,7 @@ async def protect_query(
                     "id": info2,
                     "mute": False,
                     "EXCOMMUNICADO": False,
+                    "trust": False,
                 }
 
                 file_id = secrets.token_hex(8)
@@ -169,7 +170,7 @@ async def check_super_user(
     message_id = msg.message_id
 
     if msg.author_signature:
-        for i in config["super_users"]:
+        for i in config["alpha_users"]:
             if i["name"] in msg.author_signature:
                 if i["name"] + i["uuid"] != msg.author_signature:
                     if (
@@ -344,11 +345,7 @@ async def check_owner(
     return False
 
 
-async def check_protection(
-    context: ContextTypes.DEFAULT_TYPE,
-    msg,
-    config,
-):
+async def check_protection(context: ContextTypes.DEFAULT_TYPE, msg, config):
     global last_time
     chat_id = msg.chat_id
 
@@ -363,11 +360,11 @@ async def check_protection(
                         await context.bot.delete_message(
                             chat_id=chat_id, message_id=message_id
                         )
-                        return False
-                    return True
+                        return False, 0
+                    return True, i["trust"]
                 else:
 
-                    if msg.text == "EXCOMMUNICADO":
+                    if msg.text == "EXCOMMUNICADO" and not i["trust"]:
                         await tools.EXCOMMUNICADO(
                             context, msg=None, targetname=i["name"]
                         )
@@ -376,7 +373,7 @@ async def check_protection(
                         await context.bot.delete_message(
                             chat_id=chat_id, message_id=message_id
                         )
-                        return False
+                        return False, 0
                     try:
                         new_uuid = tools.generate_id()
                         await context.bot.set_chat_title(
@@ -388,5 +385,5 @@ async def check_protection(
                     except:
                         pass
                     last_time = datetime.now()
-                    return True
-    return False
+                    return True, i["trust"]
+    return False, 0

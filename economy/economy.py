@@ -345,7 +345,7 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         config = load_config()
 
-        users = config.get("protected_users", []) + config.get("super_users", [])
+        users = config.get("protected_users", []) + config.get("alpha_users", [])
 
         for user in users:
             if user["owner"] == target_username:
@@ -441,7 +441,7 @@ async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 receiver_name = None
 
                 users = config.get("protected_users", []) + config.get(
-                    "super_users", []
+                    "alpha_users", []
                 )
 
                 for user in users:

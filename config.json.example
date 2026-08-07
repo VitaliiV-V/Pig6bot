@@ -21,7 +21,7 @@
     "logs": [],
     "protected_users": [],
     "root_users": [],
-    "super_users": [
+    "alpha_users": [
     ],
     "signed_users": {
     }
