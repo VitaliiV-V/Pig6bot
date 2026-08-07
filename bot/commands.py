@@ -445,7 +445,7 @@ async def myaccess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
     for i in config["protected_users"]:
-        if int(i["id"]) == msg.from_user.id and i["trust"]:
+        if int(i.get("id")) == msg.from_user.id and i.get("trust"):
             await msg.reply_text(
                 text=(
                     "<b>🔵 Уровень доступа: TRUST</b>\n\n"
