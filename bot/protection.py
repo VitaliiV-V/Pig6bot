@@ -363,15 +363,14 @@ async def check_protection(context: ContextTypes.DEFAULT_TYPE, msg, config):
                         return False, 0
                     return True, i["trust"]
                 else:
-
-                    if msg.text == "EXCOMMUNICADO" and not i["trust"]:
-                        await tools.EXCOMMUNICADO(
-                            context, msg=None, targetname=i["name"]
-                        )
-                        return
                     if i["mute"] or i["EXCOMMUNICADO"]:
                         await context.bot.delete_message(
                             chat_id=chat_id, message_id=message_id
+                        )
+                        return False, 0
+                    if msg.text == "EXCOMMUNICADO" and not i["trust"]:
+                        await tools.EXCOMMUNICADO(
+                            context, msg=None, targetname=i["name"]
                         )
                         return False, 0
                     try:
