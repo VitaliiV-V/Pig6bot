@@ -195,7 +195,7 @@ Pig6Cert.py          # Pig-6 Certificates bot entry point (key generation, signi
 
 1. Install dependencies:
    ```bash
-    pip install -r requirements.txt
+   pip install -r requirements.txt
    ```
 2. Create a `.env` file in the project root with all variables listed
    above.
