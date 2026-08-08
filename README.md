@@ -193,22 +193,20 @@ Pig6Cert.py          # Pig-6 Certificates bot entry point (key generation, signi
 
 ## Setup
 
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+1. Build and start the container:
+```bash
+   docker compose up --build -d
+```
 2. Create a `.env` file in the project root with all variables listed
    above.
 3. Ensure `dict.json` exists alongside the bots (used by the censor).
-4. Run each bot process independently, e.g.:
-   ```bash
-   python channel.py   # or whichever file wires up the main bot's handlers
-   python jday.py
-   python logs.py
-   python Pig6Cert.py
-   python AI.py
-   ```
-   Each bot polls independently with its own token and shares state
+4. All bots run inside the single container under `supervisord`, e.g.:
+```bash
+   docker compose logs -f
+   docker compose exec pig6 supervisorctl status
+   docker compose exec pig6 supervisorctl restart ai
+```
+   Each bot runs as a separate supervised process and shares state
    through `config.json` / `pig6economy.db`.
 
 ## Security notes
