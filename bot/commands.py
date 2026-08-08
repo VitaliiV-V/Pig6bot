@@ -464,3 +464,21 @@ async def myaccess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ),
         parse_mode="HTML",
     )
+
+
+async def logs(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+
+    msg = update.message
+    config = load_config()
+    if msg.from_user.id in config["root_users"] or msg.from_user.id == OWNER_ID:
+        await context.bot.send_document(
+            chat_id=msg.chat_id, document=open("logs/main.log", "rb")
+        )
+        return
+    for i in config["protected_users"]:
+        if int(i.get("id")) == msg.from_user.id and i.get("trust"):
+            await context.bot.send_document(
+                chat_id=msg.chat_id, document=open("logs/main.log", "rb")
+            )
+            return

@@ -1,4 +1,5 @@
 import bot.tools as tools
+import logging
 from bot.settings import *
 from config.config import *
 from bot.protection import *
@@ -6,11 +7,16 @@ from datetime import datetime
 from economy.pig6economy import *
 from telegram.ext import ContextTypes
 
+logger = logging.getLogger(__name__)
+
 
 def check(text):
-
-    with open("dict.json", "r", encoding="utf-8") as f:
-        data = json.load(f)
+    try:
+        with open("dict.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        logger.exception("Failed to load dict.json: %s", e)
+        return False
 
     text = text.lower()
     text2 = ""
@@ -20,7 +26,11 @@ def check(text):
             if len(text2) == 0 or text2[-1] != val:
                 text2 += val
 
-    config = load_config()
+    try:
+        config = load_config()
+    except (OSError, ValueError) as e:
+        logger.exception("Failed to load config in check(): %s", e)
+        return False
 
     for i in config["banned"]:
         if i in text2 or i in text:
@@ -43,6 +53,19 @@ class Message:
         return (datetime.now() - self.created_at).total_seconds()
 
 
+async def _safe_delete(context, chat_id, message_id, reason=""):
+    try:
+        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+    except (BadRequest, Forbidden) as e:
+        logger.warning(
+            "Failed to delete message %s in chat %s (%s): %s",
+            message_id,
+            chat_id,
+            reason,
+            e,
+        )
+
+
 async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=False):
     global last_time, messages
     chat_id = msg.chat_id
@@ -52,33 +75,48 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
     message_text = msg.text or ""
 
     bot_name = (await context.bot.get_me()).first_name
-    penis, trust = await check_protection(context=context, msg=msg, config=config)
+
+    try:
+        penis, trust = await check_protection(context=context, msg=msg, config=config)
+    except (BadRequest, Forbidden, OSError, KeyError, ValueError) as e:
+        logger.exception("check_protection failed for chat %s: %s", chat_id, e)
+        return
+
     if trust:
         return
+
     if msg.animation and msg.animation.file_id in config["bad_gifs"]:
-        with suppress(BadRequest, Forbidden):
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        await _safe_delete(context, chat_id, message_id, "banned gif")
+        logger.info("Deleted banned gif in chat %s", chat_id)
         return
 
     if not ignore:
         if msg.author_signature in config["banned_users"]:
-            with suppress(BadRequest, Forbidden):
-                await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+            await _safe_delete(context, chat_id, message_id, "banned user")
+            logger.info(
+                "Deleted message from banned user %s in chat %s",
+                msg.author_signature,
+                chat_id,
+            )
             return
 
     if config["ban_messages"] == "all":
-        with suppress(BadRequest, Forbidden):
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        await _safe_delete(context, chat_id, message_id, "ban_messages=all")
         return
     elif config["ban_messages"] == "manual" and check(message_text):
-        with suppress(BadRequest, Forbidden):
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        await _safe_delete(context, chat_id, message_id, "banned content match")
+        logger.info("Deleted message with banned content in chat %s", chat_id)
         return
-    if economy.use_code_from_text(message_text):
-        return
+
+    try:
+        if economy.use_code_from_text(message_text):
+            return
+
+    except (KeyError, ValueError, OSError) as e:
+        logger.exception("economy.use_code_from_text failed in chat %s: %s", chat_id, e)
+
     if not msg.author_signature:
-        with suppress(BadRequest, Forbidden):
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        await _safe_delete(context, chat_id, message_id, "no author signature")
         return
 
     if (
@@ -87,10 +125,22 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
         and config["white_lists_mode"] != "off"
         and not penis
     ):
-        config = load_config()
+        try:
+            config = load_config()
+        except (OSError, ValueError) as e:
+            logger.exception(
+                "Failed to reload config for whitelist check in chat %s: %s", chat_id, e
+            )
+            return
+
         ok = False
         if config["white_lists_mode"] == "admins":
-            admins = await context.bot.get_chat_administrators(chat_id)
+            try:
+                admins = await context.bot.get_chat_administrators(chat_id)
+            except (BadRequest, Forbidden) as e:
+                logger.warning("Failed to fetch admins for chat %s: %s", chat_id, e)
+                admins = []
+
             for u in admins:
                 admin = ""
                 if u.user.first_name:
@@ -112,18 +162,24 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
                     ok = True
 
         if not ok:
-            with suppress(BadRequest, Forbidden):
-                await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+            await _safe_delete(context, chat_id, message_id, "not in whitelist")
+            logger.info(
+                "Deleted message from non-whitelisted user %s in chat %s",
+                msg.author_signature,
+                chat_id,
+            )
             return
 
     if len(messages) >= 10 and messages[-10].age() < 5:
-        await tools.blockall(context=context, msg=None, x=0)
+        try:
+            await tools.blockall(context=context, msg=None, x=0)
+            logger.info("Triggered blockall (flood protection) in chat %s", chat_id)
+        except (BadRequest, Forbidden, OSError, ValueError) as e:
+            logger.exception("tools.blockall failed for chat %s: %s", chat_id, e)
+
         for i in range(-min(40, len(messages) - 1), 0):
             if i >= -11 or messages[i].message_text == messages[-1].message_text:
-                with suppress(BadRequest, Forbidden):
-                    await context.bot.delete_message(
-                        chat_id=chat_id, message_id=message_id
-                    )
+                await _safe_delete(context, chat_id, message_id, "flood cleanup")
 
     messages.append(Message(msg.author_signature, message_text, message_id))
     if len(messages) > 1000:

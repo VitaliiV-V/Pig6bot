@@ -1,35 +1,130 @@
 import os
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+CONFIG_FILE = "config.json"
 
 
 def load_config():
-    file_path = "config.json"
     default_data = {
-        "ban_messages": 0,
+        "Pmin": 100,
+        "constA": 1,
+        "ban_messages": "off",
+        "owner_name": "",
+        "cost": 300,
+        "uuid": "󠄟󠇅󠅸󠇒󠄵",
+        "white_lists_mode": "manual",
+        "anon_enable": 0,
+        "mode": "normal",
+        "AI mode": "messages",
+        "Judgment Day Code": "",
+        "base_prompt": "",
         "banned": [],
         "banned_users": [],
-        "OWNER_NAMEs": [],
-        "white_lists_mode": "off",
         "white_list": [],
-        "anon_enable": 0,
+        "logs_mode": "off",
+        "logs": [],
+        "protected_users": [],
+        "root_users": [],
+        "alpha_users": [],
+        "signed_users": {},
     }
 
-    if not os.path.exists(file_path):
-        config = default_data.copy()
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(config, f, ensure_ascii=False, indent=4)
-    else:
-        with open(file_path, "r", encoding="utf-8") as f:
+    try:
+        if not os.path.exists(CONFIG_FILE):
+            logger.warning(
+                "Configuration file '%s' was not found. Creating a new configuration.",
+                CONFIG_FILE,
+            )
+
+            config = default_data.copy()
+
+            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                json.dump(
+                    config,
+                    f,
+                    ensure_ascii=False,
+                    indent=4,
+                )
+
+            logger.info(
+                "Default configuration created successfully in '%s'.",
+                CONFIG_FILE,
+            )
+
+            return config
+
+        logger.debug(
+            "Loading configuration from '%s'.",
+            CONFIG_FILE,
+        )
+
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
             config = json.load(f)
 
-    return config
+        logger.info(
+            "Configuration loaded successfully from '%s'.",
+            CONFIG_FILE,
+        )
+
+        return config
+
+    except json.JSONDecodeError:
+        logger.exception(
+            "Failed to load configuration: invalid JSON in '%s'.",
+            CONFIG_FILE,
+        )
+        raise
+
+    except OSError:
+        logger.exception(
+            "Failed to access configuration file '%s'.",
+            CONFIG_FILE,
+        )
+        raise
+
+    except Exception:
+        logger.exception("Unexpected error while loading configuration.")
+        raise
 
 
 load_config()
 
 
 def save_config(data):
-    file_path = "config.json"
+    try:
+        logger.debug(
+            "Saving configuration to '%s'.",
+            CONFIG_FILE,
+        )
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(
+                data,
+                f,
+                ensure_ascii=False,
+                indent=4,
+            )
+
+        logger.info(
+            "Configuration saved successfully to '%s'.",
+            CONFIG_FILE,
+        )
+
+    except TypeError:
+        logger.exception("Failed to serialize configuration to JSON.")
+        raise
+
+    except OSError:
+        logger.exception(
+            "Failed to write configuration file '%s'.",
+            CONFIG_FILE,
+        )
+        raise
+
+    except Exception:
+        logger.exception("Unexpected error while saving configuration.")
+        raise

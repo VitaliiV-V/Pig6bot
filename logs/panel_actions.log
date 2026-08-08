@@ -1,0 +1,53 @@
+2026-08-09 02:51:47,187 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:51:47,188 | INFO | PANEL OPENED | actor=id=5149477852 (@nlognchick)
+2026-08-09 02:51:55,130 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:51:55,130 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^cat^protected
+2026-08-09 02:51:55,131 | INFO | OPEN CATEGORY | actor=id=5149477852 (@nlognchick) | category=protected
+2026-08-09 02:51:57,908 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:51:57,908 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^user^protected^-1003892745828
+2026-08-09 02:51:57,909 | INFO | OPEN USER | actor=id=5149477852 (@nlognchick) | category=protected | target=-1003892745828 | found=True
+2026-08-09 02:52:04,571 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:04,572 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^trust^-1003892745828
+2026-08-09 02:52:04,574 | INFO | TRUST TOGGLED | actor=id=5149477852 (@nlognchick) | target=-1003892745828 | old=False | new=True
+2026-08-09 02:52:09,065 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:09,066 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^exc^-1003892745828
+2026-08-09 02:52:09,164 | INFO | EXCOMMUNICADO TOGGLED | actor=id=5149477852 (@nlognchick) | target=-1003892745828 | old=False | new=True
+2026-08-09 02:52:09,164 | INFO | EXCOMMUNICADO PROTOCOL TRIGGERED | actor=id=5149477852 (@nlognchick) | target=-1003892745828 (Алёна󠅂󠄋󠅝󠆜󠇈󠄾󠆩󠅾󠅜󠆋󠆨󠇒󠄲󠄘󠅴󠆜󠄷󠇝󠅴󠆤)
+2026-08-09 02:52:21,115 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:21,116 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^cat^protected
+2026-08-09 02:52:21,116 | INFO | OPEN CATEGORY | actor=id=5149477852 (@nlognchick) | category=protected
+2026-08-09 02:52:22,198 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:22,198 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^user^protected^-1003892745828
+2026-08-09 02:52:22,199 | INFO | OPEN USER | actor=id=5149477852 (@nlognchick) | category=protected | target=-1003892745828 | found=True
+2026-08-09 02:52:23,180 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:23,181 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^exc^-1003892745828
+2026-08-09 02:52:23,278 | INFO | EXCOMMUNICADO TOGGLED | actor=id=5149477852 (@nlognchick) | target=-1003892745828 | old=True | new=False
+2026-08-09 02:52:23,403 | INFO | EXCOMMUNICADO LIFTED | actor=id=5149477852 (@nlognchick) | target=-1003892745828
+2026-08-09 02:52:30,314 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:30,314 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^mute^-1003892745828
+2026-08-09 02:52:30,315 | INFO | MUTE TOGGLED | actor=id=5149477852 (@nlognchick) | target=-1003892745828 | old=False | new=True
+2026-08-09 02:52:32,404 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:32,404 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^mute^-1003892745828
+2026-08-09 02:52:32,405 | INFO | MUTE TOGGLED | actor=id=5149477852 (@nlognchick) | target=-1003892745828 | old=True | new=False
+2026-08-09 02:52:33,672 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:33,672 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^cat^protected
+2026-08-09 02:52:33,673 | INFO | OPEN CATEGORY | actor=id=5149477852 (@nlognchick) | category=protected
+2026-08-09 02:52:34,913 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:34,913 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^back
+2026-08-09 02:52:34,914 | INFO | NAVIGATE | actor=id=5149477852 (@nlognchick) | to=main_menu
+2026-08-09 02:52:36,132 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:36,132 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^jday
+2026-08-09 02:52:36,132 | INFO | PROTECTION ACTION | actor=id=5149477852 (@nlognchick) | action=jday
+2026-08-09 02:52:36,358 | INFO | PROTECTION ACTION DONE | actor=id=5149477852 (@nlognchick) | action=jday | new_ban_messages=all | new_mode=Judgment Day
+2026-08-09 02:52:41,475 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:41,475 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^jday
+2026-08-09 02:52:41,476 | INFO | PROTECTION ACTION | actor=id=5149477852 (@nlognchick) | action=jday
+2026-08-09 02:52:41,692 | INFO | PROTECTION ACTION DONE | actor=id=5149477852 (@nlognchick) | action=jday | new_ban_messages=all | new_mode=normal
+2026-08-09 02:52:42,787 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:42,787 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^disable
+2026-08-09 02:52:42,787 | INFO | PROTECTION ACTION | actor=id=5149477852 (@nlognchick) | action=disable
+2026-08-09 02:52:43,028 | INFO | PROTECTION ACTION DONE | actor=id=5149477852 (@nlognchick) | action=disable | new_ban_messages=off | new_mode=normal
+2026-08-09 02:52:45,267 | INFO | ACCESS GRANTED | actor_id=5149477852
+2026-08-09 02:52:45,267 | INFO | PANEL CALLBACK | actor=id=5149477852 (@nlognchick) | raw=panel^blockall
+2026-08-09 02:52:45,267 | INFO | PROTECTION ACTION | actor=id=5149477852 (@nlognchick) | action=blockall
+2026-08-09 02:52:45,477 | INFO | PROTECTION ACTION DONE | actor=id=5149477852 (@nlognchick) | action=blockall | new_ban_messages=all | new_mode=normal

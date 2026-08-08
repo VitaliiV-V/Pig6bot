@@ -12,6 +12,29 @@ from telegram.ext import (
     CallbackQueryHandler,
 )
 
+import logging
+from logging.handlers import RotatingFileHandler
+
+log_formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
+file_handler = RotatingFileHandler(
+    "logs/main.log", maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8"
+)
+file_handler.setFormatter(log_formatter)
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(log_formatter)
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+root_logger.addHandler(file_handler)
+root_logger.addHandler(console_handler)
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("telegram").setLevel(logging.WARNING)
+
 app = ApplicationBuilder().token(TOKEN).build()
 
 
@@ -20,10 +43,11 @@ app.add_handler(CommandHandler("top", top))
 app.add_handler(CommandHandler("buy", buy))
 app.add_handler(CommandHandler("pay", send))
 app.add_handler(CommandHandler("post", post))
-app.add_handler(CommandHandler("jday", fjday))
+app.add_handler(CommandHandler("logs", logs))
 app.add_handler(CommandHandler("give", give))
 app.add_handler(CommandHandler("sell", sell))
 app.add_handler(CommandHandler("gift", bonus))
+app.add_handler(CommandHandler("jday", fjday))
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("smart", smart))
 app.add_handler(CommandHandler("unban", funban))
