@@ -37,9 +37,8 @@ root_logger.addHandler(file_handler)
 
 root_logger.addHandler(console_handler)
 
-logging.getLogger("httpx").setLevel(logging.WARNING)
-
-logging.getLogger("telegram").setLevel(logging.WARNING)
+logging.getLogger().setLevel(logging.INFO)
+logging.getLogger("bot").setLevel(logging.INFO)
 
 import logging
 from config.config import *
