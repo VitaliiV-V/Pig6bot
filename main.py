@@ -1,9 +1,11 @@
+import logging
 from config.config import *
 from bot.settings import *
 from bot.channel import *
 from bot.commands import *
 from economy.economy import *
 from web.server import *
+from logging.handlers import RotatingFileHandler
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -11,9 +13,6 @@ from telegram.ext import (
     filters,
     CallbackQueryHandler,
 )
-
-import logging
-from logging.handlers import RotatingFileHandler
 
 log_formatter = logging.Formatter(
     "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
