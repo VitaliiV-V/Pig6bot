@@ -3,8 +3,10 @@ from config.config import *
 from bot.settings import *
 from bot.channel import *
 from bot.commands import *
+from bot.censor import *
 from economy.economy import *
 from web.server import *
+from bot.protection import *
 from logging.handlers import RotatingFileHandler
 from telegram.ext import (
     ApplicationBuilder,
