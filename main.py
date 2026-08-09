@@ -1,4 +1,47 @@
 import logging
+
+from logging.handlers import RotatingFileHandler
+
+import os
+
+os.makedirs("logs", exist_ok=True)
+
+log_formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
+file_handler = RotatingFileHandler(
+    "logs/main.log",
+    maxBytes=5 * 1024 * 1024,
+    backupCount=3,
+    encoding="utf-8",
+)
+
+file_handler.setFormatter(log_formatter)
+
+file_handler.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+
+console_handler.setFormatter(log_formatter)
+
+console_handler.setLevel(logging.INFO)
+
+root_logger = logging.getLogger()
+
+root_logger.setLevel(logging.INFO)
+
+root_logger.handlers.clear()
+
+root_logger.addHandler(file_handler)
+
+root_logger.addHandler(console_handler)
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
+logging.getLogger("telegram").setLevel(logging.WARNING)
+
+import logging
 from config.config import *
 from bot.settings import *
 from bot.channel import *
@@ -15,26 +58,6 @@ from telegram.ext import (
     filters,
     CallbackQueryHandler,
 )
-
-log_formatter = logging.Formatter(
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-
-file_handler = RotatingFileHandler(
-    "logs/main.log", maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8"
-)
-file_handler.setFormatter(log_formatter)
-
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(log_formatter)
-
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
-root_logger.addHandler(file_handler)
-root_logger.addHandler(console_handler)
-
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("telegram").setLevel(logging.WARNING)
 
 app = ApplicationBuilder().token(TOKEN).build()
 
