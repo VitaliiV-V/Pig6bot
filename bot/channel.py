@@ -1,3 +1,4 @@
+import logging
 from bot.censor import *
 from bot.settings import *
 from config.config import *
@@ -5,6 +6,8 @@ from telegram import Update
 from bot.protection import *
 from economy.pig6economy import *
 from telegram.ext import ContextTypes
+
+logger = logging.getLogger(__name__)
 
 
 async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
