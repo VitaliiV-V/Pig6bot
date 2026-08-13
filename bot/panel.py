@@ -586,7 +586,7 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def showpanel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def panel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     actor = _who(msg.from_user)
 

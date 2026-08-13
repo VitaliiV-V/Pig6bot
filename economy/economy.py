@@ -42,7 +42,7 @@ async def replenish_codes(context):
         raise
 
 
-async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def buy_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         msg = update.message
         user_id = msg.from_user.id
@@ -221,7 +221,7 @@ async def confirm_pay(query, data, context):
         raise
 
 
-async def sell(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def sell_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         msg = update.message
         user_id = msg.from_user.id
@@ -310,7 +310,7 @@ async def sell(update: Update, context: ContextTypes.DEFAULT_TYPE):
         raise
 
 
-async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def balance_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         msg = update.message
         user_id = msg.from_user.id
@@ -340,7 +340,7 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
         raise
 
 
-async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def send_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         msg = update.message
 
@@ -444,7 +444,7 @@ async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
         raise
 
 
-async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def give_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         msg = update.message
         user_id = msg.from_user.id
@@ -545,7 +545,7 @@ async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
         else:
             await msg.reply_text(
-                f"Внимание! Системой защиты «{bot_name}»  отражена попытка несанкционированного доступа к телеграм каналу",
+                "🔴 Доступ запрещён.",
                 reply_markup=ReplyKeyboardRemove(),
             )
             logger.warning("Unauthorized /give attempt by user %s", user_id)
@@ -554,7 +554,7 @@ async def give(update: Update, context: ContextTypes.DEFAULT_TYPE):
         raise
 
 
-async def bonus(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def bonus_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         msg = update.message
         user_id = msg.from_user.id
@@ -595,7 +595,7 @@ async def bonus(update: Update, context: ContextTypes.DEFAULT_TYPE):
         raise
 
 
-async def codes(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def codes_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         msg = update.message
 
@@ -632,7 +632,7 @@ async def codes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         raise
 
 
-async def market(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def market_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         msg = update.message
 
@@ -668,7 +668,7 @@ async def market(update: Update, context: ContextTypes.DEFAULT_TYPE):
         raise
 
 
-async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def top_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         msg = update.message
 

@@ -30,7 +30,7 @@ async def check_id(user_id, msg, context):
     return False
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     msg = update.message
     if not msg:
@@ -40,14 +40,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def blockallh(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def blockall_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     if not await check_id(msg.from_user.id, msg, context):
         return
     await tools.blockall(context=context, msg=msg)
 
 
-async def smart(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def smart_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -70,7 +70,7 @@ async def smart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.reply_text("🟢 Защита активирована.")
 
 
-async def fdisable(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def disable_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -78,7 +78,7 @@ async def fdisable(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await tools.disable(context, msg)
 
 
-async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not msg.reply_to_message:
@@ -258,10 +258,37 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await confirm_pay(query, data, context)
     elif action == "panel":
         await panel(update, context)
+    elif action == "approveq":
+        if await check_id(user_id=query.from_user.id, msg=query, context=context):
+            with open(data, "r", encoding="utf-8") as f:
+                req = json.load(f)
+            os.remove(data)
+
+            sticker_path = req["sticker_path"]
+
+            with open(sticker_path, "rb") as sticker_file:
+                await context.bot.send_sticker(
+                    chat_id=req["user_id"], sticker=sticker_file
+                )
+            await query.edit_message_text("🟢 Стикер отправлен Вам в личные сообщения.")
+        else:
+            await query.answer("🔴 Доступ запрещён.", show_alert=False)
+    elif action == "rejectq":
+        if await check_id(user_id=query.from_user.id, msg=query, context=context):
+            with open(data, "r", encoding="utf-8") as f:
+                req = json.load(f)
+            os.remove(data)
+            await context.bot.send_message(
+                chat_id=req["user.id"], text="🔴 Ваш запрос отклонён."
+            )
+
+            await query.edit_message_text("🔴 Запрос отклонён.")
+        else:
+            await query.answer("🔴 Доступ запрещён.", show_alert=False)
     await query.answer()
 
 
-async def fban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def ban_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -276,7 +303,7 @@ async def fban(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(f"🔴 Не удалось заблокировать {s}")
 
 
-async def funban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def unban_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -290,7 +317,9 @@ async def funban(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(f"🔴 Не удалось разблокировать {s}")
 
 
-async def setwhitelistsmode(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def set_white_lists_mode_handler(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -308,7 +337,7 @@ async def setwhitelistsmode(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(f"Failed")
 
 
-async def addtolists(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def addtolists_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -332,7 +361,7 @@ async def addtolists(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def delfromlists(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def delfromlists_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -350,7 +379,7 @@ async def delfromlists(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.reply_text(f"🔴 Не удалось убрать {s} из белого списка")
 
 
-async def post(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def post_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -364,7 +393,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.reply_text(f"🟢 Пост отправлен")
 
 
-async def fjday(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def jday_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -372,7 +401,7 @@ async def fjday(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await tools.jday(context=context, msg=msg)
 
 
-async def jdaycode(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def jdaycode_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -386,7 +415,7 @@ async def jdaycode(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def config(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def config_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -401,7 +430,7 @@ async def config(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def receive_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def receive_config_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -412,7 +441,7 @@ async def receive_config(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await file.download_to_drive("config.json")
 
 
-async def set_base_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def set_base_prompt_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not await check_id(msg.from_user.id, msg, context):
@@ -431,7 +460,7 @@ async def set_base_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def myaccess(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def myaccess_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     config = load_config()
     if msg.from_user.id in config["root_users"] or msg.from_user.id == OWNER_ID:
@@ -466,7 +495,7 @@ async def myaccess(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def logs(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def logs_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     msg = update.message

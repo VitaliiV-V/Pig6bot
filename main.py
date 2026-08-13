@@ -44,8 +44,9 @@ import logging
 from config.config import *
 from bot.settings import *
 from bot.channel import *
-from bot.commands import *
+from bot.handlers import *
 from bot.censor import *
+from bot.quote import *
 from economy.economy import *
 from web.server import *
 from bot.protection import *
@@ -60,42 +61,46 @@ from telegram.ext import (
 
 app = ApplicationBuilder().token(TOKEN).build()
 
-
-app.add_handler(CommandHandler("ban", fban))
-app.add_handler(CommandHandler("top", top))
-app.add_handler(CommandHandler("buy", buy))
-app.add_handler(CommandHandler("pay", send))
-app.add_handler(CommandHandler("post", post))
-app.add_handler(CommandHandler("logs", logs))
-app.add_handler(CommandHandler("give", give))
-app.add_handler(CommandHandler("sell", sell))
-app.add_handler(CommandHandler("gift", bonus))
-app.add_handler(CommandHandler("jday", fjday))
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("smart", smart))
-app.add_handler(CommandHandler("unban", funban))
-app.add_handler(CommandHandler("market", market))
-app.add_handler(CommandHandler("mycodes", codes))
-app.add_handler(CommandHandler("config", config))
-app.add_handler(CommandHandler("jcode", jdaycode))
-app.add_handler(CommandHandler("add", addtolists))
-app.add_handler(CommandHandler("balance", balance))
-app.add_handler(CommandHandler("panel", showpanel))
-app.add_handler(CommandHandler("disable", fdisable))
-app.add_handler(CommandHandler("del", delfromlists))
-app.add_handler(CommandHandler("myaccess", myaccess))
-app.add_handler(CommandHandler("download", download))
+app.add_handler(CommandHandler("q", quote))
+app.add_handler(CommandHandler("quote", quote))
+app.add_handler(CommandHandler("ban", ban_handler))
+app.add_handler(CommandHandler("top", top_handler))
+app.add_handler(CommandHandler("buy", buy_handler))
+app.add_handler(CommandHandler("pay", send_handler))
+app.add_handler(CommandHandler("post", post_handler))
+app.add_handler(CommandHandler("logs", logs_handler))
+app.add_handler(CommandHandler("give", give_handler))
+app.add_handler(CommandHandler("sell", sell_handler))
+app.add_handler(CommandHandler("jday", jday_handler))
 app.add_handler(CallbackQueryHandler(buttons_handler))
-app.add_handler(CommandHandler("blockall", blockallh))
+app.add_handler(CommandHandler("gift", bonus_handler))
+app.add_handler(CommandHandler("panel", panel_handler))
+app.add_handler(CommandHandler("start", start_handler))
+app.add_handler(CommandHandler("smart", smart_handler))
+app.add_handler(CommandHandler("unban", unban_handler))
+app.add_handler(CommandHandler("market", market_handler))
+app.add_handler(CommandHandler("mycodes", codes_handler))
+app.add_handler(CommandHandler("config", config_handler))
+app.add_handler(CommandHandler("jcode", jdaycode_handler))
+app.add_handler(CommandHandler("add", addtolists_handler))
+app.add_handler(CommandHandler("balance", balance_handler))
+app.add_handler(CommandHandler("disable", disable_handler))
+app.add_handler(CommandHandler("del", delfromlists_handler))
+app.add_handler(CommandHandler("myaccess", myaccess_handler))
+app.add_handler(CommandHandler("download", download_handler))
+app.add_handler(CommandHandler("blockall", blockall_handler))
 app.add_handler(MessageHandler(filters.ALL, reply_in_channel))
-app.add_handler(CommandHandler("setbaseprompt", set_base_prompt))
-app.add_handler(CommandHandler("setwhitelistsmode", setwhitelistsmode))
+app.add_handler(CommandHandler("setbaseprompt", set_base_prompt_handler))
+app.add_handler(CommandHandler("setwhitelistsmode", set_white_lists_mode_handler))
 app.add_handler(
     MessageHandler(filters.UpdateType.EDITED_CHANNEL_POST, reply_in_channel)
 )
 app.add_handler(
-    MessageHandler(filters.ChatType.PRIVATE & filters.Document.ALL, receive_config)
+    MessageHandler(
+        filters.ChatType.PRIVATE & filters.Document.ALL, receive_config_handler
+    )
 )
+
 
 app.job_queue.run_repeating(
     replenish_codes,
