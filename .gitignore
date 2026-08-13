@@ -13,3 +13,4 @@ certificates/
 keys/
 logs/
 stickers/
+tmp/
