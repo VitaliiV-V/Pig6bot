@@ -212,6 +212,7 @@ class Pig6Economy:
                     SELECT name, balance
                     FROM users
                     WHERE balance > 0
+                    AND name != 'SYSTEM'
                     ORDER BY balance DESC
                     LIMIT ?
                     """,
