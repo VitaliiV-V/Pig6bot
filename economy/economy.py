@@ -689,8 +689,6 @@ async def top_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             name = name or "Без имени"
 
             name = name.replace("@", "")
-            if name == "SYSTEM":
-                continue
             lines.append(f"{prefix} {name} — <b>{balance} P6T</b>")
 
         await msg.reply_text(
@@ -708,30 +706,31 @@ async def generate_codes_handler(
 ):
 
     msg = update.message
+    user_id = msg.from_user.id
+    if check_id(user_id):
+        try:
 
-    try:
+            count = int(context.args[0])
 
-        count = int(context.args[0])
+        except (IndexError, ValueError):
 
-    except (IndexError, ValueError):
+            await msg.reply_text("Использование: /gen <количество>")
 
-        await msg.reply_text("Использование: /gen <количество>")
+            return
 
-        return
+        if count <= 0:
 
-    if count <= 0:
+            await msg.reply_text("Количество должно быть больше нуля.")
 
-        await msg.reply_text("Количество должно быть больше нуля.")
+            return
 
-        return
+        for _ in range(count):
 
-    for _ in range(count):
-
-        economy.create_code(generate_id())
-    config = load_config()
-    config["count"] = economy.get_unused_codes_count()
-    save_config(config)
-    await msg.reply_text(f"Создано кодов: {count}")
+            economy.create_code(generate_id())
+        config = load_config()
+        config["count"] = economy.get_unused_codes_count()
+        save_config(config)
+        await msg.reply_text(f"Создано кодов: {count}")
 
 
 async def delete_codes_handler(
@@ -740,26 +739,27 @@ async def delete_codes_handler(
 ):
 
     msg = update.message
+    user_id = msg.from_user.id
+    if check_id(user_id):
+        try:
 
-    try:
+            count = int(context.args[0])
 
-        count = int(context.args[0])
+        except (IndexError, ValueError):
 
-    except (IndexError, ValueError):
+            await msg.reply_text("Использование: /clear_codes <количество>")
 
-        await msg.reply_text("Использование: /clear_codes <количество>")
+            return
 
-        return
+        if count <= 0:
 
-    if count <= 0:
+            await msg.reply_text("Количество должно быть больше нуля.")
 
-        await msg.reply_text("Количество должно быть больше нуля.")
+            return
 
-        return
+        deleted = economy.delete_unowned_codes(count)
+        config = load_config()
+        config["count"] = economy.get_unused_codes_count()
+        save_config(config)
 
-    deleted = economy.delete_unowned_codes(count)
-    config = load_config()
-    config["count"] = economy.get_unused_codes_count()
-    save_config(config)
-
-    await msg.reply_text(f"Удалено ничейных кодов: {deleted}")
+        await msg.reply_text(f"Удалено ничейных кодов: {deleted}")
