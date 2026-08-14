@@ -675,6 +675,31 @@ class Pig6Economy:
             logger.exception("get_unused_codes_count() failed")
             raise
 
+    def get_user_id_by_username(self, username):
+        try:
+            username = username.lstrip("@")
+
+            self.cursor.execute(
+                """
+                SELECT user_id
+                FROM users
+                WHERE name = ?
+                LIMIT 1
+                """,
+                (f"@{username}",),
+            )
+
+            result = self.cursor.fetchone()
+
+            return result[0] if result else None
+
+        except sqlite3.Error:
+            logger.exception(
+                "get_user_id_by_username(%s) failed",
+                username,
+            )
+            raise
+
 
 economy = Pig6Economy()
 economy.add_user(0, "SYSTEM", 0)

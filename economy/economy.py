@@ -80,7 +80,7 @@ async def buy_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if q < cnt:
             await msg.reply_text(
                 text=(
-                    "❌ <b>Недостаточно кодов</b>\n\n"
+                    "🔴 <b>Недостаточно кодов</b>\n\n"
                     f"Запрошено: <b>{cnt}</b>\n"
                     f"Доступно: <b>{q}</b>"
                 ),
@@ -149,7 +149,7 @@ async def confirm_pay(query, data, context):
         if balance < total:
             await query.edit_message_text(
                 text=(
-                    "❌ <b>Недостаточно средств</b>\n\n"
+                    "🔴 <b>Недостаточно средств</b>\n\n"
                     f"Стоимость: <b>{total} P6T</b>\n"
                     f"Ваш баланс: <b>{balance} P6T</b>"
                 ),
@@ -158,7 +158,7 @@ async def confirm_pay(query, data, context):
         elif count < cnt:
             await query.edit_message_text(
                 text=(
-                    "❌ <b>Недостаточно кодов</b>\n\n"
+                    "🔴 <b>Недостаточно кодов</b>\n\n"
                     f"Запрошено: <b>{cnt}</b>\n"
                     f"Доступно: <b>{count}</b>"
                 ),
@@ -190,7 +190,7 @@ async def confirm_pay(query, data, context):
             if query.message.chat_id != user_id:
                 await query.edit_message_text(
                     text=(
-                        "✅ <b>Оплата произведена</b>\n\n"
+                        "🟢 <b>Оплата произведена</b>\n\n"
                         f"Количество купленных кодов: <b>{cnt}</b>\n"
                         f"Сумма: <b>{total} P6T</b>\n\n"
                         "Одноразовые коды отправлены Вам в личные сообщения."
@@ -200,7 +200,7 @@ async def confirm_pay(query, data, context):
             else:
                 await query.edit_message_text(
                     text=(
-                        "✅ <b>Оплата произведена</b>\n\n"
+                        "🟢 <b>Оплата произведена</b>\n\n"
                         f"Количество купленных кодов: <b>{cnt}</b>\n"
                         f"Сумма: <b>{total} P6T</b>\n\n"
                         f"Одноразовые коды ({len(codes)}):\n\n" + codes_text
@@ -212,7 +212,7 @@ async def confirm_pay(query, data, context):
                 await context.bot.send_message(
                     chat_id=user_id,
                     text=(
-                        "✅ <b>Оплата произведена</b>\n\n"
+                        "🟢 <b>Оплата произведена</b>\n\n"
                         f"Количество купленных кодов: <b>{cnt}</b>\n"
                         f"Сумма: <b>{total} P6T</b>\n\n"
                         f"Одноразовые коды ({len(codes)}):\n\n" + codes_text
@@ -248,7 +248,7 @@ async def sell_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if len(codes) < cnt:
             await msg.reply_text(
-                "❌ <b>У вас нет нужного количества кодов</b>",
+                "🔴 <b>У вас нет нужного количества кодов</b>",
                 parse_mode="HTML",
             )
             return
@@ -296,7 +296,7 @@ async def sell_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             await msg.reply_text(
                 text=(
-                    "✅ <b>Продажа произведена</b>\n\n"
+                    "🟢 <b>Продажа произведена</b>\n\n"
                     f"Количество проданных кодов: <b>{cnt}</b>\n"
                     f"Сумма: <b>{total} P6T</b>\n\n"
                     "Оставшиеся у Вас одноразовые коды отправлены Вам в личные сообщения."
@@ -307,7 +307,7 @@ async def sell_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=user_id,
             text=(
-                "✅ <b>Продажа произведена</b>\n\n"
+                "🟢 <b>Продажа произведена</b>\n\n"
                 f"Продано кодов: <b>{cnt}</b>\n"
                 f"Сумма: <b>{total} P6T</b>\n\n"
                 "Одноразовые коды:\n\n" + codes_text
@@ -366,7 +366,7 @@ async def send_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if len(args) != 3:
             if not msg.reply_to_message:
-                await msg.reply_text("❌ Формат:\n/pay @username количество")
+                await msg.reply_text("🔴 Формат:\n/pay @username количество")
                 return
             else:
                 receiver_id = msg.reply_to_message.from_user.id
@@ -374,38 +374,30 @@ async def send_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 try:
                     amount = int(args[1])
                 except ValueError:
-                    await msg.reply_text("❌ Количество должно быть числом.")
+                    await msg.reply_text("🔴 Количество должно быть числом.")
                     return
         else:
-            target_username = args[1]
-
+            receiver_id = economy.get_user_id_by_username(args[1])
+            receiver_name = f"{args[1]}"
             try:
                 amount = int(args[2])
             except ValueError:
-                await msg.reply_text("❌ Количество должно быть числом.")
+                await msg.reply_text("🔴 Количество должно быть числом.")
                 return
 
-            config = load_config()
-
-            users = config.get("protected_users", []) + config.get("alpha_users", [])
-
-            for user in users:
-                if user["owner"] == target_username:
-                    receiver_id = int(user["id"])
-                    receiver_name = user["owner"]
-                    break
-
-            if receiver_id is None:
-                await msg.reply_text("❌ Пользователь не найден.")
-                return
-
+        if not receiver_id:
+            await msg.reply_text(
+                text=("🔴 <b>Пользователь с таким именем не найден</b>\n\n"),
+                parse_mode="HTML",
+            )
+            return
         sender_id = msg.from_user.id
 
         if amount < 0:
             await msg.reply_text("🖕 Иди нахуй")
             return
         if economy.get_balance(sender_id) < amount:
-            await msg.reply_text("❌ Недостаточно средств.")
+            await msg.reply_text("🔴 Недостаточно средств.")
 
             return
 
@@ -416,12 +408,12 @@ async def send_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         if not success:
-            await msg.reply_text("❌ Не удалось выполнить перевод.")
+            await msg.reply_text("🔴 Не удалось выполнить перевод.")
             return
 
         await msg.reply_text(
             text=(
-                "✅ <b>Перевод выполнен</b>\n\n"
+                "🟢 <b>Перевод выполнен</b>\n\n"
                 f"👤 Получатель: <b>{receiver_name}</b>\n"
                 f"💰 Сумма: <b>{amount} P6T</b>\n\n"
                 "Средства успешно отправлены."
@@ -482,35 +474,24 @@ async def give_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     try:
                         amount = int(args[1])
                     except ValueError:
-                        await msg.reply_text("❌ Количество должно быть числом.")
+                        await msg.reply_text("🔴 Количество должно быть числом.")
                         return
 
             else:
+                receiver_id = economy.get_user_id_by_username(args[1])
+                receiver_name = f"{args[1]}"
                 try:
-                    target_username = args[1]
                     amount = int(args[2])
-                    config = load_config()
-
-                    receiver_id = None
-                    receiver_name = None
-
-                    users = config.get("protected_users", []) + config.get(
-                        "alpha_users", []
-                    )
-
-                    for user in users:
-                        if user["owner"] == target_username:
-                            receiver_id = int(user["id"])
-                            receiver_name = user["owner"]
-                            break
-
-                    if receiver_id is None:
-                        await msg.reply_text("❌ Пользователь не найден.")
-                        return
                 except ValueError:
-                    await msg.reply_text("❌ Количество должно быть числом.")
+                    await msg.reply_text("🔴 Количество должно быть числом.")
                     return
 
+            if not receiver_id:
+                await msg.reply_text(
+                    text=("🔴 <b>Пользователь с таким именем не найден</b>\n\n"),
+                    parse_mode="HTML",
+                )
+                return
             if not economy.user_exists(receiver_id):
                 economy.add_user(receiver_id)
 
@@ -519,12 +500,12 @@ async def give_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
             if not success:
-                await msg.reply_text("❌ Не удалось выполнить перевод.")
+                await msg.reply_text("🔴 Не удалось выполнить перевод.")
                 return
 
             await msg.reply_text(
                 text=(
-                    "✅ <b>Подарок выдан</b>\n\n"
+                    "🟢 <b>Подарок выдан</b>\n\n"
                     f"👤 Получатель: <b>{receiver_name}</b>\n"
                     f"💰 Сумма: <b>{amount} P6T</b>"
                 ),
