@@ -503,9 +503,10 @@ async def give_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await msg.reply_text("🔴 Не удалось выполнить перевод.")
                 return
 
+            text1 = "🟢 <b>Подарок выдан</b>" if amount > 0 else "<b>💅 Репрессии</b>"
             await msg.reply_text(
                 text=(
-                    "🟢 <b>Подарок выдан</b>\n\n"
+                    f"{text1}\n\n"
                     f"👤 Получатель: <b>{receiver_name}</b>\n"
                     f"💰 Сумма: <b>{amount} P6T</b>"
                 ),
