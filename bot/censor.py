@@ -72,7 +72,9 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
 
     message_id = msg.message_id
 
-    message_text = msg.text or msg.caption or ""
+    message_text = (
+        msg.text or msg.caption or msg.poll.description or msg.poll.question or ""
+    )
 
     bot_name = (await context.bot.get_me()).first_name
 
