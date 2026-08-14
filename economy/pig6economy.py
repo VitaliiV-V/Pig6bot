@@ -635,6 +635,46 @@ class Pig6Economy:
             logger.exception("get_market_operations(%s) failed", limit)
             raise
 
+    def delete_unowned_codes(self, count: int):
+        try:
+            self.cursor.execute(
+                """
+                DELETE FROM codes
+                WHERE id IN (
+                    SELECT id
+                    FROM codes
+                    WHERE owner_id = 0 AND used = 0
+                    LIMIT ?
+                )
+                """,
+                (count,),
+            )
+
+            deleted = self.cursor.rowcount
+            self.db.commit()
+
+            logger.info("Deleted %s unowned codes", deleted)
+            return deleted
+
+        except sqlite3.Error:
+            logger.exception("delete_unowned_codes(%s) failed", count)
+            self.db.rollback()
+            raise
+
+    def get_unused_codes_count(self):
+        try:
+            self.cursor.execute("""
+                SELECT COUNT(*)
+                FROM codes
+                WHERE used = 0
+                """)
+
+            return self.cursor.fetchone()[0]
+
+        except sqlite3.Error:
+            logger.exception("get_unused_codes_count() failed")
+            raise
+
 
 economy = Pig6Economy()
 economy.add_user(0, "SYSTEM", 0)

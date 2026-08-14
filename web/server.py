@@ -42,11 +42,11 @@ def mmarket():
     available = economy.get_system_codes_count()
 
     if available <= 0:
-
+        config = load_config()
         return {
             "price": 0,
             "availableCodes": 0,
-            "capacity": CAPACITY,
+            "capacity": config["count"],
             "priceChange": 0,
             "status": "SOLD_OUT",
         }
@@ -57,7 +57,7 @@ def mmarket():
 
     coefficient = config.get("constA", 1)
 
-    price = minimum * (1 + coefficient * ((CAPACITY - available) / available))
+    price = minimum * (1 + coefficient * ((config["count"] - available) / available))
 
     price = round(price, 2)
 
@@ -78,7 +78,7 @@ def mmarket():
     return {
         "price": int(price),
         "availableCodes": available,
-        "capacity": CAPACITY,
+        "capacity": config["count"],
         "priceChange": change,
         "status": "ACTIVE",
     }

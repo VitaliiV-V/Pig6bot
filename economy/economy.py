@@ -31,12 +31,15 @@ def check_id(user_id):
 
 async def replenish_codes(context):
     try:
+        config = load_config()
         count = economy.get_active_codes_count()
 
-        if count < 100:
-            for _ in range(100 - count):
+        if count < config["count"]:
+            for _ in range(config["count"] - count):
                 economy.create_code(generate_id())
-            logger.info("Replenished codes up to 100 (created %d)", 100 - count)
+            logger.info(
+                "Replenished codes up to %d (created %d)", config["count"], 100 - count
+            )
     except Exception:
         logger.exception("Failed to replenish codes")
         raise
@@ -61,10 +64,12 @@ async def buy_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             balance = economy.get_balance(user_id)
             config2 = load_config()
             while xx > 0 and balance >= int(
-                config2["Pmin"] * (1 + config2["constA"] * ((100 - xx) / xx))
+                config2["Pmin"]
+                * (1 + config2["constA"] * ((config2["count"] - xx) / xx))
             ):
                 balance -= int(
-                    config2["Pmin"] * (1 + config2["constA"] * ((100 - xx) / xx))
+                    config2["Pmin"]
+                    * (1 + config2["constA"] * ((config2["count"] - xx) / xx))
                 )
                 xx -= 1
                 cnt += 1
@@ -87,7 +92,9 @@ async def buy_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         total = 0
         res = 0
         for _ in range(cnt):
-            total += int(config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
+            total += int(
+                config["Pmin"] * (1 + config["constA"] * ((config["count"] - q) / q))
+            )
             q -= 1
 
         keyboard = InlineKeyboardMarkup(
@@ -248,7 +255,7 @@ async def sell_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         for _ in range(cnt):
             total += int(
-                (config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
+                (config["Pmin"] * (1 + config["constA"] * ((config["count"] - q) / q)))
                 * config["coeff"]
             )
             economy.return_code_to_system(user_id)
@@ -278,7 +285,10 @@ async def sell_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             (
                 0
                 if q == 0
-                else int(config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
+                else int(
+                    config["Pmin"]
+                    * (1 + config["constA"] * ((config["count"] - q) / q))
+                )
             ),
             q,
         )
@@ -653,7 +663,9 @@ async def market_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        price = int(config["Pmin"] * (1 + config["constA"] * ((100 - q) / q)))
+        price = int(
+            config["Pmin"] * (1 + config["constA"] * ((config["count"] - q) / q))
+        )
 
         await msg.reply_text(
             text=(
@@ -705,3 +717,66 @@ async def top_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception:
         logger.exception("top() failed")
         raise
+
+
+async def generate_codes_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+
+    msg = update.message
+
+    try:
+
+        count = int(context.args[0])
+
+    except (IndexError, ValueError):
+
+        await msg.reply_text("Использование: /gen <количество>")
+
+        return
+
+    if count <= 0:
+
+        await msg.reply_text("Количество должно быть больше нуля.")
+
+        return
+
+    for _ in range(count):
+
+        economy.create_code(generate_id())
+    config = load_config()
+    config["count"] = economy.get_unused_codes_count()
+    save_config(config)
+    await msg.reply_text(f"Создано кодов: {count}")
+
+
+async def delete_codes_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+
+    msg = update.message
+
+    try:
+
+        count = int(context.args[0])
+
+    except (IndexError, ValueError):
+
+        await msg.reply_text("Использование: /clear_codes <количество>")
+
+        return
+
+    if count <= 0:
+
+        await msg.reply_text("Количество должно быть больше нуля.")
+
+        return
+
+    deleted = economy.delete_unowned_codes(count)
+    config = load_config()
+    config["count"] = economy.get_unused_codes_count()
+    save_config(config)
+
+    await msg.reply_text(f"Удалено ничейных кодов: {deleted}")
