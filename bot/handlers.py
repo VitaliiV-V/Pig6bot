@@ -88,8 +88,9 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     gif = msg.reply_to_message.animation
     img = msg.reply_to_message.photo
     video = msg.reply_to_message.video
+    sticker = msg.reply_to_message.sticker
 
-    if not gif and not img and not video:
+    if not gif and not img and not video and not sticker:
         await msg.reply_text("Это не медиафайл")
         return
 
@@ -100,9 +101,9 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     path = f"tmp/.download_{code}.json"
 
     if gif:
-
         data = {
             "user_id": msg.from_user.id,
+            "id": str(msg.chat_id) + str(msg.reply_to_message.message_id),
             "file_id": gif.file_id,
             "username": msg.from_user.username,
             "status": "pending",
@@ -113,6 +114,7 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         data = {
             "user_id": msg.from_user.id,
+            "id": str(msg.chat_id) + str(msg.reply_to_message.message_id),
             "file_id": img[-1].file_id,
             "username": msg.from_user.username,
             "status": "pending",
@@ -123,16 +125,58 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         data = {
             "user_id": msg.from_user.id,
+            "id": str(msg.chat_id) + str(msg.reply_to_message.message_id),
             "file_id": video.file_id,
             "username": msg.from_user.username,
             "status": "pending",
             "type": "video",
         }
 
+    elif sticker:
+        data = {
+            "user_id": msg.from_user.id,
+            "id": str(msg.chat_id) + str(msg.reply_to_message.message_id),
+            "file_id": sticker.file_id,
+            "username": msg.from_user.username,
+            "status": "pending",
+            "type": "sticker",
+        }
     else:
 
         return
+    with open("tmp/allowed_messages.json", "r", encoding="utf-8") as f:
+        allowed_messages = json.load(f)
 
+    if data["id"] in allowed_messages["messages"]:
+        req = data
+        if req["type"] == "gif":
+            await context.bot.send_animation(
+                chat_id=req["user_id"],
+                animation=req["file_id"],
+                caption="Ваш GIF",
+            )
+            await msg.reply_text("🟢 GIF отправлен Вам в личные сообщения.")
+        elif req["type"] == "img":
+            await context.bot.send_photo(
+                chat_id=req["user_id"],
+                photo=req["file_id"],
+                caption="Ваше изображение",
+            )
+            await msg.reply_text("🟢 Изображение отправлено Вам в личные сообщения.")
+        elif req["type"] == "video":
+            await context.bot.send_video(
+                chat_id=req["user_id"],
+                video=req["file_id"],
+                caption="Ваша видеозапись",
+            )
+            await msg.reply_text("🟢 Видеозапись отправлена Вам в личные сообщения.")
+        elif req["type"] == "sticker":
+            await context.bot.send_sticker(
+                chat_id=req["user_id"],
+                sticker=req["file_id"],
+            )
+            await msg.reply_text("🟢 Стикер отправлен Вам в личные сообщения.")
+        return
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
@@ -158,7 +202,6 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if await check_id(user_id=query.from_user.id, msg=query, context=context):
             with open(data, "r", encoding="utf-8") as f:
                 req = json.load(f)
-            os.remove(data)
             if req["type"] == "gif":
                 await context.bot.send_animation(
                     chat_id=req["user_id"],
@@ -186,7 +229,26 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await query.edit_message_text(
                     "🟢 Видеозапись отправлена Вам в личные сообщения."
                 )
+            elif req["type"] == "sticker":
+                await context.bot.send_sticker(
+                    chat_id=req["user_id"],
+                    sticker=req["file_id"],
+                )
+                await query.edit_message_text(
+                    "🟢 Стикер отправлен Вам в личные сообщения."
+                )
             req["status"] = "approved"
+            with open("tmp/allowed_messages.json", "r", encoding="utf-8") as f:
+                allowed_messages = json.load(f)
+            allowed_messages["messages"].append(req["id"])
+
+            with open("tmp/allowed_messages.json", "w", encoding="utf-8") as f:
+                json.dump(
+                    allowed_messages,
+                    f,
+                    ensure_ascii=False,
+                    indent=4,
+                )
         else:
             await query.answer("🔴 Доступ запрещён.", show_alert=False)
     elif action == "reject":
@@ -195,7 +257,7 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 req = json.load(f)
             os.remove(data)
             await context.bot.send_message(
-                chat_id=req["user.id"], text="🔴 Ваш запрос отклонён."
+                chat_id=req["user_id"], text="🔴 Ваш запрос отклонён."
             )
 
             await query.edit_message_text("🔴 Запрос отклонён.")
@@ -230,7 +292,6 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
         else:
             await query.answer("🔴 Доступ запрещён.", show_alert=False)
-
     elif action == "rejectc":
         if await check_id(user_id=query.from_user.id, msg=query, context=context):
             try:
@@ -262,7 +323,6 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if await check_id(user_id=query.from_user.id, msg=query, context=context):
             with open(data, "r", encoding="utf-8") as f:
                 req = json.load(f)
-            os.remove(data)
 
             sticker_path = req["sticker_path"]
 
@@ -271,6 +331,16 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     chat_id=req["user_id"], sticker=sticker_file
                 )
             await query.edit_message_text("🟢 Стикер отправлен Вам в личные сообщения.")
+            with open("tmp/allowed_messages.json", "r", encoding="utf-8") as f:
+                allowed_messages = json.load(f)
+            allowed_messages["messages"].append(req["id"])
+            with open("tmp/allowed_messages.json", "w", encoding="utf-8") as f:
+                json.dump(
+                    allowed_messages,
+                    f,
+                    ensure_ascii=False,
+                    indent=4,
+                )
         else:
             await query.answer("🔴 Доступ запрещён.", show_alert=False)
     elif action == "rejectq":
@@ -279,7 +349,7 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 req = json.load(f)
             os.remove(data)
             await context.bot.send_message(
-                chat_id=req["user.id"], text="🔴 Ваш запрос отклонён."
+                chat_id=req["user_id"], text="🔴 Ваш запрос отклонён."
             )
 
             await query.edit_message_text("🔴 Запрос отклонён.")

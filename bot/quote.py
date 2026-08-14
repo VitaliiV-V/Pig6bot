@@ -337,10 +337,25 @@ async def quote(
 
     path = f"tmp/.quote_{code}.json"
 
-    data = {"user_id": msg.from_user.id, "sticker_path": str(file_path)}
+    data = {
+        "user_id": msg.from_user.id,
+        "id": str(msg.chat_id) + str(msg.reply_to_message.message_id),
+        "sticker_path": str(file_path),
+    }
 
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
+    with open("tmp/allowed_messages.json", "r", encoding="utf-8") as f:
+        allowed_messages = json.load(f)
+
+    if data["id"] in allowed_messages["messages"]:
+        await context.bot.send_sticker(
+            chat_id=data["user_id"], sticker=data["sticker_path"]
+        )
+
+        await msg.reply_text("🟢 Стикер отправлен Вам в личные сообщения.")
+        return
 
     keyboard = InlineKeyboardMarkup(
         [
