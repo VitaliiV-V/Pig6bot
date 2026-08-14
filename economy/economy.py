@@ -689,6 +689,8 @@ async def top_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             name = name or "Без имени"
 
             name = name.replace("@", "")
+            if name == "SYSTEM":
+                continue
             lines.append(f"{prefix} {name} — <b>{balance} P6T</b>")
 
         await msg.reply_text(
