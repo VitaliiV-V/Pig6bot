@@ -213,6 +213,11 @@ def index():
     return FileResponse("web/index.html")
 
 
+@app.get("/verify")
+def index():
+    return FileResponse("web/verify.html")
+
+
 @app.get("/styles.css")
 def get_styles():
     return FileResponse("web/styles.css")

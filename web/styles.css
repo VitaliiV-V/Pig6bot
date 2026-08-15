@@ -446,6 +446,27 @@ a {
 
 }
 
+/* Ensure no card can ever visually read as a hyperlink,
+   regardless of markup (div or anchor), and that all cards
+   in a row look identical (no unique link coloring/underline
+   on any single card such as the middle one). */
+.card,
+.card:link,
+.card:visited,
+.card:hover,
+.card:active,
+.card a,
+.card a:link,
+.card a:visited,
+.card a:hover,
+.card a:active {
+
+    color: inherit;
+    text-decoration: none;
+    cursor: default;
+
+}
+
 .info,
 .operations,
 .formula,
