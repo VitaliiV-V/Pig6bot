@@ -459,6 +459,7 @@ class Pig6Economy:
                         logger.info("Code redeemed from text (id=%s)", code_id)
                         return True
 
+                    logger.info("use_code_from_text() failed")
                     self.db.rollback()
                     return False
 
