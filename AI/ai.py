@@ -28,41 +28,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def query(update, context):
     msg = update.channel_post or update.edited_channel_post
 
-    if not msg:
-        return
-
-    chat_id = msg.chat_id
-
-    config = load_config()
-
-    if chat_id != MAIN_CHANNEL_ID:
-        await protect_query(context=context, msg=msg, config=config)
-        return
-
-    ok = False
-
-    if await check_owner(context=context, msg=msg, config=config):
-        ok = True
-
-    if not ok and await check_super_user(context=context, msg=msg, config=config):
-        await root_commands(context=context, msg=msg, config=config)
-        ok = True
-
-    ignore = False
-    if not ok:
-        role = await check_signed_user(context=context, msg=msg, config=config)
-
-        if "root" in role:
-            await root_commands(context=context, msg=msg, config=config)
-            ok = True
-        elif "sudo" in role:
-            ok = True
-        elif "user" in role:
-            ignore = True
-
-    if not ok:
-        await check_message(context=context, msg=msg, config=config, ignore=ignore)
-
     message_id = msg.message_id
     x = context.bot.first_name
     if msg.reply_to_message:

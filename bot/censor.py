@@ -88,6 +88,9 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
         logger.exception("check_protection failed for chat %s: %s", chat_id, e)
         return
 
+    if not penis:
+        await _safe_delete(context, chat_id, message_id, "banned gif")
+
     if trust:
         return
 
@@ -95,16 +98,6 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
         await _safe_delete(context, chat_id, message_id, "banned gif")
         logger.info("Deleted banned gif in chat %s", chat_id)
         return
-
-    if not ignore:
-        if msg.author_signature in config["banned_users"]:
-            await _safe_delete(context, chat_id, message_id, "banned user")
-            logger.info(
-                "Deleted message from banned user %s in chat %s",
-                msg.author_signature,
-                chat_id,
-            )
-            return
 
     if config["ban_messages"] == "all":
         await _safe_delete(context, chat_id, message_id, "ban_messages=all")
@@ -124,57 +117,6 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
     if not msg.author_signature:
         await _safe_delete(context, chat_id, message_id, "no author signature")
         return
-
-    if (
-        not ignore
-        and msg.author_signature
-        and config["white_lists_mode"] != "off"
-        and not penis
-    ):
-        try:
-            config = load_config()
-        except (OSError, ValueError) as e:
-            logger.exception(
-                "Failed to reload config for whitelist check in chat %s: %s", chat_id, e
-            )
-            return
-
-        ok = False
-        if config["white_lists_mode"] == "admins":
-            try:
-                admins = await context.bot.get_chat_administrators(chat_id)
-            except (BadRequest, Forbidden) as e:
-                logger.warning("Failed to fetch admins for chat %s: %s", chat_id, e)
-                admins = []
-
-            for u in admins:
-                admin = ""
-                if u.user.first_name:
-                    admin += u.user.first_name
-                if u.user.first_name and u.user.last_name:
-                    admin += " "
-                if u.user.last_name:
-                    admin += u.user.last_name
-
-                if admin == msg.author_signature:
-                    ok = True
-
-        if (
-            config["white_lists_mode"] == "admins"
-            or config["white_lists_mode"] == "manual"
-        ):
-            for u in config["white_list"]:
-                if u == msg.author_signature:
-                    ok = True
-
-        if not ok:
-            await _safe_delete(context, chat_id, message_id, "not in whitelist")
-            logger.info(
-                "Deleted message from non-whitelisted user %s in chat %s",
-                msg.author_signature,
-                chat_id,
-            )
-            return
 
     if len(messages) >= 10 and messages[-10].age() < 5:
         try:

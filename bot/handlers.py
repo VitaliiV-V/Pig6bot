@@ -3,6 +3,7 @@ from bot.panel import *
 import bot.tools as tools
 from bot.settings import *
 from config.config import *
+from olymp.handlers import *
 from economy.economy import *
 from economy.pig6economy import *
 from telegram.ext import ContextTypes
@@ -270,20 +271,26 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 with open(data, "r", encoding="utf-8") as f:
                     data2 = json.load(f)
                 os.remove(data)
-                config["protected_users"].append(data2)
+                config["admins"].append(data2)
                 save_config(config)
-                await context.bot.set_chat_title(
-                    data2["channel_id"], data2["name"] + data2["uuid"]
-                )
-                await context.bot.send_message(
-                    chat_id=data2["channel_id"],
-                    text="🟢 Ваша заявка на защиту канала принята",
-                )
-                await context.bot.send_message(
-                    chat_id=query.message.chat_id,
-                    text="🟢 Канал защищён",
-                    reply_to_message_id=query.message.message_id,
-                )
+                if data2["protected"]:
+                    await context.bot.set_chat_title(
+                        data2["channel_id"], data2["name"] + data2["uuid"]
+                    )
+                    await context.bot.send_message(
+                        chat_id=data2["channel_id"],
+                        text="🟢 Ваша заявка на защиту канала принята",
+                    )
+                    await context.bot.send_message(
+                        chat_id=query.message.chat_id,
+                        text="🟢 Канал защищён",
+                        reply_to_message_id=query.message.message_id,
+                    )
+                else:
+                    await context.bot.send_message(
+                        chat_id=data2["id"],
+                        text="🟢 Ваша заявка принята",
+                    )
             except Exception as e:
                 await context.bot.send_message(
                     chat_id=query.message.chat_id,
@@ -317,6 +324,8 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif action == "pay":
         await confirm_pay(query, data, context)
+    elif action == "sell":
+        await confirm_sell(query, data, context)
     elif action == "panel":
         await panel(update, context)
     elif action == "approveq":
@@ -355,98 +364,9 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text("🔴 Запрос отклонён.")
         else:
             await query.answer("🔴 Доступ запрещён.", show_alert=False)
+    elif action == "olymp":
+        await olymp(update, context)
     await query.answer()
-
-
-async def ban_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-
-    if not await check_id(msg.from_user.id, msg, context):
-        return
-    s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
-
-    try:
-        tools.ban(s)
-
-        await msg.reply_text(f"🟢 {s} зaблокирован")
-    except Exception as e:
-        await msg.reply_text(f"🔴 Не удалось заблокировать {s}")
-
-
-async def unban_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-
-    if not await check_id(msg.from_user.id, msg, context):
-        return
-    s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
-
-    try:
-        tools.unban(s)
-        await msg.reply_text(f"🟢 {s} разблокирован")
-    except Exception as e:
-        await msg.reply_text(f"🔴 Не удалось разблокировать {s}")
-
-
-async def set_white_lists_mode_handler(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-):
-    msg = update.message
-
-    if not await check_id(msg.from_user.id, msg, context):
-        return
-    s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
-    if s == "admins" or s == "admins_only" or s == "manual" or s == "off":
-        try:
-            config = load_config()
-            config["white_lists_mode"] = s
-            save_config(config)
-            await msg.reply_text(f"Успешно")
-        except Exception as e:
-            await msg.reply_text(f"Failed")
-    else:
-        await msg.reply_text(f"Failed")
-
-
-async def addtolists_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-
-    if not await check_id(msg.from_user.id, msg, context):
-        return
-    s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
-
-    try:
-        config = load_config()
-        if s not in config["white_list"]:
-            config["white_list"].append(s)
-
-        save_config(config)
-
-        await msg.reply_text(
-            f"🟢 {s} в белом списке", reply_markup=ReplyKeyboardRemove()
-        )
-    except Exception as e:
-        await msg.reply_text(
-            f"🔴 Не удалось добавить {s} в белый список",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-
-
-async def delfromlists_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-
-    if not await check_id(msg.from_user.id, msg, context):
-        return
-    s = msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
-
-    try:
-        config = load_config()
-        config["white_list"].remove(s)
-
-        save_config(config)
-
-        await msg.reply_text(f"🟢 {s} больше не в белом списке")
-    except Exception as e:
-        await msg.reply_text(f"🔴 Не удалось убрать {s} из белого списка")
 
 
 async def post_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -461,6 +381,92 @@ async def post_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=name, text=s)
 
     await msg.reply_text(f"🟢 Пост отправлен")
+
+
+async def reg_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    chat_id = msg.chat_id
+
+    if chat_id != msg.from_user.id:
+        return
+
+    config = load_config()
+
+    text = f"Новый запрос на админские права от: @{msg.from_user.username}"
+    name = f"{msg.from_user.first_name} {msg.from_user.last_name}"
+    if not msg.from_user.first_name:
+        name = msg.from_user.last_name
+    elif not msg.from_user.last_name:
+        name = msg.from_user.first_name
+    protect_data = {
+        "name": name,
+        "uuid": "",
+        "owner": f"@{msg.from_user.username}",
+        "id": f"{msg.from_user.id}",
+        "mute": False,
+        "EXCOMMUNICADO": False,
+        "protected": False,
+    }
+
+    file_id = secrets.token_hex(8)
+    try:
+        os.mkdir("tmp")
+    except FileExistsError:
+        pass
+    except OSError as e:
+        logger.exception("Failed to create tmp directory: %s", e)
+        return
+
+    filename = f"tmp/.protect_{file_id}.json"
+
+    try:
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(protect_data, f, ensure_ascii=False, indent=4)
+    except OSError as e:
+        logger.exception("Failed to write protect request file %s: %s", filename, e)
+        return
+
+    keyboard = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton("✅ Accept", callback_data=f"protectc^{filename}"),
+                InlineKeyboardButton("❌ Reject", callback_data=f"rejectc^{filename}"),
+            ]
+        ]
+    )
+
+    try:
+        await context.bot.send_message(
+            chat_id=OWNER_ID, text=text, reply_markup=keyboard
+        )
+    except Exception as e:
+        logger.warning(
+            "Failed to notify owner %s about protect request: %s",
+            OWNER_ID,
+            e,
+        )
+
+    for id in config["root_users"]:
+        try:
+            await context.bot.send_message(chat_id=id, text=text, reply_markup=keyboard)
+        except Exception as e:
+            logger.warning(
+                "Failed to notify root user %s about protect request: %s",
+                id,
+                e,
+            )
+
+    try:
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text="🟠 Запрос на защиту отправлен.",
+        )
+    except Exception as e:
+        logger.warning(
+            "Failed to notify channel %s that request was sent: %s",
+            chat_id,
+            e,
+        )
 
 
 async def jday_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -543,7 +549,7 @@ async def myaccess_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="HTML",
         )
         return
-    for i in config["protected_users"]:
+    for i in config["admins"]:
         if int(i.get("id")) == msg.from_user.id and i.get("trust"):
             await msg.reply_text(
                 text=(
@@ -575,7 +581,7 @@ async def logs_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=msg.chat_id, document=open("logs/main.log", "rb")
         )
         return
-    for i in config["protected_users"]:
+    for i in config["admins"]:
         if int(i.get("id")) == msg.from_user.id and i.get("trust"):
             await context.bot.send_document(
                 chat_id=msg.chat_id, document=open("logs/main.log", "rb")

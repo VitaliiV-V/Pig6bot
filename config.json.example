@@ -18,7 +18,7 @@
     ],
     "logs_mode": "off",
     "logs": [],
-    "protected_users": [],
+    "admins": [],
     "root_users": [],
     "alpha_users": [
     ],

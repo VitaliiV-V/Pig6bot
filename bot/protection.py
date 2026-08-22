@@ -71,9 +71,9 @@ async def protect_query(
                 raise
 
         if "protect" == (msg.text or "").lower():
-            for i in config["protected_users"]:
-                if i["channel_id"] == msg.chat_id:
-                    if i["uuid"] == "EXCOMMUNICADO":
+            for i in config["admins"]:
+                if i.get("channel_id") == msg.chat_id:
+                    if i["EXCOMMUNICADO"]:
                         try:
                             await context.bot.send_message(
                                 chat_id=chat_id,
@@ -118,6 +118,7 @@ async def protect_query(
                     "mute": False,
                     "EXCOMMUNICADO": False,
                     "trust": False,
+                    "protected": True,
                 }
 
                 file_id = secrets.token_hex(8)
@@ -203,9 +204,9 @@ async def protect_query(
         if "unprotect" == (msg.text or "").lower():
             try:
                 config = load_config()
-                config["protected_users"] = [
+                config["admins"] = [
                     user
-                    for user in config["protected_users"]
+                    for user in config["admins"]
                     if user["channel_id"] != msg.chat.id
                 ]
                 save_config(config)
@@ -465,7 +466,7 @@ async def check_protection(context: ContextTypes.DEFAULT_TYPE, msg, config):
     message_id = msg.message_id
 
     if msg.author_signature:
-        for i in config["protected_users"]:
+        for i in config["admins"]:
             if i["name"] in msg.author_signature:
                 if i["name"] + i["uuid"] != msg.author_signature:
                     if (datetime.now() - last_time).total_seconds() > 0.5 or (
@@ -507,20 +508,22 @@ async def check_protection(context: ContextTypes.DEFAULT_TYPE, msg, config):
                             chat_id,
                         )
                         return False, 0
-                    try:
-                        new_uuid = tools.generate_id()
-                        await context.bot.set_chat_title(
-                            i["channel_id"], i["name"] + new_uuid
-                        )
+                    if i["protected"]:
+                        try:
+                            new_uuid = tools.generate_id()
+                            await context.bot.set_chat_title(
+                                i["channel_id"], i["name"] + new_uuid
+                            )
 
-                        i["uuid"] = new_uuid
-                        save_config(config)
-                    except (BadRequest, Forbidden, OSError, ValueError) as e:
-                        logger.exception(
-                            "Failed to rotate uuid for protected channel %s: %s",
-                            i.get("channel_id"),
-                            e,
-                        )
-                    last_time = datetime.now()
-                    return True, i["trust"]
+                            i["uuid"] = new_uuid
+                            save_config(config)
+                        except (BadRequest, Forbidden, OSError, ValueError) as e:
+                            logger.exception(
+                                "Failed to rotate uuid for protected channel %s: %s",
+                                i.get("channel_id"),
+                                e,
+                            )
+                        last_time = datetime.now()
+                        return True, i["trust"]
+                    return True, 0
     return False, 0

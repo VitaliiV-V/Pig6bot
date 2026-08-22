@@ -126,7 +126,7 @@ async def EXCOMMUNICADO(context, msg, targetname=""):
 
     await asyncio.sleep(1)
     name = targetname
-    for i in config["protected_users"]:
+    for i in config["admins"]:
         if (msg and i["name"] in msg.reply_to_message.author_signature) or (
             i["name"] in name
         ):
@@ -161,7 +161,7 @@ async def EXCOMMUNICADO(context, msg, targetname=""):
         config = None
 
     if config is not None:
-        for i in config["protected_users"]:
+        for i in config["admins"]:
             if (msg and i["name"] in msg.reply_to_message.author_signature) or (
                 i["name"] in targetname
             ):
@@ -176,16 +176,18 @@ async def EXCOMMUNICADO(context, msg, targetname=""):
                 logger.info("Channel %s marked as EXCOMMUNICADO", i["name"])
 
                 try:
-                    await context.bot.send_message(
-                        i["channel_id"],
-                        "⚫ Вы объявлены EXCOMMUNICADO\nДоступ к сервисам «Свиньи-6» отныне закрыт для Вас.",
-                    )
+                    if i["protected"]:
+                        await context.bot.send_message(
+                            i["channel_id"],
+                            "⚫ Вы объявлены EXCOMMUNICADO\nДоступ к сервисам «Свиньи-6» отныне закрыт для Вас.",
+                        )
                 except (BadRequest, Forbidden) as e:
-                    logger.warning(
-                        "Failed to notify excommunicated channel %s: %s",
-                        i["channel_id"],
-                        e,
-                    )
+                    if i["protected"]:
+                        logger.warning(
+                            "Failed to notify excommunicated channel %s: %s",
+                            i["channel_id"],
+                            e,
+                        )
 
                 try:
                     await context.bot.send_message(

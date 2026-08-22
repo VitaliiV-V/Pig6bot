@@ -57,14 +57,14 @@ ROLES = ("root", "sudo", "user")
 CATEGORIES = ("protected", "alpha", "signed")
 
 CATEGORY_KEY = {
-    "protected": "protected_users",
+    "protected": "admins",
     "alpha": "alpha_users",
     "signed": "signed_users",
 }
 
 CATEGORY_TITLE = {
-    "protected": "🛡 Protected users",
-    "alpha": "⭐ Alpha users",
+    "protected": "👤 Admins",
+    "alpha": "⭐ Alpha",
     "signed": "✍️ Signed users",
 }
 
@@ -106,8 +106,7 @@ def _display_name(category, entry, user_id):
         return entry.get("username") or user_id
     name = entry.get("name") or user_id
     if category == "protected":
-        mark = "🟢" if entry.get("trust") else "🔴"
-        return f"{mark} {name}"
+        return f"{name}"
     return name
 
 
@@ -215,9 +214,10 @@ def user_detail_keyboard(category, entry, user_id):
     rows = []
 
     if category == "protected" and entry is not None:
-        trust_txt = (
-            "🟢 Отозвать доверие" if entry.get("trust") else "🔴 Сделать доверенным"
-        )
+        if entry.get("protected"):
+            trust_txt = (
+                "🟢 Отозвать доверие" if entry.get("trust") else "🔴 Сделать доверенным"
+            )
         mute_txt = "🟠 Unmute" if entry.get("mute") else "🟢 Mute"
         exc_txt = (
             "🔴 Снять EXCOMMUNICADO"
@@ -230,9 +230,14 @@ def user_detail_keyboard(category, entry, user_id):
         rows.append(
             [InlineKeyboardButton(exc_txt, callback_data=f"panel^exc^{user_id}")]
         )
-        rows.append(
-            [InlineKeyboardButton(trust_txt, callback_data=f"panel^trust^{user_id}")]
-        )
+        if entry.get("protected"):
+            rows.append(
+                [
+                    InlineKeyboardButton(
+                        trust_txt, callback_data=f"panel^trust^{user_id}"
+                    )
+                ]
+            )
 
     elif category == "alpha" and entry is not None:
         # alpha_users — только просмотр, изменяемых настроек no
@@ -283,11 +288,7 @@ def category_text(category):
     return f"<b>{CATEGORY_TITLE[category]}</b>\n\nВыберите пользователя."
 
 
-PROCESSING_TEXT = (
-    "Добро пожаловать в панель управления Свинья-6."
-    "Центр управления системой защиты Свинья-6. Здесь доступны настройки, мониторинг, "
-    "управление сервисами, сертификатами и внутренней инфраструктурой.\n\nОбработка..."
-)
+PROCESSING_TEXT = "Обработка..."
 
 
 async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -403,9 +404,7 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup = user_detail_keyboard("protected", entry, user_id)
 
         elif action == "exc":
-            await query.edit_message_text(
-                text=PROCESSING_TEXT, parse_mode="HTML", reply_markup=reply_markup
-            )
+            await query.edit_message_text(text=PROCESSING_TEXT, parse_mode="HTML")
             user_id = parts[2]
             entry = _find_in_category(config, "protected", user_id)
             if entry:
@@ -437,19 +436,31 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     name,
                 )
                 await tools.EXCOMMUNICADO(context=context, msg=None, targetname=name)
+                text = format_user_info("protected", entry, user_id)
+                reply_markup = user_detail_keyboard("protected", entry, user_id)
+
+                await query.answer()
+
+                await query.edit_message_text(
+                    text=text,
+                    parse_mode="HTML",
+                    reply_markup=reply_markup,
+                )
                 return
             else:
                 try:
-                    await context.bot.send_message(
-                        chat_id=entry["channel_id"],
-                        text="⚪ Статус «EXCOMMUNICADO» снят.\nДоступ восстановлен.",
-                    )
+                    if entry["protected"]:
+                        await context.bot.send_message(
+                            chat_id=entry["channel_id"],
+                            text="⚪ Статус «EXCOMMUNICADO» снят.\nДоступ восстановлен.",
+                        )
                 except (BadRequest, Forbidden) as e:
-                    logger.warning(
-                        "Failed to notify channel %s about EXCOMMUNICADO lift: %s",
-                        entry.get("channel_id"),
-                        e,
-                    )
+                    if entry["protected"]:
+                        logger.warning(
+                            "Failed to notify channel %s about EXCOMMUNICADO lift: %s",
+                            entry.get("channel_id"),
+                            e,
+                        )
                 audit_logger.info(
                     "EXCOMMUNICADO LIFTED | actor=%s | target=%s", actor, user_id
                 )

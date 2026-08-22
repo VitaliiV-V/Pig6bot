@@ -2,6 +2,7 @@ import uuid
 import bot.tools as tools
 import time
 import secrets
+import random
 import logging
 from config.config import *
 from bot.settings import *
@@ -235,12 +236,18 @@ async def sell_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_name = msg.from_user.username
 
         economy.set_name_if_empty(user_id, user_name)
+
+        if not msg or not msg.from_user or not msg.text:
+            return
+
         q = economy.get_system_codes_count() + 1
         args = msg.text.split()
+
         if len(args) > 1 and args[1] == "all":
             cnt = len(economy.get_user_codes(user_id))
         else:
             cnt = 1 if len(args) == 1 else int(args[1])
+
         config = load_config()
         total = 0
 
@@ -248,7 +255,11 @@ async def sell_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if len(codes) < cnt:
             await msg.reply_text(
-                "🔴 <b>У вас нет нужного количества кодов</b>",
+                text=(
+                    "🔴 <b>Недостаточно кодов</b>\n\n"
+                    f"Запрошено: <b>{cnt}</b>\n"
+                    f"Доступно: <b>{len(codes)}</b>"
+                ),
                 parse_mode="HTML",
             )
             return
@@ -258,8 +269,84 @@ async def sell_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 (config["Pmin"] * (1 + config["constA"] * ((config["count"] - q) / q)))
                 * config["coeff"]
             )
-            economy.return_code_to_system(user_id)
             q += 1
+
+        keyboard = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        "💰 Sell",
+                        callback_data=f"sell^{total}${cnt}${user_id}",
+                    )
+                ]
+            ]
+        )
+
+        await msg.reply_text(
+            text=(
+                "🧾 <b>Заявка на продажу сформирована</b>\n\n"
+                f"Количество кодов: <b>{cnt}</b>\n"
+                f"Вы получите: <b>{total} P6T</b>\n\n"
+                "После подтверждения коды будут возвращены "
+                "в систему, а средства зачислены на Ваш счёт.\n\n"
+                "Подтвердите операцию."
+            ),
+            reply_markup=keyboard,
+            parse_mode="HTML",
+        )
+
+        logger.info(
+            "Sale order formed for user %s: cnt=%s total=%s",
+            user_id,
+            cnt,
+            total,
+        )
+
+    except Exception:
+        logger.exception("sell() failed")
+        raise
+
+
+async def confirm_sell(query, data, context):
+    try:
+        total, cnt, user_id = data.split("$")
+
+        buyer_id = query.from_user.id
+        cnt = int(cnt)
+        user_id = int(user_id)
+
+        balance = int(economy.get_balance(buyer_id))
+
+        if user_id != buyer_id:
+            return
+
+        codes = economy.get_user_codes(user_id)
+
+        if len(codes) < cnt:
+            await query.edit_message_text(
+                text=(
+                    "🔴 <b>Продажа невозможна</b>\n\n"
+                    f"Запрошено кодов: <b>{cnt}</b>\n"
+                    f"Доступно: <b>{len(codes)}</b>"
+                ),
+                parse_mode="HTML",
+            )
+            return
+
+        config = load_config()
+
+        q = economy.get_system_codes_count() + 1
+        total = 0
+
+        for _ in range(cnt):
+            total += int(
+                (config["Pmin"] * (1 + config["constA"] * ((config["count"] - q) / q)))
+                * config["coeff"]
+            )
+            q += 1
+
+        for _ in range(cnt):
+            economy.return_code_to_system(user_id)
 
         economy.create_transaction(
             0,
@@ -271,16 +358,17 @@ async def sell_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         codes = economy.get_user_codes(user_id)
 
         codes_text = "".join(
-            f"«<code>⠀{code}⠀</code>», " for i, code in enumerate(codes, 1)
+            f"«<code>⠀{code}⠀</code>»,  " for i, code in enumerate(codes, 1)
         )
 
-        codes_text = codes_text[:-2]
-
         if codes_text:
+            codes_text = codes_text[:-3]
             codes_text = f"Ваши оставшиеся коды ({len(codes)}):\n\n" + codes_text
         else:
             codes_text = "Активных кодов больше нет."
-        q -= 1
+
+        q = economy.get_system_codes_count()
+
         economy.add_market_history(
             (
                 0
@@ -292,31 +380,50 @@ async def sell_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ),
             q,
         )
-        if msg.chat_id != user_id:
 
-            await msg.reply_text(
+        if query.message.chat_id != user_id:
+            await query.edit_message_text(
                 text=(
                     "🟢 <b>Продажа произведена</b>\n\n"
                     f"Количество проданных кодов: <b>{cnt}</b>\n"
                     f"Сумма: <b>{total} P6T</b>\n\n"
-                    "Оставшиеся у Вас одноразовые коды отправлены Вам в личные сообщения."
+                    "Оставшиеся у Вас одноразовые коды "
+                    "отправлены Вам в личные сообщения."
+                ),
+                parse_mode="HTML",
+            )
+        else:
+            await query.edit_message_text(
+                text=(
+                    "🟢 <b>Продажа произведена</b>\n\n"
+                    f"Количество проданных кодов: <b>{cnt}</b>\n"
+                    f"Сумма: <b>{total} P6T</b>\n\n"
+                    "Одноразовые коды:\n\n" + codes_text
                 ),
                 parse_mode="HTML",
             )
 
-        await context.bot.send_message(
-            chat_id=user_id,
-            text=(
-                "🟢 <b>Продажа произведена</b>\n\n"
-                f"Продано кодов: <b>{cnt}</b>\n"
-                f"Сумма: <b>{total} P6T</b>\n\n"
-                "Одноразовые коды:\n\n" + codes_text
-            ),
-            parse_mode="HTML",
+        if query.message.chat_id != user_id:
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=(
+                    "🟢 <b>Продажа произведена</b>\n\n"
+                    f"Продано кодов: <b>{cnt}</b>\n"
+                    f"Сумма: <b>{total} P6T</b>\n\n"
+                    "Одноразовые коды:\n\n" + codes_text
+                ),
+                parse_mode="HTML",
+            )
+
+        logger.info(
+            "Sale confirmed: user=%s cnt=%s total=%s",
+            user_id,
+            cnt,
+            total,
         )
-        logger.info("Sale completed: user=%s cnt=%s total=%s", user_id, cnt, total)
+
     except Exception:
-        logger.exception("sell() failed")
+        logger.exception("confirm_sell() failed")
         raise
 
 
@@ -546,6 +653,22 @@ async def give_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         raise
 
 
+def get_normal_coins():
+    mu = 500  # Среднее значение
+    sigma = 165  # Разброс (сигма)
+
+    # Генерируем число по Гауссу и округляем до целого
+    coins = round(random.gauss(mu, sigma))
+
+    # Жесткое ограничение (обрезка краев от 0 до 1000)
+    if coins < 0:
+        coins = 0
+    elif coins > 1000:
+        coins = 1000
+
+    return coins
+
+
 async def bonus_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         msg = update.message
@@ -564,16 +687,17 @@ async def bonus_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         time_passed = datetime.now() - last_salary
 
-        if time_passed >= timedelta(days=1):
-            economy.create_transaction(0, user_id, 100, "salary")
+        if time_passed >= timedelta(hours=12):
+            coins = get_normal_coins()
+            economy.create_transaction(0, user_id, coins, "daily_gift")
             economy.update_last_salary(user_id)
             await msg.reply_text(
-                "🎁 Подарок получен!\n\n" "Начислено: <b>+100 P6T</b>",
+                "🎁 Подарок получен!\n\n" f"Начислено: <b>{coins} P6T</b>",
                 parse_mode="HTML",
             )
             logger.info("Daily bonus claimed by user %s", user_id)
         else:
-            remaining = timedelta(days=1) - time_passed
+            remaining = timedelta(hours=12) - time_passed
 
             hours, remainder = divmod(int(remaining.total_seconds()), 3600)
             minutes = remainder // 60
