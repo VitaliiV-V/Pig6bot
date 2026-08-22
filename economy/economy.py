@@ -773,7 +773,7 @@ async def market_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             config["Pmin"] * (1 + config["constA"] * ((config["count"] - q) / q))
         )
         keyboard = InlineKeyboardMarkup(
-            [[InlineKeyboardButton("🔗 Подробнее", url=f"{WEB_SITE}/market")]]
+            [[InlineKeyboardButton("Подробнее", url=f"{WEB_SITE}/market")]]
         )
         await msg.reply_text(
             text=(
