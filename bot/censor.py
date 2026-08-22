@@ -88,9 +88,6 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
         logger.exception("check_protection failed for chat %s: %s", chat_id, e)
         return
 
-    if not penis:
-        await _safe_delete(context, chat_id, message_id, "banned gif")
-
     if trust:
         return
 
@@ -117,6 +114,9 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
     if not msg.author_signature:
         await _safe_delete(context, chat_id, message_id, "no author signature")
         return
+
+    if not penis:
+        await _safe_delete(context, chat_id, message_id, "banned gif")
 
     if len(messages) >= 10 and messages[-10].age() < 5:
         try:
