@@ -130,6 +130,6 @@ def save_config(data):
 
 config = load_config()
 for i in config["admins"]:
-    if i.get("channel_id"):
+    if not i.get("channel_id"):
         i["channel_id"] = random.randint(1000000000000, 10000000000000 - 1)
 save_config(config)
