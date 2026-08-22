@@ -772,7 +772,9 @@ async def market_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         price = int(
             config["Pmin"] * (1 + config["constA"] * ((config["count"] - q) / q))
         )
-
+        keyboard = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("🔗 Подробнее", url=f"{WEB_SITE}/market")]]
+        )
         await msg.reply_text(
             text=(
                 "📈 <b>Рынок кодов</b>\n\n"
@@ -780,6 +782,7 @@ async def market_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"Текущая цена: <b>{price} P6T</b>"
             ),
             parse_mode="HTML",
+            reply_markup=keyboard,
         )
     except Exception:
         logger.exception("market() failed")
