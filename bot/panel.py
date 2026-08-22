@@ -194,18 +194,27 @@ def keyboard():
 
 
 def category_list_keyboard(config, category):
-    rows = []
+    entries = []
+
     for uid in _get_category_ids(config, category):
         entry = _find_in_category(config, category, uid)
-        rows.append(
-            [
-                InlineKeyboardButton(
-                    _display_name(category, entry, uid),
-                    callback_data=f"panel^user^{category}^{uid}",
-                )
-            ]
-        )
+        display_name = _display_name(category, entry, uid)
+        entries.append((display_name, uid))
+
+    entries.sort(key=lambda item: item[0].casefold())
+
+    rows = [
+        [
+            InlineKeyboardButton(
+                display_name,
+                callback_data=f"panel^user^{category}^{uid}",
+            )
+        ]
+        for display_name, uid in entries
+    ]
+
     rows.append([InlineKeyboardButton("⚙️ Главное меню", callback_data="panel^back")])
+
     return InlineKeyboardMarkup(rows)
 
 

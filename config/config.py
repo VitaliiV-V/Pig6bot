@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -91,9 +92,6 @@ def load_config():
         raise
 
 
-load_config()
-
-
 def save_config(data):
     try:
         logger.debug(
@@ -128,3 +126,10 @@ def save_config(data):
     except Exception:
         logger.exception("Unexpected error while saving configuration.")
         raise
+
+
+config = load_config()
+for i in config["admins"]:
+    if i.get("channel_id"):
+        i["channel_id"] = random.randint(1000000000000, 10000000000000 - 1)
+save_config(config)
