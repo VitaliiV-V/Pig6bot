@@ -125,7 +125,7 @@ def history(range: RangeType = Query("24H")):
 
 
 @app.get("/api/top")
-def top_users(limit: int = Query(10, ge=1, le=50)):
+def top_users(limit: int | None = Query(10, ge=1, le=1000)):
 
     economy = Pig6Economy()
 

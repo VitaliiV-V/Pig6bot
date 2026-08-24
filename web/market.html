@@ -199,7 +199,20 @@
 
             <section class="leaderboard">
 
-                <h2>Leaderboard</h2>
+                <div class="section-header">
+
+                    <h2>Leaderboard</h2>
+
+                    <div class="range-buttons" id="leaderboardButtons">
+
+                        <button data-limit="3">Top 3</button>
+                        <button data-limit="5">Top 5</button>
+                        <button data-limit="10" class="active">Top 10</button>
+                        <button data-limit="all">All</button>
+
+                    </div>
+
+                </div>
 
                 <div class="leaderboard-list" id="leaderboardList">
                     <!-- rows injected by JS -->

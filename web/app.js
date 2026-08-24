@@ -343,10 +343,11 @@ async function loadHistory(range) {
 // ==============================
 // Leaderboard
 // ==============================
-
 const MEDALS = ["🥇", "🥈", "🥉"];
 
-async function loadLeaderboard() {
+let currentLeaderboardLimit = 10;
+
+async function loadLeaderboard(limit = currentLeaderboardLimit) {
 
     const listEl = document.getElementById("leaderboardList");
 
@@ -354,7 +355,7 @@ async function loadLeaderboard() {
 
     try {
 
-        const users = await marketApi.getTopUsers(10);
+        const users = await marketApi.getTopUsers(limit);
 
         if (!users.length) {
             listEl.innerHTML =
@@ -385,6 +386,33 @@ async function loadLeaderboard() {
 
 }
 
+
+function initLeaderboardButtons() {
+
+    document
+        .querySelectorAll("#leaderboardButtons [data-limit]")
+        .forEach(button => {
+
+            button.onclick = async () => {
+
+                document
+                    .querySelectorAll("#leaderboardButtons [data-limit]")
+                    .forEach(b => b.classList.remove("active"));
+
+                button.classList.add("active");
+
+                const raw = button.dataset.limit;
+
+                currentLeaderboardLimit =
+                    raw === "all" ? 1000 : Number(raw);
+
+                await loadLeaderboard(currentLeaderboardLimit);
+
+            };
+
+        });
+
+}
 
 
 // ==============================
@@ -539,7 +567,7 @@ async function init() {
 
 
         loadLeaderboard();
-
+        initLeaderboardButtons();
 
         initButtons();
 
