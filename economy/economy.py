@@ -779,6 +779,7 @@ async def market_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text=(
                 "📈 <b>Рынок кодов</b>\n\n"
                 f"Доступно кодов: <b>{q}</b>\n"
+                f"Кодов на рынке: <b>{economy.get_active_codes_count()}</b>\n"
                 f"Цена покупки: <b>{price} P6T</b>\n"
                 f"Цена продажи: <b>{int(price * config['coeff'])} P6T</b>"
             ),
