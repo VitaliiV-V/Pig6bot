@@ -1,27 +1,20 @@
 {
     "Pmin": 100,
     "constA": 1,
+    "coeff": 0.9,
+    "count": 100,
+    "cost": 300,
     "ban_messages": "off",
     "owner_name": "",
-    "cost": 300,
-    "uuid": "󠄟󠇅󠅸󠇒󠄵",
-    "white_lists_mode": "manual",
-    "anon_enable": 0,
+    "uuid": "󠄰󠅈󠆽󠄫󠆤",
     "mode": "normal",
-    "AI mode": "messages",
     "Judgment Day Code": "",
     "base_prompt": "",
     "banned": [],
-    "banned_users": [
+    "admins": [
     ],
-    "white_list": [
-    ],
-    "logs_mode": "off",
-    "logs": [],
-    "admins": [],
-    "root_users": [],
     "alpha_users": [
     ],
-    "signed_users": {
-    }
+    "signed_users": {},
+    "root_users": []
 }

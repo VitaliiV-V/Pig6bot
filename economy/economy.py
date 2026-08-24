@@ -779,7 +779,8 @@ async def market_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text=(
                 "📈 <b>Рынок кодов</b>\n\n"
                 f"Доступно кодов: <b>{q}</b>\n"
-                f"Текущая цена: <b>{price} P6T</b>"
+                f"Цена покупки: <b>{price} P6T</b>\n"
+                f"Цена продажи: <b>{int(price * config["coeff"])} P6T</b>"
             ),
             parse_mode="HTML",
             reply_markup=keyboard,
@@ -875,7 +876,7 @@ async def delete_codes_handler(
 
         except (IndexError, ValueError):
 
-            await msg.reply_text("Использование: /clear_codes <количество>")
+            await msg.reply_text("Использование: /reset <количество>")
 
             return
 
@@ -891,3 +892,34 @@ async def delete_codes_handler(
         save_config(config)
 
         await msg.reply_text(f"Удалено ничейных кодов: {deleted}")
+
+
+async def set_handler(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+
+    msg = update.message
+    user_id = msg.from_user.id
+    if check_id(user_id):
+        try:
+
+            price = int(context.args[0])
+
+        except (IndexError, ValueError):
+
+            await msg.reply_text("Использование: /set <цена>")
+
+            return
+
+        if price <= 0:
+
+            await msg.reply_text("цена должно быть больше нуля.")
+
+            return
+
+        config = load_config()
+        config["Pmin"] = price
+        save_config(config)
+
+        await msg.reply_text(f"Установлена стартовая цена: {price}")

@@ -48,16 +48,16 @@ function showError(text = "Market unavailable") {
 
 
 
-function formatTime(timestamp){
+function formatTime(timestamp) {
 
     const date = new Date(timestamp);
 
-    if(isNaN(date))
+    if (isNaN(date))
         return timestamp;
 
     return date.toLocaleTimeString([], {
-        hour:"2-digit",
-        minute:"2-digit"
+        hour: "2-digit",
+        minute: "2-digit"
     });
 
 }
@@ -67,16 +67,18 @@ function formatTime(timestamp){
 // Market rendering
 // ==============================
 
-function renderMarket(market){
+function renderMarket(market) {
 
 
     document.getElementById("currentPrice")
         .textContent = market.price;
 
+    document.getElementById("currentPrice2")
+        .textContent = market.price2;
 
     document.getElementById("availableCodes")
         .textContent =
-        `${market.availableCodes} / ${market.capacity}`;
+        `${market.availableCodes} / ${market.unusedCodes}`;
 
 
     document.getElementById("marketStatus")
@@ -128,10 +130,10 @@ function renderMarket(market){
 // ==============================
 
 
-async function loadHistory(range){
+async function loadHistory(range) {
 
 
-    if(!chartAvailable())
+    if (!chartAvailable())
         throw new Error("Chart.js missing");
 
 
@@ -168,12 +170,12 @@ async function loadHistory(range){
 
     const color =
         up
-        ? "#22c55e"
-        : "#ef4444";
+            ? "#22c55e"
+            : "#ef4444";
 
 
 
-    if(chart){
+    if (chart) {
 
 
         chart.data.labels = labels;
@@ -189,8 +191,8 @@ async function loadHistory(range){
 
         chart.data.datasets[0].backgroundColor =
             up
-            ? "rgba(34,197,94,0.12)"
-            : "rgba(239,68,68,0.12)";
+                ? "rgba(34,197,94,0.12)"
+                : "rgba(239,68,68,0.12)";
 
 
         chart.update("none");
@@ -204,44 +206,44 @@ async function loadHistory(range){
     chart = new Chart(ctx, {
 
 
-        type:"line",
+        type: "line",
 
 
-        data:{
+        data: {
 
 
             labels,
 
 
-            datasets:[{
+            datasets: [{
 
 
-                data:prices,
+                data: prices,
 
 
-                borderColor:color,
+                borderColor: color,
 
 
                 backgroundColor:
                     up
-                    ? "rgba(34,197,94,0.12)"
-                    : "rgba(239,68,68,0.12)",
+                        ? "rgba(34,197,94,0.12)"
+                        : "rgba(239,68,68,0.12)",
 
 
 
-                borderWidth:2,
+                borderWidth: 2,
 
 
-                tension:0.15,
+                tension: 0.15,
 
 
-                pointRadius:0,
+                pointRadius: 0,
 
 
-                pointHoverRadius:5,
+                pointHoverRadius: 5,
 
 
-                fill:true
+                fill: true
 
 
 
@@ -252,31 +254,31 @@ async function loadHistory(range){
 
 
 
-        options:{
+        options: {
 
 
-            responsive:true,
+            responsive: true,
 
 
-            maintainAspectRatio:false,
+            maintainAspectRatio: false,
 
 
-            animation:{
-                duration:500
+            animation: {
+                duration: 500
             },
 
 
-            interaction:{
-                intersect:false,
-                mode:"index"
+            interaction: {
+                intersect: false,
+                mode: "index"
             },
 
 
-            plugins:{
+            plugins: {
 
 
-                legend:{
-                    display:false
+                legend: {
+                    display: false
                 }
 
 
@@ -284,20 +286,20 @@ async function loadHistory(range){
 
 
 
-            scales:{
+            scales: {
 
 
-                x:{
+                x: {
 
 
-                    ticks:{
-                        color:"#777",
-                        maxTicksLimit:6
+                    ticks: {
+                        color: "#777",
+                        maxTicksLimit: 6
                     },
 
 
-                    grid:{
-                        display:false
+                    grid: {
+                        display: false
                     }
 
 
@@ -305,16 +307,16 @@ async function loadHistory(range){
 
 
 
-                y:{
+                y: {
 
 
-                    ticks:{
-                        color:"#777"
+                    ticks: {
+                        color: "#777"
                     },
 
 
-                    grid:{
-                        color:"#1f1f1f"
+                    grid: {
+                        color: "#1f1f1f"
                     }
 
 
@@ -339,13 +341,60 @@ async function loadHistory(range){
 
 
 // ==============================
+// Leaderboard
+// ==============================
+
+const MEDALS = ["🥇", "🥈", "🥉"];
+
+async function loadLeaderboard() {
+
+    const listEl = document.getElementById("leaderboardList");
+
+    if (!listEl) return;
+
+    try {
+
+        const users = await marketApi.getTopUsers(10);
+
+        if (!users.length) {
+            listEl.innerHTML =
+                `<div class="leaderboard-row">Пока здесь никого нет.</div>`;
+            return;
+        }
+
+        listEl.innerHTML = users.map(u => `
+            <div class="leaderboard-row">
+                <div class="leaderboard-rank">
+                    <span class="leaderboard-medal">
+                        ${u.rank <= 3 ? MEDALS[u.rank - 1] : u.rank}
+                    </span>
+                    <span>${u.name}</span>
+                </div>
+                <span class="leaderboard-balance">${u.balance} P6T</span>
+            </div>
+        `).join("");
+
+    } catch (e) {
+
+        console.error("Leaderboard failed", e);
+
+        listEl.innerHTML =
+            `<div class="leaderboard-row">Leaderboard unavailable.</div>`;
+
+    }
+
+}
+
+
+
+// ==============================
 // Refresh
 // ==============================
 
-async function refresh(){
+async function refresh() {
 
 
-    try{
+    try {
 
 
         const market =
@@ -356,7 +405,7 @@ async function refresh(){
 
 
     }
-    catch(e){
+    catch (e) {
 
         console.error(
             "Market refresh failed",
@@ -367,14 +416,14 @@ async function refresh(){
 
 
 
-    try{
+    try {
 
 
         await loadHistory(currentRange);
 
 
     }
-    catch(e){
+    catch (e) {
 
         console.error(
             "Chart refresh failed",
@@ -383,14 +432,22 @@ async function refresh(){
 
     }
 
+
+    try {
+        await loadLeaderboard();
+    }
+    catch (e) {
+        console.error("Leaderboard refresh failed", e);
+    }
+
 }
 
 
 
 
-function startRefresh(){
+function startRefresh() {
 
-    if(refreshTimer)
+    if (refreshTimer)
         clearInterval(refreshTimer);
 
 
@@ -408,15 +465,15 @@ function startRefresh(){
 // Buttons
 // ==============================
 
-function initButtons(){
+function initButtons() {
 
 
     document
         .querySelectorAll("[data-range]")
-        .forEach(button=>{
+        .forEach(button => {
 
 
-            button.onclick = async()=>{
+            button.onclick = async () => {
 
 
                 document
@@ -446,7 +503,7 @@ function initButtons(){
 
 
 
-    retryButton.onclick = ()=>{
+    retryButton.onclick = () => {
 
         location.reload();
 
@@ -461,10 +518,10 @@ function initButtons(){
 // Start
 // ==============================
 
-async function init(){
+async function init() {
 
 
-    try{
+    try {
 
 
         const market =
@@ -481,6 +538,8 @@ async function init(){
         );
 
 
+        loadLeaderboard();
+
 
         initButtons();
 
@@ -493,7 +552,7 @@ async function init(){
 
 
     }
-    catch(e){
+    catch (e) {
 
 
         console.error(e);
@@ -507,7 +566,6 @@ async function init(){
     }
 
 }
-
 
 
 init();

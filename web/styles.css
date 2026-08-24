@@ -192,6 +192,7 @@ a {
 
     box-shadow: var(--shadow);
 
+    gap: 10px;
 }
 
 .label {
@@ -875,7 +876,76 @@ footer a:hover {
 
 #marketChart {
 
-    height:420px;
-    width:100%;
+    height: 420px;
+    width: 100%;
+
+}
+
+
+.leaderboard {
+
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 30px;
+    margin-bottom: 28px;
+
+}
+
+.leaderboard h2 {
+
+    margin-bottom: 20px;
+    font-size: 24px;
+
+}
+
+.leaderboard-list {
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+}
+
+.leaderboard-row {
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: var(--transition);
+
+}
+
+.leaderboard-row:hover {
+
+    border-color: #3f3f46;
+
+}
+
+.leaderboard-rank {
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-weight: 600;
+
+}
+
+.leaderboard-medal {
+
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+
+}
+
+.leaderboard-balance {
+
+    font-weight: 700;
+    color: var(--green);
 
 }

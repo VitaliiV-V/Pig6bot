@@ -74,10 +74,12 @@ def mmarket():
         change = 0
 
     economy.save_market_state(available, price)
-
+    unused = economy.get_active_codes_count()
     return {
         "price": int(price),
+        "price2": int(price * config["coeff"]),
         "availableCodes": available,
+        "unusedCodes": unused,
         "capacity": config["count"],
         "priceChange": change,
         "status": "ACTIVE",
@@ -120,6 +122,23 @@ def history(range: RangeType = Query("24H")):
         )
 
     return result
+
+
+@app.get("/api/top")
+def top_users(limit: int = Query(10, ge=1, le=50)):
+
+    economy = Pig6Economy()
+
+    users = economy.get_top_users(limit)
+
+    return [
+        {
+            "rank": i,
+            "name": (name or "Anonymous").replace("@", ""),
+            "balance": balance,
+        }
+        for i, (name, balance) in enumerate(users, start=1)
+    ]
 
 
 @app.get("/check", response_class=HTMLResponse)

@@ -45,7 +45,7 @@
                     </div>
 
                     <h1>
-                        Свинья-6
+                        Pig-6
                     </h1>
 
                     <p class="subtitle">
@@ -59,7 +59,7 @@
                     <div class="price-card">
 
                         <span class="label">
-                            Current Code Price
+                            Buy Price
                         </span>
 
                         <div class="price">
@@ -72,6 +72,19 @@
 
                         </div>
 
+                        <span class="label">
+                            <br>Sell Price
+                        </span>
+
+                        <div class="price">
+
+                            <span id="currentPrice2">
+                                --
+                            </span>
+
+                            <small>P6T</small>
+
+                        </div>
                     </div>
 
                     <div class="market-info">
@@ -184,6 +197,16 @@
 
             </section>
 
+            <section class="leaderboard">
+
+                <h2>Top Users</h2>
+
+                <div class="leaderboard-list" id="leaderboardList">
+                    <!-- rows injected by JS -->
+                </div>
+
+            </section>
+
             <section class="info">
 
                 <h2>Dynamic pricing</h2>
@@ -213,13 +236,17 @@
 
                 <pre>
 
-Price = Pmin × (1 + A × ((100 − Q) / Q))
+Buy Price = Pmin × (1 + A × ((100 − Q) / Q))
+
+Sell Price = Pmin × (1 + A × ((100 − Q) / Q)) * C
 
 Pmin — minimum price
 
 A — market coefficient
 
 Q — available codes
+
+C — coefficient
 
 </pre>
 

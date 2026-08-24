@@ -28,41 +28,41 @@ const mockMarket = {
 const history = {
 
     "1H": [
-        41,41,42,42,42,43,42,42,42,42,42,42
+        41, 41, 42, 42, 42, 43, 42, 42, 42, 42, 42, 42
     ],
 
     "6H": [
-        39,39,40,40,40,41,41,41,42,42,42,42
+        39, 39, 40, 40, 40, 41, 41, 41, 42, 42, 42, 42
     ],
 
     "24H": [
-        34,35,35,36,36,37,38,39,
-        39,40,40,41,41,42,42,42,
-        42,42,43,42,42,42,42,42
+        34, 35, 35, 36, 36, 37, 38, 39,
+        39, 40, 40, 41, 41, 42, 42, 42,
+        42, 42, 43, 42, 42, 42, 42, 42
     ],
 
     "7D": [
-        20,21,22,23,25,27,29
+        20, 21, 22, 23, 25, 27, 29
     ],
 
     "30D": [
-        10,11,12,14,15,
-        17,18,19,20,22,
-        24,25,26,28,29,
-        30,31,32,33,34,
-        35,36,37,38,39,
-        40,41,42,42,42
+        10, 11, 12, 14, 15,
+        17, 18, 19, 20, 22,
+        24, 25, 26, 28, 29,
+        30, 31, 32, 33, 34,
+        35, 36, 37, 38, 39,
+        40, 41, 42, 42, 42
     ]
 
 };
 
 // =======================================================
 
-async function request(url){
+async function request(url) {
 
     const response = await fetch(API_BASE_URL + url);
 
-    if(!response.ok){
+    if (!response.ok) {
 
         throw new Error("Server error");
 
@@ -75,10 +75,15 @@ async function request(url){
 // =======================================================
 
 const marketApi = {
+    async getTopUsers(limit = 10) {
+        const res = await fetch(`/api/top?limit=${limit}`);
+        if (!res.ok) throw new Error("Failed to load leaderboard");
+        return res.json();
+    },
 
-    async getMarket(){
+    async getMarket() {
 
-        if(USE_API){
+        if (USE_API) {
 
             return await request("/market");
 
@@ -90,11 +95,11 @@ const marketApi = {
 
     },
 
-    async getPriceHistory(range="24H"){
+    async getPriceHistory(range = "24H") {
 
-        if(USE_API){
+        if (USE_API) {
 
-            return await request("/history?range="+range);
+            return await request("/history?range=" + range);
 
         }
 
@@ -102,9 +107,9 @@ const marketApi = {
 
         const values = history[range] || history["24H"];
 
-        return values.map((price,index)=>({
+        return values.map((price, index) => ({
 
-            timestamp:index,
+            timestamp: index,
 
             price
 
@@ -112,9 +117,9 @@ const marketApi = {
 
     },
 
-    async getRecentOperations(){
+    async getRecentOperations() {
 
-        if(USE_API){
+        if (USE_API) {
 
             return await request("/operations");
 
