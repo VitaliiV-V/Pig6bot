@@ -587,3 +587,52 @@ async def logs_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=msg.chat_id, document=open("logs/main.log", "rb")
             )
             return
+
+
+async def apikey_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+
+    try:
+
+        args = msg.text.split()
+        # if len(args) == 1:
+        #     await msg.reply_text(
+        #         text="Формат использования /apikey <NAME>",
+        #     )
+        #     return
+        # name = (
+        #     msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
+        # )
+        msg = update.message
+
+        if not msg or not msg.from_user:
+            return
+
+        user_id = msg.from_user.id
+        user_name = msg.from_user.username
+
+        economy.set_name_if_empty(user_id, user_name)
+
+        api_key = economy.create_api_key(
+            user_id=user_id,
+            name="Telegram Bot",
+        )
+
+        await msg.reply_text(
+            text=(
+                "🔐 <b>API-доступ Свиньи-6</b>\n\n"
+                "Ваш персональный API-ключ создан.\n\n"
+                f"<code>{api_key}</code>\n\n"
+                "⚠️ <b>Важно:</b> сохраните этот ключ в безопасном месте. "
+                "После выхода из этого сообщения получить его повторно "
+                "будет невозможно.\n\n"
+                "Никому не передавайте Ваш API-ключ."
+            ),
+            parse_mode="HTML",
+        )
+
+        logger.info("API key issued to user %s", user_id)
+
+    except Exception:
+        logger.exception("api_handler() failed")
+        raise

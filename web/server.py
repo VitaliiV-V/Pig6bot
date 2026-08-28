@@ -7,7 +7,7 @@ from jinja2 import Template
 from fastapi.responses import FileResponse
 import uvicorn
 from fastapi.responses import HTMLResponse
-
+from web.api import *
 from fastapi.responses import HTMLResponse
 import json
 
@@ -22,6 +22,7 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="P6T Market API")
+app.include_router(router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,58 +33,6 @@ app.add_middleware(
 
 
 CAPACITY = 100
-
-
-@app.get("/api/market")
-def mmarket():
-
-    economy = Pig6Economy()
-
-    available = economy.get_system_codes_count()
-
-    if available <= 0:
-        config = load_config()
-        return {
-            "price": 0,
-            "availableCodes": 0,
-            "capacity": config["count"],
-            "priceChange": 0,
-            "status": "SOLD_OUT",
-        }
-
-    config = load_config()
-
-    minimum = config.get("Pmin", 10)
-
-    coefficient = config.get("constA", 1)
-
-    price = minimum * (1 + coefficient * ((config["count"] - available) / available))
-
-    price = round(price, 2)
-
-    old_state = economy.get_market_state()
-
-    old_price = old_state.get("price", price)
-
-    if old_price:
-
-        change = round(((price - old_price) / old_price) * 100, 2)
-
-    else:
-
-        change = 0
-
-    economy.save_market_state(available, price)
-    unused = economy.get_active_codes_count()
-    return {
-        "price": int(price),
-        "price2": int(price * config["coeff"]),
-        "availableCodes": available,
-        "unusedCodes": unused,
-        "capacity": config["count"],
-        "priceChange": change,
-        "status": "ACTIVE",
-    }
 
 
 # =========================
@@ -122,23 +71,6 @@ def history(range: RangeType = Query("24H")):
         )
 
     return result
-
-
-@app.get("/api/top")
-def top_users(limit: int | None = Query(10, ge=1, le=1000)):
-
-    economy = Pig6Economy()
-
-    users = economy.get_top_users(limit)
-
-    return [
-        {
-            "rank": i,
-            "name": (name or "Anonymous").replace("@", ""),
-            "balance": balance,
-        }
-        for i, (name, balance) in enumerate(users, start=1)
-    ]
 
 
 @app.get("/check", response_class=HTMLResponse)

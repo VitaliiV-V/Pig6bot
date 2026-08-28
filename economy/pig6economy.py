@@ -1,5 +1,7 @@
 import sqlite3
 import logging
+import hashlib
+import secrets
 import bot.tools as tools
 
 logger = logging.getLogger(__name__)
@@ -76,9 +78,82 @@ class Pig6Economy:
             )
             """)
 
+            self.cursor.execute("""
+                CREATE TABLE IF NOT EXISTS api_keys (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                key_hash TEXT UNIQUE NOT NULL,
+                owner_id INTEGER NOT NULL,
+                name TEXT,
+                scopes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_used_at TIMESTAMP,
+                revoked BOOLEAN DEFAULT 0
+                )
+                """)
+
             self.db.commit()
         except sqlite3.Error:
             logger.exception("Failed to initialize database schema")
+            raise
+
+    def create_api_key(self, user_id, name=None):
+
+        try:
+            raw_key = f"pig6_{secrets.token_urlsafe(32)}"
+            key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
+            self.cursor.execute(
+                """
+                INSERT INTO api_keys (key_hash, owner_id, name)
+                VALUES (?, ?, ?)
+                """,
+                (key_hash, user_id, name),
+            )
+
+            self.db.commit()
+            logger.info("API key created for user %s", user_id)
+            return raw_key
+
+        except sqlite3.Error:
+
+            logger.exception("create_api_key(%s) failed", user_id)
+            self.db.rollback()
+            raise
+
+    def get_user_id_by_api_key(self, api_key):
+
+        try:
+            key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+            self.cursor.execute(
+                """
+                SELECT owner_id
+                FROM api_keys
+                WHERE key_hash = ? AND revoked = 0
+                """,
+                (key_hash,),
+            )
+
+            result = self.cursor.fetchone()
+
+            if not result:
+
+                return None
+
+            self.cursor.execute(
+                """
+                UPDATE api_keys
+                SET last_used_at = CURRENT_TIMESTAMP
+                WHERE key_hash = ?
+                """,
+                (key_hash,),
+            )
+
+            self.db.commit()
+
+            return result[0]
+
+        except sqlite3.Error:
+
+            logger.exception("get_user_id_by_api_key() failed")
             raise
 
     def close(self):
