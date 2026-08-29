@@ -197,7 +197,10 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
 
     parts = query.data.split("^")
-    action, data = parts[0], parts[1]
+
+    action = parts[0]
+
+    data = parts[1] if len(parts) > 1 else None
 
     if action == "approve":
         if await check_id(user_id=query.from_user.id, msg=query, context=context):
@@ -366,6 +369,102 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.answer("🔴 Доступ запрещён.", show_alert=False)
     elif action == "olymp":
         await olymp(update, context)
+    elif action == "api":
+        api_action = parts[1]
+
+        if api_action == "revoke":
+            key_id = int(parts[2])
+
+            keyboard = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            "⚠️ Отозвать",
+                            callback_data=f"api^confirm_revoke^{key_id}",
+                        ),
+                        InlineKeyboardButton(
+                            "❌ Отмена",
+                            callback_data="api^cancel_revoke",
+                        ),
+                    ]
+                ]
+            )
+
+            await query.edit_message_text(
+                "⚠️ <b>Отзыв API-ключа</b>\n\n"
+                "Вы действительно хотите отозвать этот API-ключ?\n\n"
+                "После отзыва все запросы с этим ключом перестанут работать.",
+                parse_mode="HTML",
+                reply_markup=keyboard,
+            )
+
+        elif api_action == "confirm_revoke":
+            key_id = int(parts[2])
+            user_id = query.from_user.id
+
+            economy.revoke_api_key(
+                key_id=key_id,
+                owner_id=user_id,
+            )
+
+            mykeys = economy.get_user_api_keys(user_id)
+
+            if not mykeys:
+                await query.edit_message_text(
+                    "🔑 <b>Ваши API-ключи</b>\n\n"
+                    "У Вас пока нет активных API-ключей.",
+                    parse_mode="HTML",
+                )
+                return
+
+            keyboard = []
+
+            for key_id, name in mykeys:
+                keyboard.append(
+                    [
+                        InlineKeyboardButton(
+                            f"🔑 {name or f'API-ключ #{key_id}'}",
+                            callback_data=f"api^revoke^{key_id}",
+                        )
+                    ]
+                )
+
+            await query.edit_message_text(
+                "🔑 <b>Ваши API-ключи</b>\n\n"
+                "Выберите ключ, который хотите отозвать:",
+                parse_mode="HTML",
+                reply_markup=InlineKeyboardMarkup(keyboard),
+            )
+
+        elif api_action == "cancel_revoke":
+            mykeys = economy.get_user_api_keys(user_id)
+
+            if not mykeys:
+                await query.edit_message_text(
+                    "🔑 <b>Ваши API-ключи</b>\n\n"
+                    "У Вас пока нет активных API-ключей.",
+                    parse_mode="HTML",
+                )
+                return
+
+            keyboard = []
+
+            for key_id, name in mykeys:
+                keyboard.append(
+                    [
+                        InlineKeyboardButton(
+                            f"🔑 {name or f'API-ключ #{key_id}'}",
+                            callback_data=f"api^revoke^{key_id}",
+                        )
+                    ]
+                )
+
+            await query.edit_message_text(
+                "🔑 <b>Ваши API-ключи</b>\n\n"
+                "Выберите ключ, который хотите отозвать:",
+                parse_mode="HTML",
+                reply_markup=InlineKeyboardMarkup(keyboard),
+            )
     await query.answer()
 
 
@@ -595,14 +694,14 @@ async def apikey_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
 
         args = msg.text.split()
-        # if len(args) == 1:
-        #     await msg.reply_text(
-        #         text="Формат использования /apikey <NAME>",
-        #     )
-        #     return
-        # name = (
-        #     msg.text.split(maxsplit=1)[1] if len(msg.text.split(maxsplit=1)) > 1 else ""
-        # )
+        if len(args) > 1:
+            name = (
+                msg.text.split(maxsplit=1)[1]
+                if len(msg.text.split(maxsplit=1)) > 1
+                else ""
+            )
+        else:
+            name = "Telegram Bot"
         msg = update.message
 
         if not msg or not msg.from_user:
@@ -615,7 +714,7 @@ async def apikey_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         api_key = economy.create_api_key(
             user_id=user_id,
-            name="Telegram Bot",
+            name=name,
         )
 
         await msg.reply_text(
@@ -635,4 +734,41 @@ async def apikey_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception:
         logger.exception("api_handler() failed")
+        raise
+
+
+async def mykeys_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    user_id = msg.from_user.id
+
+    try:
+        mykeys = economy.get_user_api_keys(user_id)
+
+        if not mykeys:
+            await msg.reply_text(
+                "🔑 <b>Ваши API-ключи</b>\n\n" "У Вас пока нет активных API-ключей.",
+                parse_mode="HTML",
+            )
+            return
+
+        keyboard = []
+
+        for key_id, name in mykeys:
+            keyboard.append(
+                [
+                    InlineKeyboardButton(
+                        f"🔑 {name or f'API-ключ #{key_id}'}",
+                        callback_data=f"api^revoke^{key_id}",
+                    )
+                ]
+            )
+
+        await msg.reply_text(
+            "🔑 <b>Ваши API-ключи</b>\n\n" "Выберите ключ, который хотите отозвать:",
+            parse_mode="HTML",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+
+    except Exception:
+        logger.exception("mykeys_handler() failed")
         raise

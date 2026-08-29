@@ -156,6 +156,55 @@ class Pig6Economy:
             logger.exception("get_user_id_by_api_key() failed")
             raise
 
+    def get_user_api_keys(self, user_id):
+        try:
+            self.cursor.execute(
+                """
+                SELECT id, name
+                FROM api_keys
+                WHERE owner_id = ?
+                """,
+                (user_id,),
+            )
+
+            result = self.cursor.fetchall()
+
+            if not result:
+
+                return None
+
+            self.db.commit()
+
+            return result
+
+        except sqlite3.Error:
+
+            logger.exception("get_user_id_by_api_key() failed")
+            raise
+
+    def revoke_api_key(self, key_id, owner_id):
+        try:
+            self.cursor.execute(
+                """
+                UPDATE api_keys
+                SET revoked = 1
+                WHERE id = ? AND owner_id = ? AND revoked = 0
+                """,
+                (key_id, owner_id),
+            )
+
+            self.db.commit()
+
+            return self.cursor.rowcount > 0
+
+        except sqlite3.Error:
+            logger.exception(
+                "revoke_api_key(%s, %s) failed",
+                key_id,
+                owner_id,
+            )
+            raise
+
     def close(self):
         try:
             self.db.close()
