@@ -162,7 +162,7 @@ class Pig6Economy:
                 """
                 SELECT id, name
                 FROM api_keys
-                WHERE owner_id = ?
+                WHERE owner_id = ? AND revoked = 0
                 """,
                 (user_id,),
             )
