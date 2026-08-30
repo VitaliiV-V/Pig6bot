@@ -8,50 +8,9 @@
 
         <title>Pig-6 Certificate</title>
 
+        <link rel="stylesheet" href="common.css">
+
         <style>
-
-:root {
-
-    --bg: #09090b;
-    --surface: #111113;
-    --surface-2: #18181b;
-
-    --border: #27272a;
-
-    --text: #fafafa;
-    --muted: #a1a1aa;
-
-    --green: #22c55e;
-
-    --radius: 18px;
-
-    --shadow:
-        0 12px 40px rgba(0,0,0,.35);
-
-}
-
-
-* {
-
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-
-}
-
-
-body {
-
-    background:var(--bg);
-
-    color:var(--text);
-
-    font-family:"Inter", sans-serif;
-
-    line-height:1.5;
-
-}
-
 
 #app {
 
@@ -65,9 +24,7 @@ body {
 
 .copy-btn {
 
-    margin-bottom: 16px;
-
-    padding: 8px 14px;
+    padding: 6px 12px;
 
     background: var(--surface-2);
 
@@ -81,11 +38,13 @@ body {
 
     transition: .2s ease;
 
+    font-size: 13px;
+
 }
 
 .copy-btn:hover {
 
-    background: #222226;
+    background: #27272a;
 
 }
 
@@ -115,7 +74,7 @@ body {
 
     font-size:13px;
 
-    margin-bottom:30px;
+    margin:30px 0;
 
 }
 
@@ -165,45 +124,6 @@ h1 {
     justify-content: space-between;
 
     margin-bottom: 10px;
-
-}
-
-
-.copy-btn {
-
-    padding: 6px 12px;
-
-    background: var(--surface-2);
-
-    color: var(--text);
-
-    border: 1px solid var(--border);
-
-    border-radius: 10px;
-
-    cursor: pointer;
-
-    transition: .2s ease;
-
-    font-size: 13px;
-
-}
-
-
-.copy-btn:hover {
-
-    background: #27272a;
-
-}
-
-
-.copy-btn.copied {
-
-    background: #3b82f6;
-
-    border-color: #3b82f6;
-
-    color: white;
 
 }
 
@@ -266,6 +186,8 @@ h1 {
     border-radius:50%;
 
     box-shadow:0 0 12px rgba(34,197,94,.6);
+
+    animation:pulse-dot 2.6s ease-in-out infinite;
 
 }
 
@@ -372,9 +294,11 @@ async function copyText(id, button) {
 
     <body>
 
+        <div id="site-header"></div>
+
         <div id="app">
 
-            <div class="badge">
+            <div class="badge reveal">
 
                 Pig-6 Certificates
 
@@ -382,7 +306,7 @@ async function copyText(id, button) {
 
             <div class="hero">
 
-                <div>
+                <div class="reveal reveal-delay-1">
 
                     <h1>
 
@@ -399,7 +323,7 @@ async function copyText(id, button) {
 
                 </div>
 
-                <div class="card">
+                <div class="card glow-hover reveal reveal-delay-2">
 
                     <span class="label">
 
@@ -419,7 +343,7 @@ async function copyText(id, button) {
 
             </div>
 
-            <div class="card">
+            <div class="card glow-hover reveal">
 
                 <div class="label-row">
 
@@ -429,7 +353,7 @@ async function copyText(id, button) {
 
                     </span>
 
-                    <button class="copy-btn"
+                    <button class="copy-btn ripple"
                         onclick="copyText('message', this)">
 
                         Copy
@@ -444,7 +368,7 @@ async function copyText(id, button) {
 
             <div class="grid">
 
-                <div class="card">
+                <div class="card glow-hover reveal">
 
                     <span class="label">
 
@@ -460,7 +384,7 @@ async function copyText(id, button) {
 
                 </div>
 
-                <div class="card">
+                <div class="card glow-hover reveal reveal-delay-1">
 
                     <span class="label">
 
@@ -476,7 +400,7 @@ async function copyText(id, button) {
 
                 </div>
 
-                <div class="card">
+                <div class="card glow-hover reveal reveal-delay-2">
 
                     <span class="label">
 
@@ -494,7 +418,7 @@ async function copyText(id, button) {
 
             </div>
 
-            <div class="card">
+            <div class="card glow-hover reveal">
 
                 <div class="label-row">
 
@@ -502,7 +426,7 @@ async function copyText(id, button) {
                         Cryptographic Signature
                     </span>
 
-                    <button class="copy-btn"
+                    <button class="copy-btn ripple"
                         onclick="copyText('signature', this)">
                         Copy
                     </button>
@@ -513,7 +437,7 @@ async function copyText(id, button) {
 
             </div>
 
-            <div class="card">
+            <div class="card glow-hover reveal">
 
                 <div class="label-row">
 
@@ -521,7 +445,8 @@ async function copyText(id, button) {
                         Public Key
                     </span>
 
-                    <button class="copy-btn" onclick="copyText('pubkey', this)">
+                    <button class="copy-btn ripple"
+                        onclick="copyText('pubkey', this)">
                         Copy
                     </button>
 
@@ -540,6 +465,8 @@ async function copyText(id, button) {
             </footer>
 
         </div>
+
+        <script src="site.js" defer></script>
 
     </body>
 

@@ -437,6 +437,7 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
         elif api_action == "cancel_revoke":
+            user_id = query.from_user.id
             mykeys = economy.get_user_api_keys(user_id)
 
             if not mykeys:
@@ -691,6 +692,12 @@ async def logs_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def apikey_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
+    if msg.chat_id != msg.from_user.id:
+        await msg.reply_text(
+            text=("🔴 Эта команда доступна только в личном чате с ботом."),
+            parse_mode="HTML",
+        )
+        return
     try:
 
         args = msg.text.split()
@@ -740,7 +747,12 @@ async def apikey_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def mykeys_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
     user_id = msg.from_user.id
-
+    if msg.chat_id != msg.from_user.id:
+        await msg.reply_text(
+            text=("🔴 Эта команда доступна только в личном чате с ботом."),
+            parse_mode="HTML",
+        )
+        return
     try:
         mykeys = economy.get_user_api_keys(user_id)
 

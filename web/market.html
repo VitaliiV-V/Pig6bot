@@ -14,6 +14,7 @@
             href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
             rel="stylesheet">
 
+        <link rel="stylesheet" href="common.css">
         <link rel="stylesheet" href="styles.css">
 
         <!--
@@ -22,13 +23,20 @@
             they still execute in document order (chart.js -> marketApi.js -> app.js)
             once the DOM is ready. This alone does not fix a hung/blocked CDN request,
             so app.js also has its own timeout + fallback logic — see app.js.
+
+            site.js is independent of the market data pipeline (it only
+            builds the shared header/nav + page effects), so it's safe to
+            load in parallel rather than chaining it after marketApi/app.
         -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
         <script src="marketApi.js" defer></script>
         <script src="app.js" defer></script>
+        <script src="site.js" defer></script>
     </head>
 
     <body>
+
+        <div id="site-header"></div>
 
         <div class="loading-screen" id="loading">
             <div class="loading-text" id="loadingText">Loading market...</div>
@@ -38,14 +46,14 @@
 
             <header class="hero">
 
-                <div class="hero-left">
+                <div class="hero-left reveal">
 
                     <div class="badge">
                         P6T Market
                     </div>
 
                     <h1>
-                        Pig-6
+                        Anonymous code market
                     </h1>
 
                     <p class="subtitle">
@@ -54,9 +62,9 @@
 
                 </div>
 
-                <div class="hero-right">
+                <div class="hero-right reveal reveal-delay-1">
 
-                    <div class="price-card">
+                    <div class="price-card glow-hover">
 
                         <span class="label">
                             Buy Price
@@ -89,7 +97,7 @@
 
                     <div class="market-info">
 
-                        <div>
+                        <div class="glow-hover">
 
                             <span class="label">
                                 Available Codes
@@ -101,7 +109,7 @@
 
                         </div>
 
-                        <div>
+                        <div class="glow-hover">
 
                             <span class="label">
                                 Market Status
@@ -125,7 +133,7 @@
 
             </header>
 
-            <section class="chart-section">
+            <section class="chart-section reveal">
 
                 <div class="section-header">
 
@@ -135,11 +143,12 @@
 
                     <div class="range-buttons">
 
-                        <button data-range="1H">1H</button>
-                        <button data-range="6H">6H</button>
-                        <button data-range="24H" class="active">24H</button>
-                        <button data-range="7D">7D</button>
-                        <button data-range="30D">30D</button>
+                        <button class="ripple" data-range="1H">1H</button>
+                        <button class="ripple" data-range="6H">6H</button>
+                        <button class="ripple active"
+                            data-range="24H">24H</button>
+                        <button class="ripple" data-range="7D">7D</button>
+                        <button class="ripple" data-range="30D">30D</button>
 
                     </div>
 
@@ -155,7 +164,7 @@
 
             <section class="stats-grid">
 
-                <div class="card">
+                <div class="card glow-hover reveal">
 
                     <span>Current Price</span>
 
@@ -163,7 +172,7 @@
 
                 </div>
 
-                <div class="card">
+                <div class="card glow-hover reveal reveal-delay-1">
 
                     <span>Available Codes</span>
 
@@ -171,7 +180,7 @@
 
                 </div>
 
-                <div class="card">
+                <div class="card glow-hover reveal reveal-delay-2">
 
                     <span>Market Capacity</span>
 
@@ -179,7 +188,7 @@
 
                 </div>
 
-                <div class="card">
+                <div class="card glow-hover reveal reveal-delay-3">
 
                     <span>Price Change</span>
 
@@ -187,7 +196,7 @@
 
                 </div>
 
-                <div class="card">
+                <div class="card glow-hover reveal reveal-delay-4">
 
                     <span>Market Activity</span>
 
@@ -197,7 +206,7 @@
 
             </section>
 
-            <section class="leaderboard">
+            <section class="leaderboard reveal">
 
                 <div class="section-header">
 
@@ -205,10 +214,11 @@
 
                     <div class="range-buttons" id="leaderboardButtons">
 
-                        <button data-limit="3">Top 3</button>
-                        <button data-limit="5">Top 5</button>
-                        <button data-limit="10" class="active">Top 10</button>
-                        <button data-limit="all">All</button>
+                        <button class="ripple" data-limit="3">Top 3</button>
+                        <button class="ripple" data-limit="5">Top 5</button>
+                        <button class="ripple active" data-limit="10">Top
+                            10</button>
+                        <button class="ripple" data-limit="all">All</button>
 
                     </div>
 
@@ -220,7 +230,7 @@
 
             </section>
 
-            <section class="info">
+            <section class="info reveal">
 
                 <h2>Dynamic pricing</h2>
 
@@ -243,7 +253,7 @@
 
             </section>
 
-            <section class="formula">
+            <section class="formula reveal">
 
                 <h2>Price Formula</h2>
 
@@ -265,7 +275,7 @@ C — coefficient
 
             </section>
 
-            <section class="commands">
+            <section class="commands reveal">
 
                 <h2>P6T Commands</h2>
 
@@ -291,7 +301,7 @@ C — coefficient
 
             </section>
 
-            <section class="security">
+            <section class="security reveal">
 
                 <h2>Built for control</h2>
 
@@ -331,7 +341,7 @@ C — coefficient
 
         <div id="errorBox" class="error hidden">
             <span id="errorText">Market data temporarily unavailable.</span>
-            <button id="retryButton" type="button">Retry</button>
+            <button id="retryButton" class="ripple" type="button">Retry</button>
         </div>
 
     </body>

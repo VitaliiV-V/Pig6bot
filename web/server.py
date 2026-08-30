@@ -174,6 +174,21 @@ def get_styles():
     return FileResponse("web/styles.css")
 
 
+@app.get("/api-docs")
+def get_styles():
+    return FileResponse("web/api-docs.html")
+
+
+@app.get("/common.css")
+def get_styles():
+    return FileResponse("web/common.css")
+
+
+@app.get("/site.js")
+def get_styles():
+    return FileResponse("web/site.js")
+
+
 @app.get("/marketApi.js")
 def get_market_api():
     return FileResponse("web/marketApi.js")

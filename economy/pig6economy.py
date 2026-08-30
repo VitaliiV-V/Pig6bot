@@ -611,6 +611,8 @@ class Pig6Economy:
             raise
 
     def set_name_if_empty(self, user_id: int, name: str):
+
+        self.add_user(user_id)
         try:
             self.cursor.execute(
                 """

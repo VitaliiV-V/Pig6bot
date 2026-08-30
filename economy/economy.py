@@ -714,7 +714,12 @@ async def bonus_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def codes_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         msg = update.message
-
+        if msg.chat_id != msg.from_user.id:
+            await msg.reply_text(
+                text=("🔴 Эта команда доступна только в личном чате с ботом."),
+                parse_mode="HTML",
+            )
+            return
         if not msg or not msg.from_user:
             return
         user_id = msg.from_user.id

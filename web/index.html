@@ -8,39 +8,13 @@
 
         <title>Pig-6</title>
 
+        <link rel="stylesheet" href="common.css">
+
         <style>
-
-:root{
-
-    --bg:#09090b;
-    --surface:#111113;
-    --border:#27272a;
-
-    --text:#fafafa;
-    --muted:#a1a1aa;
-
-    --green:#22c55e;
-
-}
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-
-    background:var(--bg);
-    color:var(--text);
-
-    font-family:Inter,system-ui,sans-serif;
-
-}
 
 main{
 
-    min-height:100vh;
+    min-height:calc(100vh - var(--header-h));
 
     display:flex;
 
@@ -50,7 +24,7 @@ main{
 
     justify-content:center;
 
-    padding:40px;
+    padding:60px 40px 40px;
 
     text-align:center;
 
@@ -89,6 +63,8 @@ main{
 
     margin-bottom:22px;
 
+    animation:pulse-dot 2.6s ease-in-out infinite;
+
 }
 
 h1{
@@ -98,6 +74,14 @@ h1{
     letter-spacing:-3px;
 
     margin-bottom:18px;
+
+    background:linear-gradient(135deg,var(--text) 40%,var(--muted));
+
+    -webkit-background-clip:text;
+
+    background-clip:text;
+
+    -webkit-text-fill-color:transparent;
 
 }
 
@@ -142,42 +126,6 @@ h1{
     padding:24px;
 
     text-align:left;
-
-    transition: transform .25s ease, border-color .25s ease;
-
-}
-
-.card:hover{
-
-    transform: translateY(-4px);
-
-    border-color: #3f3f46;
-
-}
-
-/* .card can be a <div> or an <a> — either way it must render
-   identically. This resets every link default (color,
-   underline, visited-color, cursor) on the anchor itself and
-   on every element inside it, so a linked card never stands
-   out from a plain one. */
-a.card,
-a.card:link,
-a.card:visited,
-a.card:hover,
-a.card:active,
-a.card:focus,
-.card,
-.card * {
-
-    color: inherit;
-    text-decoration: none;
-
-}
-
-a.card,
-a.card:hover {
-
-    cursor: pointer;
 
 }
 
@@ -264,16 +212,6 @@ a.card:hover {
     border-radius:18px;
 
     padding:24px;
-
-    transition: transform .25s ease, border-color .25s ease;
-
-}
-
-.feature:hover{
-
-    transform: translateY(-4px);
-
-    border-color: #3f3f46;
 
 }
 
@@ -367,42 +305,33 @@ h1{
 
     <body>
 
+        <div id="site-header"></div>
+
         <main>
 
-            <div class="badge">
+            <div class="badge reveal">
                 Pig-6 Network
             </div>
 
-            <div class="logo"></div>
+            <div class="logo reveal reveal-delay-1"></div>
 
-            <h1>
+            <h1 class="reveal reveal-delay-1">
                 Pig-6
             </h1>
 
-            <p class="subtitle">
+            <p class="subtitle reveal reveal-delay-2">
                 Secure infrastructure for protected Telegram communities,
                 cryptographic certificates and distributed moderation.
             </p>
 
+            <!--
+                Certificates and Marketplace used to live here as cards.
+                They now live in the site header nav on every page, so
+                the homepage cards focus purely on capability, not routing.
+            -->
             <div class="cards">
 
-                <a class="card" href="/verify">
-                    <h2>Certificates</h2>
-                    <p>
-                        Verify digital certificates and signed messages issued
-                        through Pig-6.
-                    </p>
-                </a>
-
-                <a class="card" href="/market">
-                    <h2>Marketplace</h2>
-                    <p>
-                        Anonymous codes and P6T economy are available through
-                        the marketplace.
-                    </p>
-                </a>
-
-                <div class="card">
+                <div class="card glow-hover reveal reveal-delay-1">
                     <h2>Protection</h2>
                     <p>
                         Intelligent moderation, Shadow Protocol and Judgment Day
@@ -410,11 +339,27 @@ h1{
                     </p>
                 </div>
 
+                <div class="card glow-hover reveal reveal-delay-2">
+                    <h2>Moderation</h2>
+                    <p>
+                        Leetspeak-aware filtering, per-user and per-GIF bans,
+                        and automatic lockdown on message floods.
+                    </p>
+                </div>
+
+                <div class="card glow-hover reveal reveal-delay-3">
+                    <h2>Economy</h2>
+                    <p>
+                        A P6T token economy with dynamic pricing, transfers
+                        and a redeemable-code marketplace.
+                    </p>
+                </div>
+
             </div>
 
             <section class="features">
 
-                <div class="features-header">
+                <div class="features-header reveal">
                     <h2>What Pig-6 does</h2>
                     <p>
                         Five cooperating bots sharing one config, built to
@@ -425,8 +370,7 @@ h1{
 
                 <div class="feature-list">
 
-
-                    <div class="feature">
+                    <div class="feature glow-hover reveal">
                         <span class="feature-tag">Identity</span>
                         <h3>Channel protection</h3>
                         <p>
@@ -438,8 +382,8 @@ h1{
                             a captured signature can't be replayed.
                         </p>
                     </div>
-                    
-                    <div class="feature">
+
+                    <div class="feature glow-hover reveal reveal-delay-1">
                         <span class="feature-tag">Blacklist</span>
                         <h3>EXCOMMUNICADO</h3>
                         <p>
@@ -452,7 +396,7 @@ h1{
                         </p>
                     </div>
 
-                    <div class="feature">
+                    <div class="feature glow-hover reveal reveal-delay-2">
                         <span class="feature-tag">Media</span>
                         <h3>Media download</h3>
                         <p>
@@ -463,7 +407,7 @@ h1{
                         </p>
                     </div>
 
-                    <div class="feature">
+                    <div class="feature glow-hover reveal reveal-delay-3">
                         <span class="feature-tag">Signing</span>
                         <h3>Certificates</h3>
                         <p>
@@ -474,7 +418,7 @@ h1{
                         </p>
                     </div>
 
-                    <div class="feature">
+                    <div class="feature glow-hover reveal">
                         <span class="feature-tag">Moderation</span>
                         <h3>Content filtering</h3>
                         <p>
@@ -485,7 +429,7 @@ h1{
                         </p>
                     </div>
 
-                    <div class="feature">
+                    <div class="feature glow-hover reveal reveal-delay-1">
                         <span class="feature-tag">Emergency</span>
                         <h3>Judgment Day protocol</h3>
                         <p>
@@ -496,7 +440,7 @@ h1{
                         </p>
                     </div>
 
-                    <div class="feature">
+                    <div class="feature glow-hover reveal reveal-delay-2">
                         <span class="feature-tag">Control</span>
                         <h3>Admin panel</h3>
                         <p>
@@ -506,7 +450,7 @@ h1{
                         </p>
                     </div>
 
-                    <div class="feature">
+                    <div class="feature glow-hover reveal reveal-delay-3">
                         <span class="feature-tag">Assistant</span>
                         <h3>Jarvis AI</h3>
                         <p>
@@ -517,7 +461,7 @@ h1{
                         </p>
                     </div>
 
-                    <div class="feature">
+                    <div class="feature glow-hover reveal reveal-delay-4">
                         <span class="feature-tag">Economy</span>
                         <h3>P6T token economy</h3>
                         <p>
@@ -538,6 +482,8 @@ h1{
             </footer>
 
         </main>
+
+        <script src="site.js" defer></script>
 
     </body>
 </html>

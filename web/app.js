@@ -67,18 +67,50 @@ function formatTime(timestamp) {
 // Market rendering
 // ==============================
 
+// Sets an element's text and briefly flashes it green when the value
+// actually changed from the last render — a quiet "this just updated"
+// cue for the auto-refreshed numbers, skipped on first paint.
+function setText(id, value) {
+
+    const el = document.getElementById(id);
+
+    if (!el)
+        return;
+
+    const changed =
+        el.dataset.rendered !== undefined &&
+        el.dataset.rendered !== String(value);
+
+    el.textContent = value;
+    el.dataset.rendered = String(value);
+
+    if (changed) {
+
+        el.classList.remove("flash");
+
+        // force reflow so the animation restarts on rapid updates
+        void el.offsetWidth;
+
+        el.classList.add("flash");
+
+        setTimeout(() => el.classList.remove("flash"), 600);
+
+    }
+
+}
+
+
 function renderMarket(market) {
 
 
-    document.getElementById("currentPrice")
-        .textContent = market.price;
+    setText("currentPrice", market.price);
 
-    document.getElementById("currentPrice2")
-        .textContent = market.price2;
+    setText("currentPrice2", market.price2);
 
-    document.getElementById("availableCodes")
-        .textContent =
-        `${market.availableCodes} / ${market.unusedCodes}`;
+    setText(
+        "availableCodes",
+        `${market.availableCodes} / ${market.unusedCodes}`
+    );
 
 
     document.getElementById("marketStatus")
@@ -86,14 +118,10 @@ function renderMarket(market) {
 
 
 
-    document.getElementById("statPrice")
-        .textContent =
-        `${market.price} P6T`;
+    setText("statPrice", `${market.price} P6T`);
 
 
-    document.getElementById("statCodes")
-        .textContent =
-        market.availableCodes;
+    setText("statCodes", market.availableCodes);
 
 
     document.getElementById("statCapacity")
@@ -106,8 +134,10 @@ function renderMarket(market) {
         document.getElementById("statChange");
 
 
-    change.textContent =
-        `${market.priceChange > 0 ? "+" : ""}${market.priceChange}%`;
+    setText(
+        "statChange",
+        `${market.priceChange > 0 ? "+" : ""}${market.priceChange}%`
+    );
 
 
 

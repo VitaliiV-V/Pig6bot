@@ -1,6 +1,7 @@
 import asyncio
 import random
 from config.config import *
+from datetime import datetime, timedelta
 from economy.pig6economy import *
 import time
 from jinja2 import Template
@@ -231,4 +232,160 @@ def sell(
         "count": count,
         "price": total,
         "balance": balance,
+    }
+
+
+@router.post("/pay")
+def pay(
+    username: str = Query(...),
+    amount: int = Query(..., ge=0),
+    authorization: str | None = Header(None),
+):
+    if not authorization or not authorization.startswith("Bearer "):
+        return {"error": "Invalid API key"}
+
+    api_key = authorization.removeprefix("Bearer ").strip()
+
+    economy = Pig6Economy()
+
+    sender_id = economy.get_user_id_by_api_key(api_key)
+
+    if sender_id is None:
+        return {"error": "Invalid API key"}
+
+    receiver_id = economy.get_user_id_by_username(username)
+
+    if receiver_id is None:
+        return {
+            "error": "User not found",
+            "username": username,
+        }
+
+    if sender_id == receiver_id:
+        return {
+            "error": "You cannot transfer funds to yourself",
+        }
+
+    balance = economy.get_balance(user_id=sender_id)
+
+    if balance < amount:
+        return {
+            "error": "Insufficient funds",
+            "amount": amount,
+            "balance": balance,
+        }
+
+    economy.add_user(receiver_id)
+
+    success = economy.create_transaction(
+        sender_id,
+        receiver_id,
+        amount,
+        "user transfer",
+    )
+
+    if not success:
+        return {
+            "error": "Transfer failed",
+        }
+
+    new_balance = economy.get_balance(user_id=sender_id)
+
+    return {
+        "status": "ok",
+        "sender_id": sender_id,
+        "receiver_id": receiver_id,
+        "username": username,
+        "amount": amount,
+        "balance": new_balance,
+    }
+
+
+def get_normal_coins():
+    mu = 500
+    sigma = 165
+
+    coins = round(random.gauss(mu, sigma))
+
+    if coins < 0:
+        coins = 0
+    elif coins > 1000:
+        coins = 1000
+
+    return coins
+
+
+@router.post("/bonus")
+def bonus(
+    authorization: str | None = Header(None),
+):
+    if not authorization or not authorization.startswith("Bearer "):
+        return {"error": "Invalid API key"}
+
+    api_key = authorization.removeprefix("Bearer ").strip()
+
+    economy = Pig6Economy()
+
+    user_id = economy.get_user_id_by_api_key(api_key)
+
+    if user_id is None:
+        return {"error": "Invalid API key"}
+
+    last_salary = economy.get_last_salary(user_id=user_id)
+
+    if last_salary:
+        last_salary = datetime.strptime(
+            last_salary,
+            "%Y-%m-%d %H:%M:%S",
+        )
+    else:
+        last_salary = datetime.min
+
+    time_passed = datetime.now() - last_salary
+
+    if time_passed >= timedelta(hours=12):
+        coins = get_normal_coins()
+
+        success = economy.create_transaction(
+            0,
+            user_id,
+            coins,
+            "daily_gift",
+        )
+
+        if not success:
+            return {
+                "error": "Failed to issue bonus",
+            }
+
+        economy.update_last_salary(user_id)
+
+        balance = economy.get_balance(user_id=user_id)
+
+        logger.info(
+            "Daily bonus claimed by user %s",
+            user_id,
+        )
+
+        return {
+            "status": "ok",
+            "user_id": user_id,
+            "amount": coins,
+            "balance": balance,
+        }
+
+    remaining = timedelta(hours=12) - time_passed
+
+    hours, remainder = divmod(
+        int(remaining.total_seconds()),
+        3600,
+    )
+    minutes = remainder // 60
+
+    return {
+        "error": "Bonus not available",
+        "remaining": {
+            "hours": hours,
+            "minutes": minutes,
+        },
     }
