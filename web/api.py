@@ -389,3 +389,24 @@ def bonus(
             "minutes": minutes,
         },
     }
+
+
+@router.get("/top")
+def top_users(
+    limit: int | None = Query(10, ge=1, le=1000),
+):
+    economy = Pig6Economy()
+
+    users = economy.get_top_users(limit)
+
+    if not users:
+        return {"users": []}
+
+    return [
+        {
+            "rank": i,
+            "name": (name or "Anonymous").replace("@", ""),
+            "balance": balance,
+        }
+        for i, (name, balance) in enumerate(users, start=1)
+    ]
