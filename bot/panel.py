@@ -76,10 +76,6 @@ async def check_id(user_id, msg, context):
         return True
 
     audit_logger.warning("ACCESS DENIED | actor_id=%s", user_id)
-    try:
-        await msg.reply_text("🔴 Доступ запрещён.")
-    except (BadRequest, Forbidden) as e:
-        logger.warning("Failed to send access-denied notice to %s: %s", user_id, e)
     return False
 
 
@@ -611,6 +607,7 @@ async def panel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     actor = _who(msg.from_user)
 
     if not await check_id(msg.from_user.id, msg, context):
+        await msg.reply_text("🔴 Доступ запрещён.")
         return
 
     audit_logger.info("PANEL OPENED | actor=%s", actor)
