@@ -187,15 +187,6 @@ def _rounded_rectangle_mask(size: tuple[int, int], radius: int) -> Image.Image:
     return mask
 
 
-async def quiet_check_id(user_id, msg):
-    config = load_config()
-    if user_id in config["root_users"]:
-        return True
-    if user_id == OWNER_ID:
-        return True
-    return False
-
-
 async def quote(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -330,10 +321,14 @@ async def quote(
 
     with open("tmp/allowed_messages.json", "r", encoding="utf-8") as f:
         allowed_messages = json.load(f)
-
-    if data["id"] in allowed_messages["messages"] or quiet_check_id(
-        user_id=msg.from_user.id, msg=msg
-    ):
+    config = load_config()
+    if msg.from_user.id in config["root_users"]:
+        alpha = True
+    elif msg.from_user.id == OWNER_ID:
+        alpha = True
+    else:
+        alpha = False
+    if (data["id"] in allowed_messages["messages"]) or alpha:
         await context.bot.send_sticker(
             chat_id=data["user_id"], sticker=data["sticker_path"]
         )

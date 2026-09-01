@@ -174,9 +174,13 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     with open("tmp/allowed_messages.json", "r", encoding="utf-8") as f:
         allowed_messages = json.load(f)
 
-    if data["id"] in allowed_messages["messages"] or quiet_check_id(
-        user_id=msg.from_user.id, msg=msg
-    ):
+    if msg.from_user.id in config["root_users"]:
+        alpha = True
+    elif msg.from_user.id == OWNER_ID:
+        alpha = True
+    else:
+        alpha = False
+    if data["id"] in allowed_messages["messages"] or alpha:
         req = data
         if req["type"] == "gif":
             await context.bot.send_animation(
