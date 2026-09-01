@@ -18,6 +18,15 @@ from telegram import (
 requests = {}
 
 
+async def quiet_check_id(user_id, msg):
+    config = load_config()
+    if user_id in config["root_users"]:
+        return True
+    if user_id == OWNER_ID:
+        return True
+    return False
+
+
 async def check_id(user_id, msg, context):
     config = load_config()
     if user_id in config["root_users"]:
@@ -90,8 +99,10 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     img = msg.reply_to_message.photo
     video = msg.reply_to_message.video
     sticker = msg.reply_to_message.sticker
+    vnote = msg.reply_to_message.video_note
+    voice = msg.reply_to_message.voice
 
-    if not gif and not img and not video and not sticker:
+    if not gif and not img and not video and not sticker and not vnote and not voice:
         await msg.reply_text("Это не медиафайл")
         return
 
@@ -110,9 +121,25 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "status": "pending",
             "type": "gif",
         }
-
+    elif vnote:
+        data = {
+            "user_id": msg.from_user.id,
+            "id": str(msg.chat_id) + str(msg.reply_to_message.message_id),
+            "file_id": vnote.file_id,
+            "username": msg.from_user.username,
+            "status": "pending",
+            "type": "vnote",
+        }
+    elif voice:
+        data = {
+            "user_id": msg.from_user.id,
+            "id": str(msg.chat_id) + str(msg.reply_to_message.message_id),
+            "file_id": voice.file_id,
+            "username": msg.from_user.username,
+            "status": "pending",
+            "type": "voice",
+        }
     elif img:
-
         data = {
             "user_id": msg.from_user.id,
             "id": str(msg.chat_id) + str(msg.reply_to_message.message_id),
@@ -123,7 +150,6 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
 
     elif video:
-
         data = {
             "user_id": msg.from_user.id,
             "id": str(msg.chat_id) + str(msg.reply_to_message.message_id),
@@ -143,12 +169,14 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "type": "sticker",
         }
     else:
-
         return
+
     with open("tmp/allowed_messages.json", "r", encoding="utf-8") as f:
         allowed_messages = json.load(f)
 
-    if data["id"] in allowed_messages["messages"]:
+    if data["id"] in allowed_messages["messages"] or quiet_check_id(
+        user_id=msg.from_user.id, msg=msg
+    ):
         req = data
         if req["type"] == "gif":
             await context.bot.send_animation(
@@ -157,6 +185,18 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 caption="Ваш GIF",
             )
             await msg.reply_text("🟢 GIF отправлен Вам в личные сообщения.")
+        elif req["type"] == "vnote":
+            await context.bot.send_video_note(
+                chat_id=req["user_id"],
+                video_note=req["file_id"],
+            )
+            await msg.reply_text("🟢 Видеосообщение отправлено Вам в личные сообщения.")
+        elif req["type"] == "voice":
+            await context.bot.send_voice(
+                chat_id=req["user_id"],
+                voice=req["file_id"],
+            )
+            await msg.reply_text("🟢 Аудиосообщение отправлено Вам в личные сообщения.")
         elif req["type"] == "img":
             await context.bot.send_photo(
                 chat_id=req["user_id"],
@@ -214,6 +254,22 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
                 await query.edit_message_text(
                     "🟢 GIF отправлен Вам в личные сообщения."
+                )
+            elif req["type"] == "vnote":
+                await context.bot.send_video_note(
+                    chat_id=req["user_id"],
+                    video_note=req["file_id"],
+                )
+                await query.edit_message_text(
+                    "🟢 Видеосообщение отправлено Вам в личные сообщения."
+                )
+            elif req["type"] == "voice":
+                await context.bot.send_voice(
+                    chat_id=req["user_id"],
+                    voice=req["file_id"],
+                )
+                await query.edit_message_text(
+                    "🟢 Аудиосообщение отправлено Вам в личные сообщения."
                 )
             elif req["type"] == "img":
                 await context.bot.send_photo(
@@ -293,6 +349,11 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     await context.bot.send_message(
                         chat_id=data2["id"],
                         text="🟢 Ваша заявка принята",
+                    )
+                    await context.bot.send_message(
+                        chat_id=query.message.chat_id,
+                        text="🟢 Канал защищён",
+                        reply_to_message_id=query.message.message_id,
                     )
             except Exception as e:
                 await context.bot.send_message(

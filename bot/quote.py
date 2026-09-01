@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import secrets
+from config.config import *
 from bot.settings import *
 from io import BytesIO
 from pathlib import Path
@@ -12,18 +13,20 @@ from telegram.ext import ContextTypes
 
 SUPERSAMPLE = 4
 
-BG_COLOR = (24, 20, 40, 255)
-NAME_FONT_SIZE = 32
-TEXT_FONT_SIZE = 30
+BG_COLOR = (27, 37, 50, 255)
+NAME_FONT_SIZE = 24
+TEXT_FONT_SIZE = 22
 LINE_SPACING = 8
 
-OUTER_MARGIN = 10
-AVATAR_SIZE = 80
-AVATAR_GAP = 22
-BUBBLE_PADDING = 10
+OUTER_MARGIN = 30
+AVATAR_SIZE = 50
+AVATAR_GAP = 5
+BUBBLE_PADDING_X = 10
+BUBBLE_PADDING_TOP = 10
+BUBBLE_PADDING_BOTTOM = 20
 NAME_TEXT_GAP = 10
 MAX_TEXT_WIDTH = 420
-BUBBLE_RADIUS = 30
+BUBBLE_RADIUS = 20
 
 STICKER_MAX_SIDE = 512
 
@@ -39,6 +42,12 @@ NAME_COLORS = [
     (0x54, 0x9C, 0xF6),
     (0xE8, 0x6C, 0xA6),
 ]
+
+import emoji
+
+
+def remove_emojis(text: str) -> str:
+    return emoji.replace_emoji(text, replace="")
 
 
 def get_name_color(user_id: int) -> tuple[int, int, int]:
@@ -108,6 +117,7 @@ async def _get_avatar_image(
 ) -> Image.Image:
     avatar: Optional[Image.Image] = None
 
+    file_id = None
     try:
         photos = await context.bot.get_user_profile_photos(author.id, limit=1)
         if photos and photos.photos:
@@ -177,6 +187,15 @@ def _rounded_rectangle_mask(size: tuple[int, int], radius: int) -> Image.Image:
     return mask
 
 
+async def quiet_check_id(user_id, msg):
+    config = load_config()
+    if user_id in config["root_users"]:
+        return True
+    if user_id == OWNER_ID:
+        return True
+    return False
+
+
 async def quote(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -195,13 +214,18 @@ async def quote(
         name = author.title
     text = message.text
 
+    name = remove_emojis(name)
+    text = remove_emojis(text)
+
     ss = SUPERSAMPLE
     name_font, text_font = _load_fonts()
 
     outer_margin = OUTER_MARGIN * ss
     avatar_size = AVATAR_SIZE * ss
     avatar_gap = AVATAR_GAP * ss
-    bubble_padding = BUBBLE_PADDING * ss
+    bubble_padding_x = BUBBLE_PADDING_X * ss
+    bubble_padding_top = BUBBLE_PADDING_TOP * ss
+    bubble_padding_bottom = BUBBLE_PADDING_BOTTOM * ss
     name_text_gap = NAME_TEXT_GAP * ss
     max_text_width = MAX_TEXT_WIDTH * ss
     bubble_radius = BUBBLE_RADIUS * ss
@@ -237,8 +261,8 @@ async def quote(
 
     text_column_height = name_block_height + name_text_gap + text_block_height
 
-    bubble_width = int(text_block_width + bubble_padding * 2)
-    bubble_height = int(text_column_height + bubble_padding * 2)
+    bubble_width = int(text_block_width + bubble_padding_x * 2)
+    bubble_height = int(text_column_height + bubble_padding_top + bubble_padding_bottom)
 
     content_height = max(avatar_size, bubble_height)
     canvas_width = int(outer_margin * 2 + avatar_size + avatar_gap + bubble_width)
@@ -255,13 +279,12 @@ async def quote(
     image.alpha_composite(bubble, dest=(bubble_x, bubble_y))
 
     draw = ImageDraw.Draw(image)
-
     avatar = await _get_avatar_image(context, author, message, avatar_size)
     avatar_pos = (outer_margin, outer_margin)
     image.alpha_composite(avatar, dest=avatar_pos)
 
-    text_x = bubble_x + bubble_padding
-    text_y = bubble_y + bubble_padding
+    text_x = bubble_x + bubble_padding_x
+    text_y = bubble_y + bubble_padding_top
 
     name_color = get_name_color(author.id)
     y = text_y
@@ -308,7 +331,9 @@ async def quote(
     with open("tmp/allowed_messages.json", "r", encoding="utf-8") as f:
         allowed_messages = json.load(f)
 
-    if data["id"] in allowed_messages["messages"]:
+    if data["id"] in allowed_messages["messages"] or quiet_check_id(
+        user_id=msg.from_user.id, msg=msg
+    ):
         await context.bot.send_sticker(
             chat_id=data["user_id"], sticker=data["sticker_path"]
         )

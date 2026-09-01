@@ -1,3 +1,4 @@
+emoji
 jinja2
 pillow
 uvicorn

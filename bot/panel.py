@@ -1,5 +1,4 @@
 import os
-import secrets
 import logging
 from logging.handlers import RotatingFileHandler
 from bot.panel import *
@@ -12,22 +11,17 @@ from telegram.error import BadRequest, Forbidden
 from telegram.ext import ContextTypes
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram import (
-    ReplyKeyboardRemove,
     Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
 
-# ---------------------------------------------------------------------------
-# Dedicated audit logger — every admin action goes to its own file,
-# separate from the general application log.
-# ---------------------------------------------------------------------------
 LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 
 audit_logger = logging.getLogger("panel_audit")
 audit_logger.setLevel(logging.INFO)
-audit_logger.propagate = False  # don't also dump this into the root/app logger
+audit_logger.propagate = False
 
 if not audit_logger.handlers:
     _handler = RotatingFileHandler(
@@ -41,7 +35,6 @@ if not audit_logger.handlers:
     )
     audit_logger.addHandler(_handler)
 
-# Also keep a normal module logger for unexpected/technical errors.
 logger = logging.getLogger(__name__)
 
 
@@ -245,7 +238,6 @@ def user_detail_keyboard(category, entry, user_id):
             )
 
     elif category == "alpha" and entry is not None:
-        # alpha_users — только просмотр, изменяемых настроек no
         pass
 
     elif category == "signed" and entry is not None:
@@ -305,7 +297,6 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     parts = query.data.split("^")
-    # parts[0] == "panel"
     action = parts[1] if len(parts) > 1 else None
     config = load_config()
 
