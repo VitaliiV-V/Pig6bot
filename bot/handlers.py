@@ -8,6 +8,7 @@ from economy.economy import *
 from economy.pig6economy import *
 from telegram.ext import ContextTypes
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from datetime import datetime, timedelta, timezone
 from telegram import (
     ReplyKeyboardRemove,
     Update,
@@ -849,3 +850,26 @@ async def mykeys_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception:
         logger.exception("mykeys_handler() failed")
         raise
+
+
+async def link_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    if not await check_id(msg.from_user.id, msg, context):
+        return
+    invite = await context.bot.create_chat_invite_link(
+        chat_id=MAIN_CHANNEL_ID,
+        member_limit=1,
+        expire_date=datetime.now(timezone.utc) + timedelta(minutes=10),
+    )
+
+    link = invite.invite_link
+    await msg.reply_text(
+        text=(
+            f"🔗 <b>Ссылка-приглашение</b>\n\n"
+            f"Ваша персональная ссылка-приглашение в канал:\n\n"
+            f'<a href="{link}">👉 Вступить в канал</a>\n\n'
+            f"⚠️ <b>Важно:</b> ссылка действительна только для Вас и будет недоступна "
+            f"для других пользователей после использования или по истечении 10 минут."
+        ),
+        parse_mode="HTML",
+    )
