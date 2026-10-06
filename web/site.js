@@ -7,6 +7,7 @@
         { href: "/market", label: "Market", match: p => p.startsWith("/market") },
         { href: "/api-docs", label: "API", match: p => p.startsWith("/api-docs") },
         { href: "/verify", label: "Certificates", match: p => ["/verify", "/check", "/shadow"].some(s => p.startsWith(s)) },
+        { href: "/security-policy", label: "Политика безопасности", match: p => p === "/security-policy" },
     ];
 
     function buildHeader() {

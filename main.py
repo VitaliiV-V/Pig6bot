@@ -38,6 +38,7 @@ from bot.quote import *
 from economy.economy import *
 from web.server import *
 from bot.protection import *
+from bot.shadow import sub_handler, sub_buttons_handler, author_handler, shop_message_handler, track_private_user, migrate_shadow_channels
 from logging.handlers import RotatingFileHandler
 from telegram.ext import (
     ApplicationBuilder,
@@ -47,8 +48,11 @@ from telegram.ext import (
     CallbackQueryHandler,
 )
 
-app = ApplicationBuilder().token(TOKEN).build()
+app = ApplicationBuilder().token(TOKEN).post_init(migrate_shadow_channels).build()
 
+app.add_handler(MessageHandler(filters.ChatType.PRIVATE, track_private_user), group=-3)
+app.add_handler(MessageHandler(filters.ALL, shop_message_handler), group=-2)
+app.add_handler(CommandHandler("sub", sub_handler, filters=filters.ChatType.PRIVATE))
 app.add_handler(CommandHandler("q", quote))
 app.add_handler(CommandHandler("quote", quote))
 app.add_handler(CommandHandler("top", top_handler))
@@ -62,6 +66,7 @@ app.add_handler(CommandHandler("logs", logs_handler))
 app.add_handler(CommandHandler("give", give_handler))
 app.add_handler(CommandHandler("sell", sell_handler))
 app.add_handler(CommandHandler("jday", jday_handler))
+app.add_handler(CallbackQueryHandler(sub_buttons_handler, pattern=r"^sub\^(change|accept|back)$"))
 app.add_handler(CallbackQueryHandler(buttons_handler))
 app.add_handler(CommandHandler("gift", bonus_handler))
 app.add_handler(CommandHandler("d", download_handler))
@@ -83,9 +88,12 @@ app.add_handler(CommandHandler("blockall", blockall_handler))
 app.add_handler(CommandHandler("gen", generate_codes_handler))
 app.add_handler(CommandHandler("reset", delete_codes_handler))
 app.add_handler(CommandHandler("setbaseprompt", set_base_prompt_handler))
-app.add_handler(MessageHandler(filters.ALL, reply_in_channel))
+app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, author_handler))
+# Process channel posts before CommandHandlers: publishing /commands as Shadow
+# must still pass identity and quota checks.
 app.add_handler(
-    MessageHandler(filters.UpdateType.EDITED_CHANNEL_POST, reply_in_channel)
+    MessageHandler(filters.UpdateType.CHANNEL_POST | filters.UpdateType.EDITED_CHANNEL_POST, channel_post_handler),
+    group=-1,
 )
 app.add_handler(
     MessageHandler(
@@ -104,6 +112,7 @@ app.run_polling(
     allowed_updates=[
         "message",
         "channel_post",
+        "edited_channel_post",
         "chat_member",
         "inline_query",
         "callback_query",

@@ -5,9 +5,15 @@ from config.config import *
 from telegram import Update
 from bot.protection import *
 from economy.pig6economy import *
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes, ApplicationHandlerStop
+from bot.shadow import check_shadow_post, register_shadow
 
 logger = logging.getLogger(__name__)
+
+
+async def channel_post_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await reply_in_channel(update, context)
+    raise ApplicationHandlerStop
 
 
 async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -21,7 +27,12 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     config = load_config()
 
     if chat_id != MAIN_CHANNEL_ID:
+        if not update.edited_channel_post and await register_shadow(context, msg, config):
+            return
         await protect_query(context=context, msg=msg, config=config)
+        return
+
+    if await check_shadow_post(context, msg, config, edited=bool(update.edited_channel_post)):
         return
 
     if await check_owner(context=context, msg=msg, config=config):

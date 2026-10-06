@@ -14,3 +14,5 @@ keys/
 logs/
 stickers/
 tmp/
+shadow.json
+shadow.json.lock

@@ -6,5 +6,4 @@ fastapi
 google-genai
 cryptography
 python-dotenv
-python-telegram-bot
-python-telegram-bot[job-queue]
+python-telegram-bot[job-queue]>=22.7,<23

@@ -1,5 +1,8 @@
 # Pig-6
 
+Обновление **Анонимные публикации**: анонимные каналы, подписки и просмотр авторства.
+Подключение и ручное редактирование JSON описаны в [SHADOW_PROTOCOL.md](SHADOW_PROTOCOL.md).
+
 Pig-6 (Свинья-6) is a suite of cooperating **Telegram bots** built with
 `python-telegram-bot` that together form a channel protection, moderation,
 identity-verification and assistant system. It is designed around a single

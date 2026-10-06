@@ -29,6 +29,8 @@ def load_config():
         "logs_mode": "off",
         "logs": [],
         "protected_users": [],
+        "admins": [],
+        "bad_gifs": [],
         "root_users": [],
         "alpha_users": [],
         "signed_users": {},
@@ -129,7 +131,7 @@ def save_config(data):
 
 
 config = load_config()
-for i in config["admins"]:
+for i in config.setdefault("admins", []):
     if not i.get("channel_id"):
         i["channel_id"] = random.randint(1000000000000, 10000000000000 - 1)
 save_config(config)

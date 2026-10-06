@@ -20,9 +20,11 @@ from typing import Literal
 from fastapi import HTTPException
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from web.policy import router as policy_router
 
 app = FastAPI(title="P6T Market API")
 app.include_router(router, prefix="/api")
+app.include_router(policy_router)
 
 app.add_middleware(
     CORSMiddleware,
