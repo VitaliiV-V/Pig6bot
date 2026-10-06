@@ -133,7 +133,7 @@ async def track_private_user(update, context):
         return
     if str(msg.from_user.id) not in store.read()["subscriptions"]:
         with store.transaction() as data:
-            ensure_subscription(data, msg.from_user.id)
+            ensure_subscription(data, msg.from_user.id, now_moscow())
 
 
 def subscription_view(user_id):
@@ -148,13 +148,15 @@ def subscription_view(user_id):
             f"\nТекущая подписка: <b>{html.escape(plan)}</b>",
         ]
         if plan != "Free":
+            if plan == "Plus" and expires_at == subscription.get("trial_expires_at") and expires_at:
+                lines.append("Plus бесплатно на месяц для новых пользователей.")
             if expires_at:
                 expiry = parse_datetime(expires_at).strftime("%d.%m.%Y %H:%M МСК")
                 lines.append(f"Действует до: {expiry}")
             else:
                 lines.append("Без срока действия.")
         elif expires_at and parse_datetime(expires_at) <= now:
-            lines.append("Платная подписка завершена. Сейчас действует Free.")
+            lines.append("Срок подписки завершён. Сейчас действует Free.")
         else:
             lines.append("Без срока действия.")
         lines.append("")
@@ -199,7 +201,7 @@ async def sub_buttons_handler(update, context):
         accepted_at = now_moscow().isoformat()
         policy_fingerprint = security_policy_fingerprint()
         with store.transaction() as data:
-            subscription = ensure_subscription(data, query.from_user.id)
+            subscription = ensure_subscription(data, query.from_user.id, parse_datetime(accepted_at))
             subscription["terms_accepted_at"] = accepted_at
             subscription["terms_version"] = SUBSCRIPTION_TERMS_VERSION
             subscription["administrator_confirmed_at"] = accepted_at
@@ -294,7 +296,7 @@ async def register_shadow(context, msg, config):
             return True
         with store.transaction() as data:
             data["channels"][str(msg.chat_id)] = channel
-            ensure_subscription(data, channel["owner"]["id"])
+            ensure_subscription(data, channel["owner"]["id"], now_moscow())
         await msg.reply_text("Анонимные публикации подключены.\n\nПубликуйте в основном канале от имени этого канала. Ваши лимиты — в /sub у бота.")
     return True
 

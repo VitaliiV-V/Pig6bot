@@ -96,15 +96,23 @@ class ShadowStore:
         return self._read()
 
 
-def ensure_subscription(data, user_id):
-    """Persist the default plan without replacing an existing subscription."""
-    return data["subscriptions"].setdefault(
-        str(user_id), {"plan": "Free", "expires_at": None}
-    )
+def ensure_subscription(data, user_id, now=None):
+    """Give new accounts one free month of Plus; preserve existing records."""
+    key = str(user_id)
+    if key not in data["subscriptions"]:
+        now = now if now is not None else now_moscow()
+        expires_at = add_month(now).isoformat()
+        data["subscriptions"][key] = {
+            "plan": "Plus",
+            "expires_at": expires_at,
+            "trial_started_at": now.isoformat(),
+            "trial_expires_at": expires_at,
+        }
+    return data["subscriptions"][key]
 
 
 def effective_plan(data, user_id, now):
-    subscription = ensure_subscription(data, user_id)
+    subscription = ensure_subscription(data, user_id, now)
     plan = subscription.get("plan", "Free")
     if plan not in data["plans"]:
         return "Free"
@@ -130,7 +138,7 @@ def grant_subscription(data, user_id, plan, receipt, now):
         return data["purchases"][receipt]
     if plan == "Free" or plan not in data["plans"]:
         raise ValueError("Invalid store subscription")
-    previous = data["subscriptions"].get(str(user_id), {})
+    previous = ensure_subscription(data, user_id, now)
     base = now
     if effective_plan(data, user_id, now) == plan and previous.get("expires_at"):
         base = max(now, parse_datetime(previous["expires_at"]))
@@ -182,7 +190,7 @@ def reveal_author(data, user_id, key, now):
         return "unknown", None
     usage = daily_usage(data, user_id, now)
     # Keep already disclosed authors available across daily resets and plan expiry.
-    subscription = ensure_subscription(data, user_id)
+    subscription = ensure_subscription(data, user_id, now)
     revealed = subscription.setdefault("revealed_posts", [])
     if key in revealed:
         return "cached", post["owner"]

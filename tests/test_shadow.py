@@ -27,13 +27,61 @@ class StoreTests(unittest.TestCase):
     def setUp(self):
         self.data = copy.deepcopy(DEFAULT_STATE)
 
-    def test_default_free_is_permanent_and_preserves_existing_subscription(self):
-        self.assertEqual(ensure_subscription(self.data, 123), {"plan": "Free", "expires_at": None})
+    def test_new_user_gets_plus_once_then_free_without_renewing_trial(self):
+        subscription = copy.deepcopy(ensure_subscription(self.data, 123, NOW))
+        self.assertEqual(subscription["plan"], "Plus")
+        self.assertEqual(subscription["expires_at"], add_month(NOW).isoformat())
+        self.assertEqual(subscription["trial_started_at"], NOW.isoformat())
+        self.assertEqual(subscription["trial_expires_at"], subscription["expires_at"])
+        self.assertEqual(effective_plan(self.data, 123, NOW), "Plus")
+        self.assertEqual(effective_plan(self.data, 123, add_month(NOW)), "Free")
+        self.assertEqual(ensure_subscription(self.data, 123, NOW + timedelta(days=3650)), subscription)
         self.assertEqual(effective_plan(self.data, 123, NOW + timedelta(days=3650)), "Free")
         paid = grant_subscription(self.data, 123, "Pro x5", "store:1", NOW)
-        ensure_subscription(self.data, 123)
+        ensure_subscription(self.data, 123, NOW)
         self.assertEqual(self.data["subscriptions"]["123"]["plan"], "Pro x5")
         self.assertEqual(self.data["subscriptions"]["123"]["expires_at"], paid["expires_at"])
+
+    def test_existing_free_paid_and_expired_records_do_not_receive_trial(self):
+        for subscription in (
+            {"plan": "Free", "expires_at": None},
+            {"plan": "Ultra", "expires_at": None},
+            {"plan": "Plus", "expires_at": "2026-10-01T00:00:00+03:00"},
+        ):
+            with self.subTest(subscription=subscription):
+                self.data["subscriptions"]["123"] = copy.deepcopy(subscription)
+                self.assertEqual(ensure_subscription(self.data, 123, NOW), subscription)
+                effective_plan(self.data, 123, NOW)
+                self.assertEqual(self.data["subscriptions"]["123"], subscription)
+
+    def test_trial_survives_json_reload_and_respects_calendar_month(self):
+        signup = datetime(2026, 1, 31, 15, tzinfo=MOSCOW)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "shadow.json"
+            with ShadowStore(path).transaction() as data:
+                subscription = copy.deepcopy(ensure_subscription(data, 123, signup))
+            self.assertEqual(subscription["expires_at"], "2026-02-28T15:00:00+03:00")
+            with ShadowStore(path).transaction() as data:
+                self.assertEqual(effective_plan(data, 123, NOW), "Free")
+                self.assertEqual(ensure_subscription(data, 123, NOW), subscription)
+            self.assertEqual(ShadowStore(path).read()["subscriptions"]["123"], subscription)
+
+    def test_purchase_during_trial_extends_plus_or_switches_immediately(self):
+        ensure_subscription(self.data, 123, NOW)
+        purchase_time = NOW + timedelta(days=3)
+        paid = grant_subscription(self.data, 123, "Plus", "store:1", purchase_time)
+        self.assertEqual(paid["expires_at"], add_month(add_month(NOW)).isoformat())
+        self.assertEqual(self.data["subscriptions"]["123"]["trial_started_at"], NOW.isoformat())
+        switched = grant_subscription(self.data, 123, "Pro x5", "store:2", purchase_time)
+        self.assertEqual(switched["expires_at"], add_month(purchase_time).isoformat())
+
+    def test_trial_uses_plus_quota_and_expired_trial_uses_free_quota(self):
+        for message_id in range(1, 6):
+            self.assertEqual(reserve_post(self.data, CHANNEL_DATA, MAIN, message_id, NOW), "accepted")
+        self.assertEqual(reserve_post(self.data, CHANNEL_DATA, MAIN, 6, NOW), "limit")
+        expired = add_month(NOW)
+        self.assertEqual(reserve_post(self.data, CHANNEL_DATA, MAIN, 7, expired), "accepted")
+        self.assertEqual(reserve_post(self.data, CHANNEL_DATA, MAIN, 8, expired), "limit")
 
     def test_defaults_and_atomic_writes_preserve_manual_edits(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -84,11 +132,11 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(grant_subscription(self.data, 123, "Plus", "store:1", NOW), first)
         self.assertEqual(len(self.data["purchases"]), 1)
         second = grant_subscription(self.data, 123, "Plus", "store:2", NOW)
-        self.assertTrue(second["expires_at"].startswith("2026-12-07"))
+        self.assertTrue(second["expires_at"].startswith("2027-01-07"))
         switched = grant_subscription(self.data, 123, "Pro x5", "store:3", NOW)
         self.assertTrue(switched["expires_at"].startswith("2026-11-07"))
         self.assertEqual(effective_plan(self.data, 123, NOW + timedelta(days=32)), "Free")
-        self.assertEqual(effective_plan(self.data, 999, NOW), "Free")
+        self.assertEqual(effective_plan(self.data, 999, NOW), "Plus")
 
     def test_all_five_post_limits_and_shared_owner_quota(self):
         for plan, quota in DEFAULT_STATE["plans"].items():
@@ -183,10 +231,17 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
         msg = SimpleNamespace(text=text, from_user=SimpleNamespace(id=user_id, is_bot=False), chat=SimpleNamespace(type="private"), reply_text=AsyncMock())
         return SimpleNamespace(message=msg, effective_message=msg)
 
-    async def test_private_contact_creates_free_without_overwriting_paid(self):
+    async def test_private_contact_creates_trial_once_without_overwriting_paid(self):
         update = self.private("/start")
         await shadow.track_private_user(update, self.context)
-        self.assertEqual(self.store.read()["subscriptions"]["456"], {"plan": "Free", "expires_at": None})
+        trial = self.store.read()["subscriptions"]["456"]
+        self.assertEqual(trial["plan"], "Plus")
+        self.assertEqual(trial["expires_at"], add_month(NOW).isoformat())
+        await shadow.track_private_user(update, self.context)
+        self.assertEqual(self.store.read()["subscriptions"]["456"], trial)
+        with patch.object(shadow, "now_moscow", return_value=NOW + timedelta(days=100)):
+            await shadow.track_private_user(update, self.context)
+        self.assertEqual(self.store.read()["subscriptions"]["456"], trial)
         with self.store.transaction() as data:
             grant_subscription(data, 456, "Plus", "store:1", NOW)
         paid = self.store.read()["subscriptions"]["456"]
@@ -194,13 +249,26 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.store.read()["subscriptions"]["456"], paid)
         update.message.reply_text.assert_not_awaited()
 
-    async def test_sub_creates_permanent_free_record(self):
+    async def test_sub_shows_free_plus_month_and_falls_back_after_expiry(self):
         update = self.private("/sub")
         await shadow.sub_handler(update, self.context)
-        self.assertEqual(self.store.read()["subscriptions"]["456"], {"plan": "Free", "expires_at": None})
-        self.assertIn("Free", update.message.reply_text.call_args.args[0])
+        trial = self.store.read()["subscriptions"]["456"]
+        self.assertEqual(trial["plan"], "Plus")
+        text = update.message.reply_text.call_args.args[0]
+        self.assertIn("Plus бесплатно на месяц", text)
+        self.assertIn("07.11.2026", text)
+        self.assertIn("5 из 5", text)
+        with patch.object(shadow, "now_moscow", return_value=add_month(NOW)):
+            await shadow.sub_handler(update, self.context)
+        text = update.message.reply_text.call_args.args[0]
+        self.assertIn("Сейчас действует Free", text)
+        self.assertIn("1 из 1", text)
+        self.assertNotIn("Plus бесплатно", text)
+        self.assertEqual(self.store.read()["subscriptions"]["456"], trial)
 
     async def test_post_rotation_replay_edit_and_limit(self):
+        with self.store.transaction() as data:
+            data["subscriptions"]["123"] = {"plan": "Free", "expires_at": None}
         first = self.post()
         self.assertTrue(await shadow.check_shadow_post(self.context, first, self.config))
         self.bot.set_chat_title.assert_awaited_once()
@@ -272,14 +340,18 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(title, channel["name"] + channel["uuid"])
         self.assertTrue(title)
         self.assertTrue(all(0xE0100 <= ord(char) < 0xE01F0 for char in title))
-        self.assertEqual(self.store.read()["subscriptions"]["123"], {"plan": "Free", "expires_at": None})
-        self.bot.set_chat_title.assert_awaited_once()
+        trial = self.store.read()["subscriptions"]["123"]
+        self.assertEqual(trial["plan"], "Plus")
+        self.assertEqual(trial["expires_at"], add_month(NOW).isoformat())
+        await shadow.register_shadow(self.context, msg, {})
+        self.assertEqual(self.store.read()["subscriptions"]["123"], trial)
+        self.assertEqual(self.bot.set_chat_title.await_count, 2)
         self.bot.get_chat_administrators.return_value = [owner, bot_admin, owner]
         await shadow.register_shadow(self.context, msg, {})
-        self.assertEqual(self.bot.set_chat_title.await_count, 1)
+        self.assertEqual(self.bot.set_chat_title.await_count, 2)
         self.bot.get_chat_administrators.return_value = [owner, SimpleNamespace(user=bot_admin.user, can_change_info=False)]
         await shadow.register_shadow(self.context, msg, {})
-        self.assertEqual(self.bot.set_chat_title.await_count, 1)
+        self.assertEqual(self.bot.set_chat_title.await_count, 2)
 
     async def test_sub_shows_current_expiry_limits_reset_and_buttons(self):
         with self.store.transaction() as data:
