@@ -211,7 +211,7 @@ async def sub_buttons_handler(update, context):
             for name, quota in data["plans"].items():
                 lines.append(f"<b>{html.escape(name)}</b> · {quota['posts_per_day']} / {quota['views_per_day']}")
         lines += [
-            "\nВыберите магазин и отправьте ему сообщение. Подписка будет подключена или продлена на месяц.",
+            "\nДля покупки нажмите кнопку нужной подписки и отправьте любое сообщение в открывшийся чат. Подписка будет подключена или продлена на месяц.",
             "Ultra подключает администратор.",
         ]
         text = "\n".join(lines)
