@@ -319,12 +319,52 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
             await shadow.check_shadow_post(self.context, self.post(), {"mode": "normal", "ban_messages": "manual"})
         self.assertEqual(self.store.read()["posts"], {})
 
-    async def test_edited_content_is_still_moderated(self):
+    async def test_edits_preserve_posts_authorship_and_quota(self):
         msg = self.post()
         await shadow.check_shadow_post(self.context, msg, self.config)
-        with patch.dict("sys.modules", {"bot.censor": SimpleNamespace(check=Mock(return_value=True))}):
-            await shadow.check_shadow_post(self.context, msg, {"mode": "normal", "ban_messages": "manual"}, edited=True)
-        self.bot.delete_message.assert_awaited_once()
+        with self.store.transaction() as data:
+            data["channels"][str(CHANNEL)]["enabled"] = False
+        before = self.store.read()
+        censor = Mock(return_value=True)
+        with patch.dict("sys.modules", {"bot.censor": SimpleNamespace(check=censor)}):
+            for edited_msg in (msg, self.post(signature="changed"), self.post(99)):
+                for config in (self.config, {"mode": "normal", "ban_messages": "manual"},
+                               {"mode": "Judgment Day", "ban_messages": "all"}):
+                    with self.subTest(message_id=edited_msg.message_id, signature=edited_msg.author_signature, config=config):
+                        self.assertTrue(await shadow.check_shadow_post(self.context, edited_msg, config, edited=True))
+                        self.assertEqual(self.store.read(), before)
+        self.bot.delete_message.assert_not_awaited()
+        self.bot.send_message.assert_not_awaited()
+        self.bot.set_chat_title.assert_awaited_once()
+        censor.assert_not_called()
+
+    async def test_channel_edits_skip_all_publication_checks(self):
+        # Load only the channel handlers, avoiding config and economy side effects.
+        source = ast.parse(Path("bot/channel.py").read_text())
+        handlers = [node for node in source.body if isinstance(node, ast.AsyncFunctionDef)
+                    and node.name in ("channel_post_handler", "reply_in_channel")]
+        environment = {"Update": Update, "ContextTypes": SimpleNamespace(DEFAULT_TYPE=object),
+                       "ApplicationHandlerStop": ApplicationHandlerStop, "MAIN_CHANNEL_ID": MAIN,
+                       "load_config": Mock(), "check_shadow_post": AsyncMock(),
+                       "register_shadow": AsyncMock(), "protect_query": AsyncMock(),
+                       "check_owner": AsyncMock(), "check_super_user": AsyncMock(),
+                       "root_commands": AsyncMock(), "check_signed_user": AsyncMock(),
+                       "check_message": AsyncMock()}
+        exec(compile(ast.Module(body=handlers, type_ignores=[]), "bot/channel.py", "exec"), environment)
+        before = self.store.read()
+        for chat_id in (MAIN, CHANNEL):
+            msg = self.post(text="/ban")
+            msg.chat_id = chat_id
+            update = SimpleNamespace(channel_post=None, edited_channel_post=msg)
+            with self.subTest(chat_id=chat_id):
+                with self.assertRaises(ApplicationHandlerStop):
+                    await environment["channel_post_handler"](update, self.context)
+        for callback in environment.values():
+            if isinstance(callback, Mock):
+                callback.assert_not_called()
+        self.bot.delete_message.assert_not_awaited()
+        self.bot.set_chat_title.assert_not_awaited()
+        self.assertEqual(self.store.read(), before)
 
     async def test_registration_uses_owner_and_needs_permissions(self):
         user = SimpleNamespace(id=123, full_name="Иван", username="ivan", is_bot=False)

@@ -314,6 +314,9 @@ async def notify_owner(context, owner_id, text):
 
 async def check_shadow_post(context, msg, config, edited=False):
     """Return True whenever the post belongs to Shadow, including rejected forgeries."""
+    # An edit is not a new publication and must leave the post and its record alone.
+    if edited:
+        return True
     async with channel_lock:
         data = store.read()
         sender = msg.sender_chat
@@ -337,7 +340,7 @@ async def check_shadow_post(context, msg, config, edited=False):
             await delete_shadow_post(context, msg)
             return True
         valid = channel["enabled"] and signature == channel["name"] + channel["uuid"]
-        # Edits and later album items legitimately retain the original signature.
+        # Later album items legitimately retain the original signature.
         album = next((post for post in data["posts"].values()
                       if msg.media_group_id and post.get("media_group_id") == msg.media_group_id
                       and post["chat_id"] == msg.chat_id and post["channel_id"] == channel["channel_id"]
@@ -346,7 +349,7 @@ async def check_shadow_post(context, msg, config, edited=False):
             valid = channel["enabled"] and (valid or recorded["signature"] == signature)
         if album:
             valid = channel["enabled"]
-        if not valid or (edited and not recorded):
+        if not valid:
             await delete_shadow_post(context, msg)
             return True
         owner_id = channel["owner"]["id"]

@@ -17,7 +17,10 @@ async def channel_post_handler(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.channel_post or update.edited_channel_post
+    # Signatures rotate after publication; edits must not revalidate old posts.
+    if update.edited_channel_post:
+        return
+    msg = update.channel_post
 
     if not msg:
         return
@@ -27,12 +30,12 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     config = load_config()
 
     if chat_id != MAIN_CHANNEL_ID:
-        if not update.edited_channel_post and await register_shadow(context, msg, config):
+        if await register_shadow(context, msg, config):
             return
         await protect_query(context=context, msg=msg, config=config)
         return
 
-    if await check_shadow_post(context, msg, config, edited=bool(update.edited_channel_post)):
+    if await check_shadow_post(context, msg, config):
         return
 
     if await check_owner(context=context, msg=msg, config=config):
