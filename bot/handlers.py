@@ -14,6 +14,7 @@ from telegram import (
     Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    MessageEntity,
 )
 
 requests = {}
@@ -93,9 +94,10 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message
 
     if not msg.reply_to_message:
-        await msg.reply_text("Пожалуйста, ответьте командой /download на медиафайл")
+        await msg.reply_text("Пожалуйста, ответьте командой /d или /download на текст или медиафайл")
         return
 
+    text = msg.reply_to_message.text
     gif = msg.reply_to_message.animation
     img = msg.reply_to_message.photo
     video = msg.reply_to_message.video
@@ -103,8 +105,8 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     vnote = msg.reply_to_message.video_note
     voice = msg.reply_to_message.voice
 
-    if not gif and not img and not video and not sticker and not vnote and not voice:
-        await msg.reply_text("Это не медиафайл")
+    if not text and not gif and not img and not video and not sticker and not vnote and not voice:
+        await msg.reply_text("В сообщении нет текста или поддерживаемого медиафайла")
         return
 
     code = secrets.token_hex(8)
@@ -113,7 +115,17 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     path = f"tmp/.download_{code}.json"
 
-    if gif:
+    if text:
+        data = {
+            "user_id": msg.from_user.id,
+            "id": str(msg.chat_id) + str(msg.reply_to_message.message_id),
+            "text": text,
+            "entities": [entity.to_dict() for entity in msg.reply_to_message.entities],
+            "username": msg.from_user.username,
+            "status": "pending",
+            "type": "text",
+        }
+    elif gif:
         data = {
             "user_id": msg.from_user.id,
             "id": str(msg.chat_id) + str(msg.reply_to_message.message_id),
@@ -175,6 +187,7 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     with open("tmp/allowed_messages.json", "r", encoding="utf-8") as f:
         allowed_messages = json.load(f)
 
+    config = load_config()
     if msg.from_user.id in config["root_users"]:
         alpha = True
     elif msg.from_user.id == OWNER_ID:
@@ -183,7 +196,15 @@ async def download_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         alpha = False
     if data["id"] in allowed_messages["messages"] or alpha:
         req = data
-        if req["type"] == "gif":
+        if req["type"] == "text":
+            await context.bot.send_message(
+                chat_id=req["user_id"],
+                text=req["text"],
+                entities=[MessageEntity.de_json(entity, context.bot) for entity in req["entities"]],
+                parse_mode=None,
+            )
+            await msg.reply_text("🟢 Текст отправлен Вам в личные сообщения.")
+        elif req["type"] == "gif":
             await context.bot.send_animation(
                 chat_id=req["user_id"],
                 animation=req["file_id"],
@@ -251,7 +272,17 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if await check_id(user_id=query.from_user.id, msg=query, context=context):
             with open(data, "r", encoding="utf-8") as f:
                 req = json.load(f)
-            if req["type"] == "gif":
+            if req["type"] == "text":
+                await context.bot.send_message(
+                    chat_id=req["user_id"],
+                    text=req["text"],
+                    entities=[MessageEntity.de_json(entity, context.bot) for entity in req["entities"]],
+                    parse_mode=None,
+                )
+                await query.edit_message_text(
+                    "🟢 Текст отправлен Вам в личные сообщения."
+                )
+            elif req["type"] == "gif":
                 await context.bot.send_animation(
                     chat_id=req["user_id"],
                     animation=req["file_id"],
