@@ -39,6 +39,7 @@ from economy.economy import *
 from web.server import *
 from bot.protection import *
 from bot.shadow import sub_handler, sub_buttons_handler, author_handler, shop_message_handler, track_private_user, migrate_shadow_channels
+from bot.access import access_code_handler
 from logging.handlers import RotatingFileHandler
 from telegram.ext import (
     ApplicationBuilder,
@@ -50,6 +51,10 @@ from telegram.ext import (
 
 app = ApplicationBuilder().token(TOKEN).post_init(migrate_shadow_channels).build()
 
+app.add_handler(
+    MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, access_code_handler),
+    group=-4,
+)
 app.add_handler(MessageHandler(filters.ChatType.PRIVATE, track_private_user), group=-3)
 app.add_handler(MessageHandler(filters.ALL, shop_message_handler), group=-2)
 app.add_handler(CommandHandler("sub", sub_handler, filters=filters.ChatType.PRIVATE))

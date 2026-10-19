@@ -120,6 +120,69 @@ def profile_is_blocked(config, profile):
     )
 
 
+def clear_user_blocks(config, user_id, shadow_channels=()):
+    """Clear an owner's moderation restrictions in a config to be saved by the caller."""
+    user_id = str(int(user_id))
+    profiles = []
+    for category, key in (("protected", "admins"), ("alpha", "alpha_users")):
+        profiles.extend(profile_from_entry(category, entry, entry.get("channel_id"))
+                        for entry in config.get(key, []))
+    profiles.extend(profile_from_entry("signed", entry, key)
+                    for key, entry in config.get("signed_users", {}).items())
+    profiles.extend(profile_from_entry("shadow", entry, entry["channel_id"])
+                    for entry in shadow_channels)
+    owned = [profile for profile in profiles if profile.owner_id == user_id]
+    keys = {profile.key for profile in owned}
+
+    def names(profile):
+        aliases = [profile.name]
+        if profile.key.startswith("signed:"):
+            aliases.append(profile.owner_id)
+            aliases.extend(profile.entry.get("channels", []))
+        return {visible_name(name) for name in aliases if visible_name(name)}
+
+    aliases = {name for profile in owned for name in names(profile)}
+    keys.update(f"signature:{name}" for name in aliases)
+    blocked_ids = config.get("blocked_user_ids", [])
+    remaining_ids = [value for value in blocked_ids if str(value) != user_id]
+    changed = remaining_ids != blocked_ids
+    if changed:
+        config["blocked_user_ids"] = remaining_ids
+    for profile in owned:
+        # Shadow's enabled flag is a technical protection state, not a user ban.
+        if profile.key.startswith("shadow:"):
+            continue
+        for flag in ("mute", "EXCOMMUNICADO"):
+            if profile.entry.get(flag):
+                profile.entry[flag] = False
+                changed = True
+
+    banned = config.get("banned_profiles", [])
+    legacy = config.get("banned_users", [])
+    remaining_banned = [key for key in banned if key not in keys]
+    remaining_legacy = [name for name in legacy if visible_name(name) not in aliases]
+    # Legacy name bans can cover several owners. Keep the other owners blocked
+    # by migrating their affected aliases to stable profile keys.
+    removed_names = {visible_name(name) for name in legacy if visible_name(name) in aliases}
+    removed_names.update(name for name in aliases if f"signature:{name}" in banned)
+    for profile in profiles:
+        if profile.owner_id != user_id and names(profile) & removed_names:
+            if profile.key not in remaining_banned:
+                remaining_banned.append(profile.key)
+    if remaining_banned != banned:
+        config["banned_profiles"] = remaining_banned
+        changed = True
+    if remaining_legacy != legacy:
+        config["banned_users"] = remaining_legacy
+        changed = True
+
+    identities = keys | {f"user:{user_id}"}
+    remaining = [event for event in _recent_messages if event[2] not in identities]
+    _recent_messages.clear()
+    _recent_messages.extend(remaining)
+    return changed
+
+
 async def notify_restriction(context, profile, blocked, reason):
     if not profile.owner_id:
         logger.warning("Cannot notify profile %s: owner ID is missing", profile.key)

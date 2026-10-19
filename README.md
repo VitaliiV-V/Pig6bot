@@ -112,6 +112,18 @@ processes.
     profile card. "Снять блокировку пользователя" removes the account block;
     separate profile restrictions remain in effect.
 
+### Private access codes (`bot/access.py`)
+
+- Send the configured code as a separate text message in the main bot's private
+  chat, without an `admin` or `unban` prefix. The `admin` code adds the sender to `root_users`, granting access to
+  `/panel` and the bot's existing administrator commands.
+- The `unban` code clears the sender's account and profile bans, including mute
+  and EXCOMMUNICADO, across regular, signed and Shadow profiles. Other users'
+  restrictions and channel-wide moderation modes remain in effect.
+- Codes are reusable and stored as SHA-256 digests in `_CODE_DIGESTS`;
+  plaintext codes are not included in source or application logs. Group/channel
+  messages do not activate them. The bot confirms the result in the private chat.
+
 ### Logging (`logs.py`)
 - Any user can `/start` the Logs bot to subscribe; while
   `config.json["logs_mode"] == "on"`, every post in the main channel is
