@@ -25,6 +25,8 @@ def load_config():
         "base_prompt": "",
         "banned": [],
         "banned_users": [],
+        "blocked_user_ids": [],
+        "banned_profiles": [],
         "white_list": [],
         "logs_mode": "off",
         "logs": [],

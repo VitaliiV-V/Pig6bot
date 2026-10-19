@@ -283,6 +283,11 @@ async def check_signed_user(
     msg,
     config,
 ):
+    signer = signed_user_id(msg, config)
+    return config["signed_users"][signer]["role"] if signer else ""
+
+
+def signed_user_id(msg, config):
     if not msg.text:
         return ""
 
@@ -317,7 +322,7 @@ async def check_signed_user(
         user_data = signed_users[user_id]
 
         if verify_certificate(int(user_id), message_text, signature):
-            return user_data["role"]
+            return user_id
 
     for shadow_id, user_data in signed_users.items():
         if "shadow" not in user_data["role"]:
@@ -331,7 +336,7 @@ async def check_signed_user(
         ):
             continue
 
-        return user_data["role"]
+        return shadow_id
 
     return ""
 
@@ -348,10 +353,10 @@ async def root_commands(context: ContextTypes.DEFAULT_TYPE, msg, config):
             save_config(config)
             logger.info("Root command /bangif executed in chat %s", chat_id)
         elif "/ban" in message_text:
-            tools.ban(msg.reply_to_message.author_signature)
+            await tools.ban(msg.reply_to_message, context)
             logger.info("Root command /ban executed in chat %s", chat_id)
         elif "/unban" in message_text:
-            tools.unban(msg.reply_to_message.author_signature)
+            await tools.unban(msg.reply_to_message, context)
             logger.info("Root command /unban executed in chat %s", chat_id)
         elif "EXCOMMUNICADO" in message_text:
             await tools.EXCOMMUNICADO(context, msg)
@@ -415,10 +420,10 @@ async def check_owner(
         else:
             try:
                 if "/ban" in message_text:
-                    tools.ban(msg.reply_to_message.author_signature)
+                    await tools.ban(msg.reply_to_message, context)
                     logger.info("Owner command /ban executed in chat %s", chat_id)
                 elif "/unban" in message_text:
-                    tools.unban(msg.reply_to_message.author_signature)
+                    await tools.unban(msg.reply_to_message, context)
                     logger.info("Owner command /unban executed in chat %s", chat_id)
                 elif "/bangif" in message_text:
                     config = load_config()

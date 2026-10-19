@@ -5,30 +5,21 @@ from config.config import *
 from bot.settings import *
 from economy.pig6economy import *
 from telegram.error import BadRequest, Forbidden
+from bot.moderation import reply_profile, set_profile_block, profile_from_entry, notify_restriction
 
 logger = logging.getLogger(__name__)
 
 
-def ban(s):
-    try:
-        config = load_config()
-        if s not in config["banned_users"]:
-            config["banned_users"].append(s)
-        save_config(config)
-        logger.info("Banned user signature: %s", s)
-    except (OSError, ValueError, KeyError) as e:
-        logger.exception("Failed to ban %s: %s", s, e)
+async def ban(msg, context):
+    profile = reply_profile(load_config(), msg)
+    if profile:
+        await set_profile_block(context, profile, True)
 
 
-def unban(s):
-    try:
-        config = load_config()
-        if s in config["banned_users"]:
-            config["banned_users"].remove(s)
-        save_config(config)
-        logger.info("Unbanned user signature: %s", s)
-    except (OSError, ValueError, KeyError) as e:
-        logger.exception("Failed to unban %s: %s", s, e)
+async def unban(msg, context):
+    profile = reply_profile(load_config(), msg)
+    if profile:
+        await set_profile_block(context, profile, False)
 
 
 def setbaseprompt(s):
@@ -165,6 +156,7 @@ async def EXCOMMUNICADO(context, msg, targetname=""):
             if (msg and i["name"] in msg.reply_to_message.author_signature) or (
                 i["name"] in targetname
             ):
+                was_excommunicated = i.get("EXCOMMUNICADO", False)
                 i["EXCOMMUNICADO"] = True
                 try:
                     save_config(config)
@@ -172,8 +164,15 @@ async def EXCOMMUNICADO(context, msg, targetname=""):
                     logger.exception(
                         "Failed to persist excommunication for %s: %s", i["name"], e
                     )
+                    continue
 
                 logger.info("Channel %s marked as EXCOMMUNICADO", i["name"])
+
+                if not was_excommunicated:
+                    await notify_restriction(
+                        context, profile_from_entry("protected", i, i["channel_id"]),
+                        True, "Статус EXCOMMUNICADO: публикации профиля заблокированы.",
+                    )
 
                 try:
                     if i["protected"]:
