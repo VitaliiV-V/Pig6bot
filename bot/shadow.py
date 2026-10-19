@@ -11,6 +11,7 @@ from telegram.error import TelegramError
 from telegram.ext import ApplicationHandlerStop
 
 from bot.settings import MAIN_CHANNEL_ID
+from bot.moderation import profile_from_entry, reject_blocked, check_flood
 from config.security_policy import SECURITY_POLICY_URL, security_policy_fingerprint
 from bot.shadow_store import (
     ShadowStore, daily_usage, effective_plan, ensure_subscription, grant_subscription, next_reset,
@@ -353,6 +354,11 @@ async def check_shadow_post(context, msg, config, edited=False):
             await delete_shadow_post(context, msg)
             return True
         owner_id = channel["owner"]["id"]
+        profile = profile_from_entry("shadow", channel, channel["channel_id"])
+        if await reject_blocked(context, msg, config, profile):
+            return True
+        if not recorded and await check_flood(context, msg, profile):
+            return True
         if config.get("mode", "normal") != "normal" or config.get("ban_messages") == "all":
             await delete_shadow_post(context, msg)
             return True

@@ -15,6 +15,10 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
+from bot.moderation import (
+    profile_from_entry, user_is_blocked, set_user_block, set_profile_block,
+    notify_restriction,
+)
 
 LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -47,7 +51,7 @@ def _who(user) -> str:
 
 
 ROLES = ("root", "sudo", "user")
-CATEGORIES = ("protected", "alpha", "signed")
+CATEGORIES = ("protected", "alpha", "signed", "shadow")
 
 CATEGORY_KEY = {
     "protected": "admins",
@@ -59,6 +63,7 @@ CATEGORY_TITLE = {
     "protected": "👤 Admins",
     "alpha": "⭐ Alpha",
     "signed": "✍️ Signed users",
+    "shadow": "🌒 Shadow",
 }
 
 
@@ -73,6 +78,9 @@ async def check_id(user_id, msg, context):
 
 
 def _get_category_ids(config, category):
+    if category == "shadow":
+        from bot.shadow import store
+        return sorted(store.read()["channels"], key=str)
     if category == "signed":
         return sorted(config.get("signed_users", {}).keys(), key=str)
     key = CATEGORY_KEY[category]
@@ -81,6 +89,9 @@ def _get_category_ids(config, category):
 
 def _find_in_category(config, category, user_id):
     user_id = str(user_id)
+    if category == "shadow":
+        from bot.shadow import store
+        return store.read()["channels"].get(user_id)
     if category == "signed":
         return config.get("signed_users", {}).get(user_id)
     key = CATEGORY_KEY[category]
@@ -91,6 +102,8 @@ def _find_in_category(config, category, user_id):
 
 
 def _display_name(category, entry, user_id):
+    if category == "shadow":
+        return f"{entry['owner'].get('name', 'Shadow')} · {user_id}"
     if category == "signed":
         return entry.get("username") or user_id
     name = entry.get("name") or user_id
@@ -138,6 +151,19 @@ def format_user_info(category, entry, user_id):
             f"Shadow: {shadow_txt}\n"
         )
 
+    elif category == "shadow":
+        from html import escape
+        lines.append(
+            f"Владелец: {escape(entry['owner'].get('name', ''))}\n"
+            f"ID владельца: {entry['owner']['id']}\n"
+            f"Channel ID: {user_id}\n"
+        )
+
+    profile = profile_from_entry(category, entry, user_id)
+    if profile.owner_id:
+        status = "да" if user_is_blocked(load_config(), profile.owner_id) else "нет"
+        lines.append(f"Блокировка всех профилей владельца: {status}")
+
     return "\n".join(lines)
 
 
@@ -174,6 +200,7 @@ def main_keyboard():
                 CATEGORY_TITLE["signed"], callback_data="panel^cat^signed"
             )
         ],
+        [InlineKeyboardButton(CATEGORY_TITLE["shadow"], callback_data="panel^cat^shadow")],
     ]
     return InlineKeyboardMarkup(rows)
 
@@ -267,6 +294,14 @@ def user_detail_keyboard(category, entry, user_id):
                 ]
             )
 
+    if entry is not None:
+        profile = profile_from_entry(category, entry, user_id)
+        if profile.owner_id:
+            blocked = user_is_blocked(load_config(), profile.owner_id)
+            label = "🟢 Снять блокировку пользователя" if blocked else "🔴 Заблокировать все профили юзера"
+            action = "unblockuser" if blocked else "blockuser"
+            rows.append([InlineKeyboardButton(label, callback_data=f"panel^{action}^{category}^{user_id}")])
+
     rows.append(
         [InlineKeyboardButton("⬅️ К списку", callback_data=f"panel^cat^{category}")]
     )
@@ -349,6 +384,22 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 entry is not None,
             )
 
+        elif action in ("blockuser", "unblockuser"):
+            category, user_id = parts[2], parts[3]
+            entry = _find_in_category(config, category, user_id)
+            if entry:
+                profile = profile_from_entry(category, entry, user_id)
+                if profile.owner_id:
+                    await set_user_block(context, profile.owner_id, action == "blockuser")
+                    audit_logger.info(
+                        "USER BLOCK CHANGED | actor=%s | owner=%s | blocked=%s",
+                        actor, profile.owner_id, action == "blockuser",
+                    )
+            config = load_config()
+            entry = _find_in_category(config, category, user_id)
+            text = format_user_info(category, entry, user_id)
+            reply_markup = user_detail_keyboard(category, entry, user_id)
+
         elif action == "trust":
             user_id = parts[2]
             entry = _find_in_category(config, "protected", user_id)
@@ -379,8 +430,9 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             entry = _find_in_category(config, "protected", user_id)
             if entry:
                 old = entry.get("mute", False)
-                entry["mute"] = not old
-                save_config(config)
+                await set_profile_block(
+                    context, profile_from_entry("protected", entry, user_id), not old,
+                )
                 config = load_config()
                 entry = _find_in_category(config, "protected", user_id)
                 audit_logger.info(
@@ -407,6 +459,10 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 old = entry.get("EXCOMMUNICADO", False)
                 entry["EXCOMMUNICADO"] = not old
                 save_config(config)
+                await notify_restriction(
+                    context, profile_from_entry("protected", entry, user_id), not old,
+                    "Статус EXCOMMUNICADO установлен." if not old else "Статус EXCOMMUNICADO снят.",
+                )
                 config = load_config()
                 entry = _find_in_category(config, "protected", user_id)
                 audit_logger.info(
@@ -423,7 +479,7 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     user_id,
                 )
 
-            if entry.get("EXCOMMUNICADO") == True:
+            if entry and entry.get("EXCOMMUNICADO") == True:
                 name = entry["name"] + entry["uuid"]
                 audit_logger.info(
                     "EXCOMMUNICADO PROTOCOL TRIGGERED | actor=%s | target=%s (%s)",
@@ -443,7 +499,7 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     reply_markup=reply_markup,
                 )
                 return
-            else:
+            elif entry:
                 try:
                     if entry["protected"]:
                         await context.bot.send_message(

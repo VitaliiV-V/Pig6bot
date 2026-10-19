@@ -194,6 +194,7 @@ class StoreTests(unittest.TestCase):
 with patch.dict(os.environ, {"OWNER_ID": "1", "MAIN_CHANNEL_ID": str(MAIN), "PERSONAL_CHANNEL_ID": "-100777"}):
     with patch("dotenv.load_dotenv"):
         from bot import shadow
+from bot import moderation
 from telegram import Bot, Update, User
 from telegram.error import Forbidden
 from telegram.ext import Application, ApplicationHandlerStop, CommandHandler, MessageHandler, filters
@@ -201,6 +202,8 @@ from telegram.ext import Application, ApplicationHandlerStop, CommandHandler, Me
 
 class HandlerTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
+        moderation._recent_messages.clear()
+        self.addCleanup(moderation._recent_messages.clear)
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.store = ShadowStore(Path(self.temp.name) / "shadow.json")
@@ -230,6 +233,32 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
     def private(self, text, user_id=456):
         msg = SimpleNamespace(text=text, from_user=SimpleNamespace(id=user_id, is_bot=False), chat=SimpleNamespace(type="private"), reply_text=AsyncMock())
         return SimpleNamespace(message=msg, effective_message=msg)
+
+    async def test_owner_block_rejects_shadow_without_spending_quota(self):
+        self.config["blocked_user_ids"] = ["123"]
+        before = self.store.read()
+        self.assertTrue(await shadow.check_shadow_post(self.context, self.post(), self.config))
+        self.bot.delete_message.assert_awaited_once_with(chat_id=MAIN, message_id=1)
+        self.bot.set_chat_title.assert_not_awaited()
+        self.assertEqual(self.store.read(), before)
+
+    async def test_shadow_shares_flood_limit_with_regular_profiles(self):
+        config = {**self.config, "blocked_user_ids": []}
+        def save(value):
+            config.update(copy.deepcopy(value))
+        config_module = SimpleNamespace(load_config=lambda: copy.deepcopy(config), save_config=save)
+        profile = moderation.Profile("protected:-10", "Regular", "123", {})
+        with patch.dict("sys.modules", {"config.config": config_module}), patch.object(moderation, "monotonic", return_value=100):
+            for message_id in range(1, 10):
+                await moderation.check_flood(self.context, self.post(message_id), profile)
+            self.assertTrue(await shadow.check_shadow_post(self.context, self.post(10), config))
+        self.assertEqual(config["blocked_user_ids"], ["123"])
+        self.assertEqual(config["ban_messages"], "off")
+        self.assertEqual(self.bot.delete_message.await_count, 10)
+        self.assertEqual(self.store.read()["posts"], {})
+        self.bot.set_chat_title.assert_not_awaited()
+        self.bot.send_message.assert_awaited_once()
+        self.assertEqual(self.bot.send_message.call_args.kwargs["chat_id"], 123)
 
     async def test_private_contact_creates_trial_once_without_overwriting_paid(self):
         update = self.private("/start")

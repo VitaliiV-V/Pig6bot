@@ -3,7 +3,7 @@ import logging
 from bot.settings import *
 from config.config import *
 from bot.protection import *
-from datetime import datetime
+from bot.moderation import find_profile, reject_blocked, check_flood, current_signature
 from economy.pig6economy import *
 from telegram.ext import ContextTypes
 
@@ -39,20 +39,6 @@ def check(text):
     return False
 
 
-messages = []
-
-
-class Message:
-    def __init__(self, author_username: str, text: str, message_id: int):
-        self.author_username = author_username
-        self.text = text
-        self.message_id = message_id
-        self.created_at = datetime.now()
-
-    def age(self) -> float:
-        return (datetime.now() - self.created_at).total_seconds()
-
-
 async def _safe_delete(context, chat_id, message_id, reason=""):
     try:
         await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
@@ -66,8 +52,7 @@ async def _safe_delete(context, chat_id, message_id, reason=""):
         )
 
 
-async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=False):
-    global last_time, messages
+async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=False, profile=None):
     chat_id = msg.chat_id
 
     message_id = msg.message_id
@@ -80,12 +65,27 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
         or ""
     )
 
-    bot_name = (await context.bot.get_me()).first_name
+    profile = profile or find_profile(config, msg)
+    if await reject_blocked(context, msg, config, profile):
+        return
 
+    # Capture this before check_protection rotates the profile's UUID. Its legacy
+    # media grace period is not sufficient evidence for banning an author.
+    count_flood = ignore or current_signature(msg, profile)
     try:
-        penis, trust = await check_protection(context=context, msg=msg, config=config)
+        if ignore:
+            authorized, trust = True, False
+        else:
+            authorized, trust = await check_protection(context=context, msg=msg, config=config)
     except (BadRequest, Forbidden, OSError, KeyError, ValueError) as e:
         logger.exception("check_protection failed for chat %s: %s", chat_id, e)
+        return
+
+    if not authorized and not ignore:
+        await _safe_delete(context, chat_id, message_id, "unverified author")
+        return
+
+    if count_flood and await check_flood(context, msg, profile):
         return
 
     if trust:
@@ -111,24 +111,5 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
     except (KeyError, ValueError, OSError) as e:
         logger.exception("economy.use_code_from_text failed in chat %s: %s", chat_id, e)
 
-    if not msg.author_signature:
+    if not msg.author_signature and not ignore:
         await _safe_delete(context, chat_id, message_id, "no author signature")
-        return
-
-    if not penis:
-        await _safe_delete(context, chat_id, message_id, "banned gif")
-
-    if len(messages) >= 10 and messages[-10].age() < 5:
-        try:
-            await tools.blockall(context=context, msg=None, x=0)
-            logger.info("Triggered blockall (flood protection) in chat %s", chat_id)
-        except (BadRequest, Forbidden, OSError, ValueError) as e:
-            logger.exception("tools.blockall failed for chat %s: %s", chat_id, e)
-
-        for i in range(-min(40, len(messages) - 1), 0):
-            if i >= -11 or messages[i].message_text == messages[-1].message_text:
-                await _safe_delete(context, chat_id, message_id, "flood cleanup")
-
-    messages.append(Message(msg.author_signature, message_text, message_id))
-    if len(messages) > 1000:
-        messages.clear()

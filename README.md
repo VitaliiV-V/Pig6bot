@@ -72,9 +72,17 @@ processes.
 - Manual filtering normalizes text through a leetspeak/character-mapping
   dictionary (`dict.json`) before checking it against a list of banned
   substrings/words in `config.json["banned"]`.
-- Simple **anti-flood protection**: if 10+ messages arrive within 5
-  seconds, the channel is automatically switched to full lockdown
-  (`blockall`) and the recent burst of messages is purged.
+- **Anti-flood protection**: 10 messages within 5 seconds from one user
+  block that user's publications across their profiles (including Shadow).
+  Only that author's burst is deleted; the channel moderation mode stays
+  unchanged. The block remains until an administrator removes it.
+- Bans are tied to the owner's Telegram ID, so rotating profile signatures
+  or registering another profile does not bypass an account block. If a
+  legacy profile has no owner ID, only that profile is blocked.
+- Owners receive private bot notifications when profile or account restrictions
+  are applied or lifted, including mute, `/ban`, `/unban` and EXCOMMUNICADO.
+  Telegram delivery failures are logged without undoing the restriction;
+  recipients need to have started the bot and allow private messages from it.
 - Per-user bans (`banned_users`) and per-GIF bans (`bad_gifs`) are
   enforced on every incoming post.
 - A whitelist system (`white_lists_mode`: `off` / `admins` / `manual`)
@@ -100,6 +108,21 @@ processes.
   - Browse **Super users**.
   - Browse and manage **Signed users** (change role, revoke a linked
     channel, toggle "shadow" visibility per channel).
+  - Browse **Shadow** profiles and block all profiles of an owner from any
+    profile card. "Снять блокировку пользователя" removes the account block;
+    separate profile restrictions remain in effect.
+
+### Private access codes (`bot/access.py`)
+
+- Send the configured code as a separate text message in the main bot's private
+  chat, without an `admin` or `unban` prefix. The `admin` code adds the sender to `root_users`, granting access to
+  `/panel` and the bot's existing administrator commands.
+- The `unban` code clears the sender's account and profile bans, including mute
+  and EXCOMMUNICADO, across regular, signed and Shadow profiles. Other users'
+  restrictions and channel-wide moderation modes remain in effect.
+- Codes are reusable and stored as SHA-256 digests in `_CODE_DIGESTS`;
+  plaintext codes are not included in source or application logs. Group/channel
+  messages do not activate them. The bot confirms the result in the private chat.
 
 ### Logging (`logs.py`)
 - Any user can `/start` the Logs bot to subscribe; while
@@ -165,6 +188,10 @@ Other keys used throughout the code that should exist in a complete
 config: `root_users`, `alpha_users`, `protected_users`, `signed_users`,
 `owner_name`, `uuid`, `mode`, `Judgment Day Code`, `bad_gifs`, `logs`,
 `logs_mode`, `base_prompt`, `AI mode`.
+
+`blocked_user_ids` stores account bans as Telegram user IDs; `banned_profiles`
+stores individual bans by stable profile key. Missing lists in existing
+configurations are treated as empty. These lists do not change `ban_messages`.
 
 ### `dict.json`
 A character-normalization map used by the censor to catch

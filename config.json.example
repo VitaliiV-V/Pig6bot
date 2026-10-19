@@ -11,6 +11,9 @@
     "Judgment Day Code": "",
     "base_prompt": "",
     "banned": [],
+    "banned_users": [],
+    "blocked_user_ids": [],
+    "banned_profiles": [],
     "admins": [
     ],
     "alpha_users": [
