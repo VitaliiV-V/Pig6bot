@@ -338,30 +338,37 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
         self.bot.set_chat_title.assert_awaited_once()
         censor.assert_not_called()
 
-    async def test_channel_edits_skip_all_publication_checks(self):
+    async def test_channel_edits_only_check_content_in_main_channel(self):
         # Load only the channel handlers, avoiding config and economy side effects.
         source = ast.parse(Path("bot/channel.py").read_text())
         handlers = [node for node in source.body if isinstance(node, ast.AsyncFunctionDef)
                     and node.name in ("channel_post_handler", "reply_in_channel")]
         environment = {"Update": Update, "ContextTypes": SimpleNamespace(DEFAULT_TYPE=object),
                        "ApplicationHandlerStop": ApplicationHandlerStop, "MAIN_CHANNEL_ID": MAIN,
-                       "load_config": Mock(), "check_shadow_post": AsyncMock(),
+                       "load_config": Mock(return_value=self.config), "check_shadow_post": AsyncMock(),
                        "register_shadow": AsyncMock(), "protect_query": AsyncMock(),
                        "check_owner": AsyncMock(), "check_super_user": AsyncMock(),
                        "root_commands": AsyncMock(), "check_signed_user": AsyncMock(),
-                       "check_message": AsyncMock()}
+                       "check_message": AsyncMock(), "check_edited_content": AsyncMock()}
         exec(compile(ast.Module(body=handlers, type_ignores=[]), "bot/channel.py", "exec"), environment)
         before = self.store.read()
         for chat_id in (MAIN, CHANNEL):
-            msg = self.post(text="/ban")
+            msg = self.post(text="/sub")
             msg.chat_id = chat_id
             update = SimpleNamespace(channel_post=None, edited_channel_post=msg)
             with self.subTest(chat_id=chat_id):
                 with self.assertRaises(ApplicationHandlerStop):
                     await environment["channel_post_handler"](update, self.context)
         for callback in environment.values():
-            if isinstance(callback, Mock):
+            if isinstance(callback, Mock) and callback not in (
+                environment["load_config"], environment["check_edited_content"]
+            ):
                 callback.assert_not_called()
+        environment["load_config"].assert_called_once_with()
+        environment["check_edited_content"].assert_awaited_once_with(
+            self.context, unittest.mock.ANY, self.config
+        )
+        self.assertEqual(environment["check_edited_content"].call_args.args[1].chat_id, MAIN)
         self.bot.delete_message.assert_not_awaited()
         self.bot.set_chat_title.assert_not_awaited()
         self.assertEqual(self.store.read(), before)

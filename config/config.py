@@ -24,7 +24,6 @@ def load_config():
         "Judgment Day Code": "",
         "base_prompt": "",
         "banned": [],
-        "banned_users": [],
         "white_list": [],
         "logs_mode": "off",
         "logs": [],

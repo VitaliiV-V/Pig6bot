@@ -114,7 +114,9 @@ def certificate(
 
             public_key = f.read()
 
-    html = Template(open("web/check.html", encoding="utf-8").read()).render(
+    html = Template(
+        open("web/check.html", encoding="utf-8").read(), autoescape=True
+    ).render(
         message=message,
         author_name=author_name,
         created_at=cert["created_at"],
@@ -148,7 +150,9 @@ def shadow_certificate(
     if cert.get("shadow") is not True:
         raise HTTPException(status_code=404)
 
-    html = Template(open("web/shadow.html", encoding="utf-8").read()).render(
+    html = Template(
+        open("web/shadow.html", encoding="utf-8").read(), autoescape=True
+    ).render(
         message=message,
         signature=cert["signature"],
         public_key=public_key,
@@ -201,10 +205,6 @@ def get_market_api_alias():
     return FileResponse("web/app.js")
 
 
-import threading
-import uvicorn
-
-
 @app.exception_handler(404)
 async def not_found(request, exc):
 
@@ -218,5 +218,5 @@ def run_api():
     uvicorn.run(app, host="0.0.0.0", port=2322, log_level="info")
 
 
-api_thread = threading.Thread(target=run_api, daemon=True)
-api_thread.start()
+if __name__ == "__main__":
+    run_api()

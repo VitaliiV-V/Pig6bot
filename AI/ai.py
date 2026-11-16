@@ -16,7 +16,7 @@ from telegram.ext import (
 
 from bot.censor import *
 from bot.protection import *
-from economy.p6economy import *
+from economy.pig6economy import *
 
 jarvis = Jarvis()
 

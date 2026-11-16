@@ -36,7 +36,6 @@ from olymp.handlers import *
 from bot.censor import *
 from bot.quote import *
 from economy.economy import *
-from web.server import *
 from bot.protection import *
 from bot.shadow import sub_handler, sub_buttons_handler, author_handler, shop_message_handler, track_private_user, migrate_shadow_channels
 from logging.handlers import RotatingFileHandler

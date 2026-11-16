@@ -338,6 +338,8 @@ async def check_signed_user(
 
 async def root_commands(context: ContextTypes.DEFAULT_TYPE, msg, config):
     global last_time
+    if getattr(msg, "edit_date", None):
+        return
     chat_id = msg.chat_id
     message_text = msg.text or ""
 
@@ -347,12 +349,6 @@ async def root_commands(context: ContextTypes.DEFAULT_TYPE, msg, config):
             config["bad_gifs"].append(msg.reply_to_message.animation.file_id)
             save_config(config)
             logger.info("Root command /bangif executed in chat %s", chat_id)
-        elif "/ban" in message_text:
-            tools.ban(msg.reply_to_message.author_signature)
-            logger.info("Root command /ban executed in chat %s", chat_id)
-        elif "/unban" in message_text:
-            tools.unban(msg.reply_to_message.author_signature)
-            logger.info("Root command /unban executed in chat %s", chat_id)
         elif "EXCOMMUNICADO" in message_text:
             await tools.EXCOMMUNICADO(context, msg)
             logger.info("EXCOMMUNICADO protocol triggered by root in chat %s", chat_id)
@@ -388,6 +384,8 @@ async def check_owner(
     config,
 ):
     global last_time
+    if getattr(msg, "edit_date", None):
+        return False
     chat_id = msg.chat_id
     message_id = msg.message_id
     message_text = msg.text or ""
@@ -414,13 +412,7 @@ async def check_owner(
             return True
         else:
             try:
-                if "/ban" in message_text:
-                    tools.ban(msg.reply_to_message.author_signature)
-                    logger.info("Owner command /ban executed in chat %s", chat_id)
-                elif "/unban" in message_text:
-                    tools.unban(msg.reply_to_message.author_signature)
-                    logger.info("Owner command /unban executed in chat %s", chat_id)
-                elif "/bangif" in message_text:
+                if "/bangif" in message_text:
                     config = load_config()
                     config["bad_gifs"].append(msg.reply_to_message.animation.file_id)
                     save_config(config)

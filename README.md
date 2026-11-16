@@ -75,8 +75,7 @@ processes.
 - Simple **anti-flood protection**: if 10+ messages arrive within 5
   seconds, the channel is automatically switched to full lockdown
   (`blockall`) and the recent burst of messages is purged.
-- Per-user bans (`banned_users`) and per-GIF bans (`bad_gifs`) are
-  enforced on every incoming post.
+- Per-GIF bans (`bad_gifs`) are enforced on every incoming post.
 - A whitelist system (`white_lists_mode`: `off` / `admins` / `manual`)
   can restrict who is allowed to post at all.
 
@@ -113,8 +112,8 @@ processes.
   the bot), and runs the same moderation/protection pipeline as the
   main bot on every message it sees.
 - A designated "master" user can issue natural-language admin commands
-  in Russian (e.g. *"джарвис забань ..."*, *"джарвис включи логи"*,
-  *"джарвис судный день"*) to ban/unban users, change the base prompt,
+  in Russian (e.g. *"джарвис включи логи"*,
+  *"джарвис судный день"*) to change the base prompt,
   toggle logging, switch moderation mode, manage the whitelist, or
   trigger/cancel Judgment Day — without touching the panel.
 
@@ -153,7 +152,6 @@ user lists, current mode, rotating UUIDs and codes, etc.):
 {
   "ban_messages": 0,
   "banned": [],
-  "banned_users": [],
   "OWNER_NAMEs": [],
   "white_lists_mode": "off",
   "white_list": [],
@@ -181,7 +179,7 @@ bot/
   panel.py          # inline-keyboard admin control panel
   protection.py      # identity verification, certificates, Judgment Day trigger
   settings.py        # environment variable loading
-  tools.py           # ban/unban, blockall/disable, EXCOMMUNICADO, judgment-day toggling
+  tools.py           # blockall/disable, EXCOMMUNICADO, judgment-day toggling
 AI/
   jarvis.py           # Gemini chat wrapper
 config/
@@ -221,7 +219,7 @@ Pig6Cert.py          # Pig-6 Certificates bot entry point (key generation, signi
   unaudited implementations rather than standard, widely-reviewed
   protocols.
 - `config.json` and the `keys/private/` directory contain sensitive
-  material (banned-user lists, rotating secret codes, private signing
+  material (moderation settings, rotating secret codes, private signing
   keys) and should never be committed to version control or exposed
   publicly.
 - The Judgment Day protocol is a destructive, irreversible-by-design

@@ -17,8 +17,11 @@ async def channel_post_handler(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Signatures rotate after publication; edits must not revalidate old posts.
+    # Signatures rotate after publication; edits only need content filtering.
     if update.edited_channel_post:
+        msg = update.edited_channel_post
+        if msg.chat_id == MAIN_CHANNEL_ID:
+            await check_edited_content(context, msg, load_config())
         return
     msg = update.channel_post
 

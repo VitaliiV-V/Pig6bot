@@ -66,6 +66,16 @@ async def _safe_delete(context, chat_id, message_id, reason=""):
         )
 
 
+async def check_edited_content(context: ContextTypes.DEFAULT_TYPE, msg, config):
+    """Check edited content without repeating publication or identity checks."""
+    if msg.animation and msg.animation.file_id in config.get("bad_gifs", []):
+        await _safe_delete(context, msg.chat_id, msg.message_id, "banned gif in edit")
+        return
+
+    if config.get("ban_messages") == "manual" and check(msg.text or msg.caption or ""):
+        await _safe_delete(context, msg.chat_id, msg.message_id, "banned content in edit")
+
+
 async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=False):
     global last_time, messages
     chat_id = msg.chat_id
@@ -125,9 +135,13 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
         except (BadRequest, Forbidden, OSError, ValueError) as e:
             logger.exception("tools.blockall failed for chat %s: %s", chat_id, e)
 
-        for i in range(-min(40, len(messages) - 1), 0):
-            if i >= -11 or messages[i].message_text == messages[-1].message_text:
-                await _safe_delete(context, chat_id, message_id, "flood cleanup")
+        for i in range(-min(40, len(messages)), 0):
+            previous = messages[i]
+            if i >= -11 or previous.text == message_text:
+                await _safe_delete(context, chat_id, previous.message_id, "flood cleanup")
+        await _safe_delete(context, chat_id, message_id, "flood cleanup")
+        messages.clear()
+        return
 
     messages.append(Message(msg.author_signature, message_text, message_id))
     if len(messages) > 1000:

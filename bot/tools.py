@@ -9,28 +9,6 @@ from telegram.error import BadRequest, Forbidden
 logger = logging.getLogger(__name__)
 
 
-def ban(s):
-    try:
-        config = load_config()
-        if s not in config["banned_users"]:
-            config["banned_users"].append(s)
-        save_config(config)
-        logger.info("Banned user signature: %s", s)
-    except (OSError, ValueError, KeyError) as e:
-        logger.exception("Failed to ban %s: %s", s, e)
-
-
-def unban(s):
-    try:
-        config = load_config()
-        if s in config["banned_users"]:
-            config["banned_users"].remove(s)
-        save_config(config)
-        logger.info("Unbanned user signature: %s", s)
-    except (OSError, ValueError, KeyError) as e:
-        logger.exception("Failed to unban %s: %s", s, e)
-
-
 def setbaseprompt(s):
     try:
         config = load_config()
