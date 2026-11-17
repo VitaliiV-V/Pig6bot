@@ -83,10 +83,10 @@ processes.
 - An emergency "lockdown" mode. When triggered (by the owner, a root
   user, or the Jarvis voice command), the main channel is put into
   maximum-security mode and a countdown/announcement sequence runs.
-- The dedicated Judgment Day bot (`jday.py`) then deletes **any** message
-  in any chat it's added to unless it contains the current secret
-  confirmation code (`config.json["Judgment Day Code"]`), which rotates
-  every time it's used.
+- While this mode is active, the dedicated Judgment Day bot (`bot/jday.py`)
+  deletes every incoming or edited message in chats where it has deletion
+  rights, including media and service messages that Telegram permits deleting.
+  Commands and confirmation codes do not exempt a message from deletion.
 - A protected channel/user can be permanently marked `EXCOMMUNICADO`,
   revoking their protection and blacklisting them.
 

@@ -1,15 +1,25 @@
-import uuid
-from config.config import *
-from bot.settings import *
-from telegram import Update
-from telegram.ext import ContextTypes
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHandler
+import logging
 
-app = ApplicationBuilder().token(JUDGMENT_DAY_TOKEN).build()
+from config.config import load_config
+from bot.settings import JUDGMENT_DAY_TOKEN
+from telegram import Update
+from telegram.error import TelegramError
+from telegram.ext import (
+    ApplicationBuilder,
+    ApplicationHandlerStop,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
+
+logger = logging.getLogger(__name__)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
+    msg = update.effective_message
+    if msg is None:
+        return
 
     config = load_config()
     status = "остановлен"
@@ -19,24 +29,44 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await msg.reply_text(f"Протокол судного дня {status}")
 
 
-async def delete_all(update, context):
+async def delete_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.effective_message
+    if msg is None:
+        return
+
     config = load_config()
-    if config["mode"] == "Judgment Day":
-        try:
-            if config["Judgment Day Code"] not in update.message.text:
-                await update.message.delete()
-        except:
-            msg = update.channel_post or update.edited_channel_post
-            chat_id = msg.chat_id
-            message_id = msg.message_id
-            if not msg.text or config["Judgment Day Code"] not in msg.text:
-                await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-            else:
-                config["Judgment Day Code"] = str(uuid.uuid4())
-                save_config(config)
+    if config.get("mode") != "Judgment Day":
+        return
+
+    try:
+        # Delete by ID: text, captions, media and service messages use the same API.
+        await context.bot.delete_message(chat_id=msg.chat_id, message_id=msg.message_id)
+    except TelegramError as exc:
+        logger.warning(
+            "Failed to delete Judgment Day message %s in chat %s: %s",
+            msg.message_id,
+            msg.chat_id,
+            exc,
+        )
+
+    # Commands must not bypass deletion or produce replies during lockdown.
+    raise ApplicationHandlerStop
 
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.ALL, delete_all))
+def main():
+    logging.basicConfig(level=logging.INFO)
+    app = ApplicationBuilder().token(JUDGMENT_DAY_TOKEN).build()
+    app.add_handler(MessageHandler(filters.ALL, delete_all), group=-1)
+    app.add_handler(CommandHandler("start", start, filters=filters.UpdateType.MESSAGE))
+    app.run_polling(
+        allowed_updates=[
+            "message",
+            "edited_message",
+            "channel_post",
+            "edited_channel_post",
+        ]
+    )
 
-app.run_polling(allowed_updates=["message", "channel_post", "chat_member"])
+
+if __name__ == "__main__":
+    main()
