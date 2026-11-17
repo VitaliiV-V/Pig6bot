@@ -1,32 +1,7 @@
-import logging
-from logging.handlers import RotatingFileHandler
-import os
+from config.logging_config import configure_logging
 
-os.makedirs("logs", exist_ok=True)
+configure_logging(log_file="logs/main.log")
 
-log_formatter = logging.Formatter(
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-
-file_handler = RotatingFileHandler(
-    "logs/main.log",
-    maxBytes=5 * 1024 * 1024,
-    backupCount=3,
-    encoding="utf-8",
-)
-
-file_handler.setFormatter(log_formatter)
-file_handler.setLevel(logging.INFO)
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(log_formatter)
-console_handler.setLevel(logging.INFO)
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
-root_logger.handlers.clear()
-root_logger.addHandler(file_handler)
-root_logger.addHandler(console_handler)
-logging.getLogger().setLevel(logging.INFO)
-logging.getLogger("bot").setLevel(logging.INFO)
 import logging
 from config.config import *
 from bot.settings import *
@@ -38,7 +13,6 @@ from bot.quote import *
 from economy.economy import *
 from bot.protection import *
 from bot.shadow import sub_handler, sub_buttons_handler, author_handler, shop_message_handler, track_private_user, migrate_shadow_channels
-from logging.handlers import RotatingFileHandler
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,

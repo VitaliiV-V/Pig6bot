@@ -1,3 +1,7 @@
+from config.logging_config import configure_logging
+
+configure_logging()
+
 import logging
 from telegram import (
     InputTextMessageContent,

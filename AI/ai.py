@@ -1,5 +1,12 @@
+from config.logging_config import configure_logging
+
+configure_logging()
+
+import logging
 import json
 import re
+
+logger = logging.getLogger(__name__)
 
 import bot.tools as tools
 from config.config import *
@@ -302,7 +309,7 @@ Telegram-ботом.
 try:
     tools.setbaseprompt(COMMAND_DETECTOR_PROMPT)
 except Exception as e:
-    print(f"[COMMAND DETECTOR] Не удалось установить prompt: {e}")
+    logger.warning("[COMMAND DETECTOR] Не удалось установить prompt: %s", e)
 
 
 app = ApplicationBuilder().token(AI_TOKEN).build()
@@ -348,7 +355,7 @@ async def detect_command(text: str) -> dict:
         result = command_detector.query(prompt)
 
     except Exception as e:
-        print(f"[COMMAND DETECTOR ERROR] {e}")
+        logger.warning("[COMMAND DETECTOR ERROR] %s", e)
 
         return {
             "result": "NO_COMMAND",
@@ -373,8 +380,7 @@ async def detect_command(text: str) -> dict:
         data = json.loads(result)
 
     except json.JSONDecodeError:
-        print("[COMMAND DETECTOR] Некорректный JSON:")
-        print(result)
+        logger.warning("[COMMAND DETECTOR] Некорректный JSON")
 
         return {
             "result": "NO_COMMAND",
@@ -410,7 +416,7 @@ async def detect_command(text: str) -> dict:
     command = data.get("command")
 
     if command not in allowed_commands:
-        print(f"[COMMAND DETECTOR] Неизвестная команда: {command}")
+        logger.warning("[COMMAND DETECTOR] Неизвестная команда: %s", command)
 
         return {
             "result": "NO_COMMAND",
@@ -460,7 +466,7 @@ async def execute_command(msg, command_data: dict) -> bool:
             )
 
         except Exception as e:
-            print(f"[COMMAND] set_base_prompt error: {e}")
+            logger.warning("[COMMAND] set_base_prompt error: %s", e)
 
             await msg.reply_text("🔴 Ошибка при установке базового промпта.")
 
@@ -487,7 +493,7 @@ async def execute_command(msg, command_data: dict) -> bool:
             await msg.reply_text("🔄 Джарвис перезагружен.")
 
         except Exception as e:
-            print(f"[COMMAND] restart error: {e}")
+            logger.warning("[COMMAND] restart error: %s", e)
 
             await msg.reply_text("🔴 Не удалось перезагрузить Джарвиса.")
 
@@ -595,27 +601,18 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not mentioned and not replied_to_bot:
         return
 
-    print()
-    print("=" * 60)
-    print("[COMMAND DETECTOR]")
-    print(f"TEXT: {text}")
-
     command_data = await detect_command(text)
-
-    print(f"RESULT: {command_data}")
-
-    print("=" * 60)
 
     if command_data["result"] == "COMMAND":
 
-        print(f"[COMMAND FOUND] " f"{command_data['command']}")
+        logger.info("[COMMAND FOUND] %s", command_data["command"])
 
         handled = await execute_command(msg, command_data)
 
         if handled:
             return
 
-    print("[COMMAND DETECTOR] Команды нет.")
+    logger.debug("[COMMAND DETECTOR] Команды нет.")
 
     author = msg.from_user.first_name if msg.from_user else "Пользователь"
 
@@ -647,7 +644,7 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
 
-        print(f"[JARVIS ERROR] {e}")
+        logger.warning("[JARVIS ERROR] %s", e)
 
         await msg.reply_text("🔴 Произошла ошибка при обращении к AI.")
 

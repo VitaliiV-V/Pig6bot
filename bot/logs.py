@@ -1,3 +1,7 @@
+from config.logging_config import configure_logging
+
+configure_logging()
+
 import uuid
 from config.config import *
 from bot.settings import *
