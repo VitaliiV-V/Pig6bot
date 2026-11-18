@@ -2,7 +2,8 @@ emoji
 jinja2
 pillow
 uvicorn
-fastapi
+fastapi	
 google-genai
+cryptography
 python-dotenv
-python-telegram-bot>=22.7,<23
+python-telegram-bot[job-queue]>=22.7,<23

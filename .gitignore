@@ -7,7 +7,7 @@ venv/
 config.json
 supervisord.log
 supervisord.pid
-*.db
+pig6economy.db
 assets/dataset.json
 certificates/
 keys/

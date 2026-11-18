@@ -11,19 +11,28 @@ CONFIG_FILE = "config.json"
 
 def load_config():
     default_data = {
+        "Pmin": 100,
+        "constA": 1,
         "ban_messages": "off",
         "owner_name": "",
+        "cost": 300,
         "uuid": "󠄟󠇅󠅸󠇒󠄵",
+        "white_lists_mode": "manual",
+        "anon_enable": 0,
         "mode": "normal",
+        "AI mode": "messages",
         "Judgment Day Code": "",
         "base_prompt": "",
         "banned": [],
+        "white_list": [],
         "logs_mode": "off",
         "logs": [],
+        "protected_users": [],
         "admins": [],
         "bad_gifs": [],
         "root_users": [],
         "alpha_users": [],
+        "signed_users": {},
     }
 
     try:

@@ -190,7 +190,7 @@ class StoreTests(unittest.TestCase):
 
 
 # Only the Telegram-facing tests need third-party dependencies. No real bots,
-# config.json is imported or modified by this test suite.
+# config.json or economy DB are imported or modified by this test suite.
 with patch.dict(os.environ, {"OWNER_ID": "1", "MAIN_CHANNEL_ID": str(MAIN), "PERSONAL_CHANNEL_ID": "-100777"}):
     with patch("dotenv.load_dotenv"):
         from bot import shadow
@@ -339,7 +339,7 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
         censor.assert_not_called()
 
     async def test_channel_edits_only_check_content_in_main_channel(self):
-        # Load only the channel handlers, avoiding configuration side effects.
+        # Load only the channel handlers, avoiding config and economy side effects.
         source = ast.parse(Path("bot/channel.py").read_text())
         handlers = [node for node in source.body if isinstance(node, ast.AsyncFunctionDef)
                     and node.name in ("channel_post_handler", "reply_in_channel")]
@@ -348,7 +348,7 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
                        "load_config": Mock(return_value=self.config), "check_shadow_post": AsyncMock(),
                        "register_shadow": AsyncMock(), "protect_query": AsyncMock(),
                        "check_owner": AsyncMock(), "check_super_user": AsyncMock(),
-                       "root_commands": AsyncMock(),
+                       "root_commands": AsyncMock(), "check_signed_user": AsyncMock(),
                        "check_message": AsyncMock(), "check_edited_content": AsyncMock()}
         exec(compile(ast.Module(body=handlers, type_ignores=[]), "bot/channel.py", "exec"), environment)
         before = self.store.read()

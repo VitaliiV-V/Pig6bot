@@ -7,9 +7,12 @@ from bot.settings import *
 from datetime import datetime
 from telegram.ext import ContextTypes
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from economy.pig6economy import *
 import json
 import os
 from telegram.error import BadRequest, Forbidden
+from contextlib import *
+from cryptography.hazmat.primitives import serialization
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +21,32 @@ last_time = datetime.now()
 
 for code in range(0xE0100, 0xE01F0):
     superlist.append(chr(code))
+
+
+def verify_certificate(user_id, text, signature):
+    public_path = f"keys/public/{user_id}.public.pem"
+
+    if not os.path.exists(public_path):
+        logger.warning(
+            "Public key not found for user_id=%s (path=%s)", user_id, public_path
+        )
+        return False
+
+    try:
+        with open(public_path, "rb") as f:
+            public_key = serialization.load_pem_public_key(f.read())
+    except (OSError, ValueError) as e:
+        logger.exception("Failed to load public key for user_id=%s: %s", user_id, e)
+        return False
+
+    payload = f"{user_id}:{text}".encode("utf-8")
+
+    try:
+        public_key.verify(bytes.fromhex(signature), payload)
+        return True
+    except Exception as e:
+        logger.info("Certificate verification failed for user_id=%s: %s", user_id, e)
+        return False
 
 
 async def protect_query(
@@ -247,6 +276,64 @@ async def check_super_user(
 
                     return True
     return False
+
+
+async def check_signed_user(
+    context: ContextTypes.DEFAULT_TYPE,
+    msg,
+    config,
+):
+    if not msg.text:
+        return ""
+
+    message_text = msg.text
+
+    signature = None
+    user_id = None
+
+    if msg.entities:
+        for entity in msg.entities:
+            if entity.type == "text_link":
+                url = entity.url
+
+                if "signature=" in url:
+                    signature = url.split("signature=")[-1].split("&")[0]
+
+                if "user_id=" in url:
+                    user_id = url.split("user_id=")[-1].split("&")[0]
+
+                break
+
+    if not signature:
+        return ""
+
+    message_text = message_text.replace(
+        "\n\nThis message was signed by Pig-6 Certificates.\nView signature.", ""
+    ).strip()
+
+    signed_users = config.get("signed_users", {})
+
+    if user_id and user_id in signed_users:
+        user_data = signed_users[user_id]
+
+        if verify_certificate(int(user_id), message_text, signature):
+            return user_data["role"]
+
+    for shadow_id, user_data in signed_users.items():
+        if "shadow" not in user_data["role"]:
+            continue
+
+        if not verify_certificate(int(shadow_id), message_text, signature):
+            continue
+
+        if "root" not in user_data.get("role") and str(msg.author_signature) != str(
+            shadow_id
+        ):
+            continue
+
+        return user_data["role"]
+
+    return ""
 
 
 async def root_commands(context: ContextTypes.DEFAULT_TYPE, msg, config):

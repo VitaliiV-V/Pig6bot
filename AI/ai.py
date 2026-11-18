@@ -23,6 +23,7 @@ from telegram.ext import (
 
 from bot.censor import *
 from bot.protection import *
+from economy.pig6economy import *
 
 jarvis = Jarvis()
 
@@ -30,7 +31,7 @@ command_detector = Jarvis()
 
 
 COMMAND_DETECTOR_PROMPT = r"""
-Ты — Command Detector для Telegram-бота "Pig 7 Gara AI".
+Ты — Command Detector для Telegram-бота "P-6 AI".
 
 Твоя задача — НЕ отвечать пользователю и НЕ выполнять команды.
 
@@ -318,7 +319,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message:
         return
 
-    await update.message.reply_text("Привет! Я Pig 7 Gara AI!")
+    await update.message.reply_text("Привет! Я P-6 AI!")
 
 
 async def check_id(user_id: int) -> bool:
@@ -616,7 +617,7 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     author = msg.from_user.first_name if msg.from_user else "Пользователь"
 
     ai_prompt = f"""
-Ты — Pig 7 Gara AI, Telegram-ассистент по имени Джарвис.
+Ты — P-6 AI, Telegram-ассистент по имени Джарвис.
 
 Пользователь написал тебе сообщение.
 

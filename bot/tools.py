@@ -3,6 +3,7 @@ import asyncio
 import logging
 from config.config import *
 from bot.settings import *
+from economy.pig6economy import *
 from telegram.error import BadRequest, Forbidden
 
 logger = logging.getLogger(__name__)
@@ -156,7 +157,7 @@ async def EXCOMMUNICADO(context, msg, targetname=""):
                     if i["protected"]:
                         await context.bot.send_message(
                             i["channel_id"],
-                            "⚫ Вы объявлены EXCOMMUNICADO\nДоступ к сервисам «Pig 7 Gara» отныне закрыт для Вас.",
+                            "⚫ Вы объявлены EXCOMMUNICADO\nДоступ к сервисам «Свиньи-6» отныне закрыт для Вас.",
                         )
                 except (BadRequest, Forbidden) as e:
                     if i["protected"]:
@@ -171,12 +172,12 @@ async def EXCOMMUNICADO(context, msg, targetname=""):
                         chat_id=MAIN_CHANNEL_ID,
                         text=(
                             f"{name} EXCOMMUNICADO в силе\n\n"
-                            "Решением системы безопасности Pig 7 Gara защита вашего канала отозвана.\n\n"
+                            "Решением системы безопасности Свинья-6 защита вашего канала отозвана.\n\n"
                             "UUID-подпись аннулирована.\n"
                             "Канал исключён из списка доверенных и внесён в черный список.\n\n"
                             "Вы лишаетесь всех прав и привилегий.\n"
                             "Отныне вы — изгой.\n\n"
-                            "Доступ к сервисам Pig 7 Gara прекращён.\n\n"
+                            "Доступ к сервисам Свиньи-6 прекращён.\n\n"
                             "Вердикт окончательный.\n\n"
                             f"Код подтверждения: {config['Judgment Day Code']}"
                         ),
