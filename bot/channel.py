@@ -4,7 +4,6 @@ from bot.settings import *
 from config.config import *
 from telegram import Update
 from bot.protection import *
-from economy.pig6economy import *
 from telegram.ext import ContextTypes, ApplicationHandlerStop
 from bot.shadow import check_shadow_post, register_shadow
 
@@ -48,15 +47,4 @@ async def reply_in_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await root_commands(context=context, msg=msg, config=config)
         return
 
-    role = await check_signed_user(context=context, msg=msg, config=config)
-
-    ignore = False
-    if "root" in role:
-        await root_commands(context=context, msg=msg, config=config)
-        return
-    elif "sudo" in role:
-        return
-    elif "user" in role:
-        ignore = True
-
-    await check_message(context=context, msg=msg, config=config, ignore=ignore)
+    await check_message(context=context, msg=msg, config=config)

@@ -1,11 +1,11 @@
+import json
+import logging
+import os
 import secrets
 from bot.panel import *
 import bot.tools as tools
 from bot.settings import *
 from config.config import *
-from olymp.handlers import *
-from economy.economy import *
-from economy.pig6economy import *
 from telegram.ext import ContextTypes
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from datetime import datetime, timedelta, timezone
@@ -18,6 +18,7 @@ from telegram import (
 )
 
 requests = {}
+logger = logging.getLogger(__name__)
 
 
 async def quiet_check_id(user_id, msg):
@@ -422,10 +423,6 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await query.answer("🔴 Доступ запрещён.", show_alert=False)
 
-    elif action == "pay":
-        await confirm_pay(query, data, context)
-    elif action == "sell":
-        await confirm_sell(query, data, context)
     elif action == "panel":
         await panel(update, context)
     elif action == "approveq":
@@ -464,105 +461,7 @@ async def buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text("🔴 Запрос отклонён.")
         else:
             await query.answer("🔴 Доступ запрещён.", show_alert=False)
-    elif action == "olymp":
-        await olymp(update, context)
-    elif action == "api":
-        api_action = parts[1]
 
-        if api_action == "revoke":
-            key_id = int(parts[2])
-
-            keyboard = InlineKeyboardMarkup(
-                [
-                    [
-                        InlineKeyboardButton(
-                            "⚠️ Отозвать",
-                            callback_data=f"api^confirm_revoke^{key_id}",
-                        ),
-                        InlineKeyboardButton(
-                            "❌ Отмена",
-                            callback_data="api^cancel_revoke",
-                        ),
-                    ]
-                ]
-            )
-
-            await query.edit_message_text(
-                "⚠️ <b>Отзыв API-ключа</b>\n\n"
-                "Вы действительно хотите отозвать этот API-ключ?\n\n"
-                "После отзыва все запросы с этим ключом перестанут работать.",
-                parse_mode="HTML",
-                reply_markup=keyboard,
-            )
-
-        elif api_action == "confirm_revoke":
-            key_id = int(parts[2])
-            user_id = query.from_user.id
-
-            economy.revoke_api_key(
-                key_id=key_id,
-                owner_id=user_id,
-            )
-
-            mykeys = economy.get_user_api_keys(user_id)
-
-            if not mykeys:
-                await query.edit_message_text(
-                    "🔑 <b>Ваши API-ключи</b>\n\n"
-                    "У Вас пока нет активных API-ключей.",
-                    parse_mode="HTML",
-                )
-                return
-
-            keyboard = []
-
-            for key_id, name in mykeys:
-                keyboard.append(
-                    [
-                        InlineKeyboardButton(
-                            f"🔑 {name or f'API-ключ #{key_id}'}",
-                            callback_data=f"api^revoke^{key_id}",
-                        )
-                    ]
-                )
-
-            await query.edit_message_text(
-                "🔑 <b>Ваши API-ключи</b>\n\n"
-                "Выберите ключ, который хотите отозвать:",
-                parse_mode="HTML",
-                reply_markup=InlineKeyboardMarkup(keyboard),
-            )
-
-        elif api_action == "cancel_revoke":
-            user_id = query.from_user.id
-            mykeys = economy.get_user_api_keys(user_id)
-
-            if not mykeys:
-                await query.edit_message_text(
-                    "🔑 <b>Ваши API-ключи</b>\n\n"
-                    "У Вас пока нет активных API-ключей.",
-                    parse_mode="HTML",
-                )
-                return
-
-            keyboard = []
-
-            for key_id, name in mykeys:
-                keyboard.append(
-                    [
-                        InlineKeyboardButton(
-                            f"🔑 {name or f'API-ключ #{key_id}'}",
-                            callback_data=f"api^revoke^{key_id}",
-                        )
-                    ]
-                )
-
-            await query.edit_message_text(
-                "🔑 <b>Ваши API-ключи</b>\n\n"
-                "Выберите ключ, который хотите отозвать:",
-                parse_mode="HTML",
-                reply_markup=InlineKeyboardMarkup(keyboard),
-            )
     await query.answer()
 
 
@@ -784,103 +683,6 @@ async def logs_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=msg.chat_id, document=open("logs/main.log", "rb")
             )
             return
-
-
-async def apikey_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-
-    if msg.chat_id != msg.from_user.id:
-        await msg.reply_text(
-            text=("🔴 Эта команда доступна только в личном чате с ботом."),
-            parse_mode="HTML",
-        )
-        return
-    try:
-
-        args = msg.text.split()
-        if len(args) > 1:
-            name = (
-                msg.text.split(maxsplit=1)[1]
-                if len(msg.text.split(maxsplit=1)) > 1
-                else ""
-            )
-        else:
-            name = "Telegram Bot"
-        msg = update.message
-
-        if not msg or not msg.from_user:
-            return
-
-        user_id = msg.from_user.id
-        user_name = msg.from_user.username
-
-        economy.set_name_if_empty(user_id, user_name)
-
-        api_key = economy.create_api_key(
-            user_id=user_id,
-            name=name,
-        )
-
-        await msg.reply_text(
-            text=(
-                "🔐 <b>API-доступ Свиньи-6</b>\n\n"
-                "Ваш персональный API-ключ создан.\n\n"
-                f"<code>{api_key}</code>\n\n"
-                "⚠️ <b>Важно:</b> сохраните этот ключ в безопасном месте. "
-                "После выхода из этого сообщения получить его повторно "
-                "будет невозможно.\n\n"
-                "Никому не передавайте Ваш API-ключ."
-            ),
-            parse_mode="HTML",
-        )
-
-        logger.info("API key issued to user %s", user_id)
-
-    except Exception:
-        logger.exception("api_handler() failed")
-        raise
-
-
-async def mykeys_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.message
-    user_id = msg.from_user.id
-    if msg.chat_id != msg.from_user.id:
-        await msg.reply_text(
-            text=("🔴 Эта команда доступна только в личном чате с ботом."),
-            parse_mode="HTML",
-        )
-        return
-    try:
-        mykeys = economy.get_user_api_keys(user_id)
-
-        if not mykeys:
-            await msg.reply_text(
-                "🔑 <b>Ваши API-ключи</b>\n\n" "У Вас пока нет активных API-ключей.",
-                parse_mode="HTML",
-            )
-            return
-
-        keyboard = []
-
-        for key_id, name in mykeys:
-            keyboard.append(
-                [
-                    InlineKeyboardButton(
-                        f"🔑 {name or f'API-ключ #{key_id}'}",
-                        callback_data=f"api^revoke^{key_id}",
-                    )
-                ]
-            )
-
-        await msg.reply_text(
-            "🔑 <b>Ваши API-ключи</b>\n\n" "Выберите ключ, который хотите отозвать:",
-            parse_mode="HTML",
-            reply_markup=InlineKeyboardMarkup(keyboard),
-        )
-
-    except Exception:
-        logger.exception("mykeys_handler() failed")
-        raise
 
 
 async def link_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):

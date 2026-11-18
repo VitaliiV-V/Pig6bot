@@ -11,7 +11,7 @@ from urllib.parse import quote
 
 _TOKEN_PATTERN = re.compile(r"\d{5,}(?::|%3[aA])[A-Za-z0-9_-]{20,}")
 _SECRET_NAMES = (
-    "TOKEN", "JUDGMENT_DAY_TOKEN", "LOGS_TOKEN", "AI_TOKEN", "CERT_TOKEN",
+    "TOKEN", "JUDGMENT_DAY_TOKEN", "LOGS_TOKEN", "AI_TOKEN",
     "GEMINI_API_KEY",
 )
 _FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

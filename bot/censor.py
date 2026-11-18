@@ -4,7 +4,6 @@ from bot.settings import *
 from config.config import *
 from bot.protection import *
 from datetime import datetime
-from economy.pig6economy import *
 from telegram.ext import ContextTypes
 
 logger = logging.getLogger(__name__)
@@ -76,7 +75,7 @@ async def check_edited_content(context: ContextTypes.DEFAULT_TYPE, msg, config):
         await _safe_delete(context, msg.chat_id, msg.message_id, "banned content in edit")
 
 
-async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=False):
+async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config):
     global last_time, messages
     chat_id = msg.chat_id
 
@@ -113,13 +112,6 @@ async def check_message(context: ContextTypes.DEFAULT_TYPE, msg, config, ignore=
         await _safe_delete(context, chat_id, message_id, "banned content match")
         logger.info("Deleted message with banned content in chat %s", chat_id)
         return
-
-    try:
-        if economy.use_code_from_text(message_text):
-            return
-
-    except (KeyError, ValueError, OSError) as e:
-        logger.exception("economy.use_code_from_text failed in chat %s: %s", chat_id, e)
 
     if not msg.author_signature:
         await _safe_delete(context, chat_id, message_id, "no author signature")

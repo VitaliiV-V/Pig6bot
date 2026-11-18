@@ -7,10 +7,8 @@ from config.config import *
 from bot.settings import *
 from bot.channel import *
 from bot.handlers import *
-from olymp.handlers import *
 from bot.censor import *
 from bot.quote import *
-from economy.economy import *
 from bot.protection import *
 from bot.shadow import sub_handler, sub_buttons_handler, author_handler, shop_message_handler, track_private_user, migrate_shadow_channels
 from telegram.ext import (
@@ -28,38 +26,23 @@ app.add_handler(MessageHandler(filters.ALL, shop_message_handler), group=-2)
 app.add_handler(CommandHandler("sub", sub_handler, filters=filters.ChatType.PRIVATE))
 app.add_handler(CommandHandler("q", quote))
 app.add_handler(CommandHandler("quote", quote))
-app.add_handler(CommandHandler("top", top_handler))
-app.add_handler(CommandHandler("buy", buy_handler))
-app.add_handler(CommandHandler("set", set_handler))
 app.add_handler(CommandHandler("reg", reg_handler))
-app.add_handler(CommandHandler("pay", send_handler))
 app.add_handler(CommandHandler("post", post_handler))
 app.add_handler(CommandHandler("link", link_handler))
 app.add_handler(CommandHandler("logs", logs_handler))
-app.add_handler(CommandHandler("give", give_handler))
-app.add_handler(CommandHandler("sell", sell_handler))
 app.add_handler(CommandHandler("jday", jday_handler))
 app.add_handler(CallbackQueryHandler(sub_buttons_handler, pattern=r"^sub\^(change|accept|back)$"))
 app.add_handler(CallbackQueryHandler(buttons_handler))
-app.add_handler(CommandHandler("gift", bonus_handler))
 app.add_handler(CommandHandler("d", download_handler))
 app.add_handler(CommandHandler("panel", panel_handler))
 app.add_handler(CommandHandler("start", start_handler))
 app.add_handler(CommandHandler("smart", smart_handler))
-app.add_handler(CommandHandler("olymp", olymp_handler))
-app.add_handler(CommandHandler("market", market_handler))
-app.add_handler(CommandHandler("mycodes", codes_handler))
-app.add_handler(CommandHandler("apikey", apikey_handler))
 app.add_handler(CommandHandler("config", config_handler))
-app.add_handler(CommandHandler("mykeys", mykeys_handler))
 app.add_handler(CommandHandler("jcode", jdaycode_handler))
-app.add_handler(CommandHandler("balance", balance_handler))
 app.add_handler(CommandHandler("disable", disable_handler))
 app.add_handler(CommandHandler("myaccess", myaccess_handler))
 app.add_handler(CommandHandler("download", download_handler))
 app.add_handler(CommandHandler("blockall", blockall_handler))
-app.add_handler(CommandHandler("gen", generate_codes_handler))
-app.add_handler(CommandHandler("reset", delete_codes_handler))
 app.add_handler(CommandHandler("setbaseprompt", set_base_prompt_handler))
 app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, author_handler))
 # Process channel posts before CommandHandlers: publishing /commands as Shadow
@@ -75,19 +58,12 @@ app.add_handler(
 )
 
 
-app.job_queue.run_repeating(
-    replenish_codes,
-    interval=86400,
-    first=10,
-)
-
 app.run_polling(
     allowed_updates=[
         "message",
         "channel_post",
         "edited_channel_post",
         "chat_member",
-        "inline_query",
         "callback_query",
     ]
 )

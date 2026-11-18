@@ -1,12 +1,9 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from bot.panel import *
 import bot.tools as tools
 from bot.settings import *
 from config.config import *
-from economy.economy import *
-from economy.pig6economy import *
 from telegram.error import BadRequest, Forbidden
 from telegram.ext import ContextTypes
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -46,19 +43,16 @@ def _who(user) -> str:
     return f"id={user.id} ({uname})"
 
 
-ROLES = ("root", "sudo", "user")
-CATEGORIES = ("protected", "alpha", "signed")
+CATEGORIES = ("protected", "alpha")
 
 CATEGORY_KEY = {
     "protected": "admins",
     "alpha": "alpha_users",
-    "signed": "signed_users",
 }
 
 CATEGORY_TITLE = {
     "protected": "👤 Admins",
     "alpha": "⭐ Alpha",
-    "signed": "✍️ Signed users",
 }
 
 
@@ -73,16 +67,12 @@ async def check_id(user_id, msg, context):
 
 
 def _get_category_ids(config, category):
-    if category == "signed":
-        return sorted(config.get("signed_users", {}).keys(), key=str)
     key = CATEGORY_KEY[category]
     return [str(u.get("channel_id")) for u in config.get(key, [])]
 
 
 def _find_in_category(config, category, user_id):
     user_id = str(user_id)
-    if category == "signed":
-        return config.get("signed_users", {}).get(user_id)
     key = CATEGORY_KEY[category]
     for u in config.get(key, []):
         if str(u.get("channel_id")) == user_id:
@@ -91,8 +81,6 @@ def _find_in_category(config, category, user_id):
 
 
 def _display_name(category, entry, user_id):
-    if category == "signed":
-        return entry.get("username") or user_id
     name = entry.get("name") or user_id
     if category == "protected":
         return f"{name}"
@@ -126,17 +114,6 @@ def format_user_info(category, entry, user_id):
             f"UUID: {entry.get('uuid')}\n"
         )
 
-    elif category == "signed":
-        shadow = entry.get("shadow", [])
-        shadow_txt = ", ".join(shadow) if shadow else "—"
-        channels = entry.get("channels", [])
-        channels_txt = ", ".join(channels) if channels else "—"
-        lines.append(
-            f"Username: {entry.get('username')}\n"
-            f"Роль: {entry.get('role')}\n"
-            f"Каналы: {channels_txt}\n"
-            f"Shadow: {shadow_txt}\n"
-        )
 
     return "\n".join(lines)
 
@@ -167,11 +144,6 @@ def main_keyboard():
         [
             InlineKeyboardButton(
                 CATEGORY_TITLE["alpha"], callback_data="panel^cat^alpha"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                CATEGORY_TITLE["signed"], callback_data="panel^cat^signed"
             )
         ],
     ]
@@ -240,32 +212,6 @@ def user_detail_keyboard(category, entry, user_id):
     elif category == "alpha" and entry is not None:
         pass
 
-    elif category == "signed" and entry is not None:
-        current_role = entry.get("role")
-        role_row = []
-        for role in ROLES:
-            label = f"🟢 {role}" if role == current_role else role
-            role_row.append(
-                InlineKeyboardButton(
-                    label, callback_data=f"panel^role^{user_id}^{role}"
-                )
-            )
-        rows.append(role_row)
-
-        channels = entry.get("channels", [])
-        shadow = set(entry.get("shadow", []))
-        for idx, ch in enumerate(channels):
-            shadow_label = "☀️ Убрать shadow" if ch in shadow else "🌒 В shadow"
-            rows.append(
-                [
-                    InlineKeyboardButton(
-                        f"{ch} ❌", callback_data=f"panel^revoke^{user_id}^{idx}"
-                    ),
-                    InlineKeyboardButton(
-                        shadow_label, callback_data=f"panel^shadow^{user_id}^{idx}"
-                    ),
-                ]
-            )
 
     rows.append(
         [InlineKeyboardButton("⬅️ К списку", callback_data=f"panel^cat^{category}")]
@@ -275,9 +221,9 @@ def user_detail_keyboard(category, entry, user_id):
 
 
 MAIN_TEXT = (
-    "<b>Добро пожаловать в панель управления Свинья-6.</b>\n\n"
-    "Центр управления системой защиты Свинья-6. Здесь доступны настройки, мониторинг"
-    ", управление сервисами, сертификатами и внутренней инфраструктурой."
+    "<b>Добро пожаловать в панель управления Pig 7 Gara.</b>\n\n"
+    "Центр управления системой защиты Pig 7 Gara. Здесь доступны настройки, мониторинг"
+    ", управление защищёнными каналами и доверенными пользователями."
 )
 
 
@@ -298,6 +244,9 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     parts = query.data.split("^")
     action = parts[1] if len(parts) > 1 else None
+    if action in ("cat", "user") and (len(parts) < 3 or parts[2] not in CATEGORIES):
+        await query.answer("Этот раздел больше недоступен. Откройте /panel заново.", show_alert=True)
+        return
     config = load_config()
 
     audit_logger.info("PANEL CALLBACK | actor=%s | raw=%s", actor, query.data)
@@ -462,110 +411,6 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
             text = format_user_info("protected", entry, user_id)
             reply_markup = user_detail_keyboard("protected", entry, user_id)
-
-        elif action == "role":
-            user_id, role = parts[2], parts[3]
-            entry = _find_in_category(config, "signed", user_id)
-            if entry and role in ROLES:
-                old = entry.get("role")
-                entry["role"] = role
-                save_config(config)
-                config = load_config()
-                entry = _find_in_category(config, "signed", user_id)
-                audit_logger.info(
-                    "ROLE CHANGED | actor=%s | target=%s | old=%s | new=%s",
-                    actor,
-                    user_id,
-                    old,
-                    role,
-                )
-            else:
-                audit_logger.warning(
-                    "ROLE CHANGE FAILED (not found or invalid role) | actor=%s | target=%s | role=%s",
-                    actor,
-                    user_id,
-                    role,
-                )
-            text = format_user_info("signed", entry, user_id)
-            reply_markup = user_detail_keyboard("signed", entry, user_id)
-
-        elif action == "revoke":
-            user_id, idx = parts[2], int(parts[3])
-            entry = _find_in_category(config, "signed", user_id)
-            if entry:
-                channels = entry.get("channels", [])
-                if 0 <= idx < len(channels):
-                    removed = channels.pop(idx)
-                    entry["channels"] = channels
-                    shadow = entry.get("shadow", [])
-                    if removed in shadow:
-                        shadow.remove(removed)
-                        entry["shadow"] = shadow
-                    save_config(config)
-                    config = load_config()
-                    entry = _find_in_category(config, "signed", user_id)
-                    audit_logger.info(
-                        "CHANNEL REVOKED | actor=%s | target=%s | channel=%s",
-                        actor,
-                        user_id,
-                        removed,
-                    )
-                else:
-                    audit_logger.warning(
-                        "CHANNEL REVOKE FAILED (bad index) | actor=%s | target=%s | idx=%s",
-                        actor,
-                        user_id,
-                        idx,
-                    )
-            else:
-                audit_logger.warning(
-                    "CHANNEL REVOKE FAILED (user not found) | actor=%s | target=%s",
-                    actor,
-                    user_id,
-                )
-            text = format_user_info("signed", entry, user_id)
-            reply_markup = user_detail_keyboard("signed", entry, user_id)
-
-        elif action == "shadow":
-            user_id, idx = parts[2], int(parts[3])
-            entry = _find_in_category(config, "signed", user_id)
-            if entry:
-                channels = entry.get("channels", [])
-                if 0 <= idx < len(channels):
-                    ch = channels[idx]
-                    shadow = set(entry.get("shadow", []))
-                    was_shadow = ch in shadow
-                    if was_shadow:
-                        shadow.discard(ch)
-                    else:
-                        shadow.add(ch)
-                    entry["shadow"] = sorted(shadow)
-                    save_config(config)
-                    config = load_config()
-                    entry = _find_in_category(config, "signed", user_id)
-                    audit_logger.info(
-                        "SHADOW TOGGLED | actor=%s | target=%s | channel=%s | old=%s | new=%s",
-                        actor,
-                        user_id,
-                        ch,
-                        was_shadow,
-                        not was_shadow,
-                    )
-                else:
-                    audit_logger.warning(
-                        "SHADOW TOGGLE FAILED (bad index) | actor=%s | target=%s | idx=%s",
-                        actor,
-                        user_id,
-                        idx,
-                    )
-            else:
-                audit_logger.warning(
-                    "SHADOW TOGGLE FAILED (user not found) | actor=%s | target=%s",
-                    actor,
-                    user_id,
-                )
-            text = format_user_info("signed", entry, user_id)
-            reply_markup = user_detail_keyboard("signed", entry, user_id)
 
         else:
             audit_logger.warning(

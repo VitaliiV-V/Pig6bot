@@ -4,9 +4,6 @@
     // this is the single source of truth for site navigation.
     const NAV_ITEMS = [
         { href: "/", label: "Home", match: p => p === "/" || p === "" || p.endsWith("/index.html") },
-        { href: "/market", label: "Market", match: p => p.startsWith("/market") },
-        { href: "/api-docs", label: "API", match: p => p.startsWith("/api-docs") },
-        { href: "/verify", label: "Certificates", match: p => ["/verify", "/check", "/shadow"].some(s => p.startsWith(s)) },
         { href: "/security-policy", label: "Политика безопасности", match: p => p === "/security-policy" },
     ];
 
@@ -22,7 +19,7 @@
 
                 <a href="/" class="nav-brand">
                     <span class="logo-dot"></span>
-                    Pig-6
+                    Pig 7 Gara
                 </a>
 
                 <nav class="nav-links" id="navLinks">
