@@ -1,6 +1,7 @@
 import logging
+from uuid import uuid4
 
-from config.config import load_config
+from config.config import load_config, save_config
 from bot.settings import JUDGMENT_DAY_TOKEN
 from telegram import Update
 from telegram.error import TelegramError
@@ -37,6 +38,12 @@ async def delete_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     config = load_config()
     if config.get("mode") != "Judgment Day":
         return
+
+    code = config.get("Judgment Day Code", "")
+    if code and code in (msg.text or msg.caption or ""):
+        config["Judgment Day Code"] = str(uuid4())
+        save_config(config)
+        raise ApplicationHandlerStop
 
     try:
         # Delete by ID: text, captions, media and service messages use the same API.

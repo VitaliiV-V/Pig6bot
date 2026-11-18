@@ -86,7 +86,8 @@ processes.
 - While this mode is active, the dedicated Judgment Day bot (`bot/jday.py`)
   deletes every incoming or edited message in chats where it has deletion
   rights, including media and service messages that Telegram permits deleting.
-  Commands and confirmation codes do not exempt a message from deletion.
+  Messages containing the current non-empty confirmation code in their text or
+  caption are exempt; the code rotates after each successful use.
 - A protected channel/user can be permanently marked `EXCOMMUNICADO`,
   revoking their protection and blacklisting them.
 
